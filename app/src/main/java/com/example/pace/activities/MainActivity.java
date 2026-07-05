@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+
         loadFragment(new HomeFragment());
 
         bottomNav.setOnItemSelectedListener(item -> {
