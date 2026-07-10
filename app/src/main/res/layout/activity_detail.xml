@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:clipToPadding="false"
+        android:paddingBottom="100dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- MAP / PATH SECTION -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="280dp"
+                android:background="#0F0F12">
+
+                <!-- Real Map for Route -->
+                <org.osmdroid.views.MapView
+                    android:id="@+id/mapDetail"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <!-- Map Loading Placeholder -->
+                <View
+                    android:id="@+id/viewMapDim"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#80000000"
+                    android:visibility="gone"/>
+
+                <!-- Top Buttons -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp"
+                    android:layout_marginTop="30dp">
+
+                    <FrameLayout
+                        android:id="@+id/btnBack"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/icon_circle_bg"
+                        android:backgroundTint="#1A1A1D"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_back"
+                            app:tint="@color/text_primary"/>
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/btnShareTop"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentEnd="true"
+                        android:background="@drawable/icon_circle_bg"
+                        android:backgroundTint="@color/lime">
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_nav_progress"
+                            app:tint="@color/bg"/>
+                    </FrameLayout>
+                </RelativeLayout>
+
+                <!-- Markers Legend -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="● Start"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="15dp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="● Finish"
+                        android:textColor="@color/lime"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvDetailDistanceTop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:text="5.20 km"
+                    android:textColor="@color/lime"
+                    android:textSize="20sp"
+                    android:textStyle="bold"/>
+
+            </RelativeLayout>
+
+            <!-- ACTIVITY INFO -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:id="@+id/tvDetailRunTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Morning Run"
+                    android:textColor="@color/text_primary"
+                    android:textSize="24sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tvDetailDateTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Hari ini · 06:30 · 📍 Jakarta"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="14sp"/>
+
+                <!-- Main Stats Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="24dp">
+
+                    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                        <TextView android:id="@+id/tvDetailDistance" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5.20" android:textColor="@color/lime" android:textSize="24sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="JARAK (KM)" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                        <TextView android:id="@+id/tvDetailAvgPace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PACE RATA2" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                        <TextView android:id="@+id/tvDetailDuration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27:14" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="DURASI" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- TABS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/card_glass"
+                android:padding="5dp"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/btnTabRingkasan"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/btn_lime">
+                    <TextView
+                        android:id="@+id/tvTabRingkasan"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="Ringkasan"
+                        android:textStyle="bold"
+                        android:textColor="@color/bg"/>
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/btnTabSplit"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+                    <TextView
+                        android:id="@+id/tvTabSplit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="Split"
+                        android:textColor="@color/muted_fg" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- TAB CONTENT: RINGKASAN -->
+            <LinearLayout
+                android:id="@+id/layoutRingkasan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:visibility="visible">
+
+                <!-- 4 Mini Cards -->
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="4"
+                    android:rowCount="1">
+
+                    <!-- Kalori -->
+                    <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="8dp">
+                        <TextView android:id="@+id/tvDetailCalories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="338" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kalori" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                    </LinearLayout>
+                    <!-- Langkah -->
+                    <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="8dp">
+                        <TextView android:id="@+id/tvDetailSteps" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6,933" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Langkah" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                    </LinearLayout>
+                    <!-- Kenaikan -->
+                    <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="8dp">
+                        <TextView android:id="@+id/tvDetailElevation" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="15 m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kenaikan" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                    </LinearLayout>
+                    <!-- Elev Maks -->
+                    <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center">
+                        <TextView android:id="@+id/tvDetailMaxElev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="18 m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Elev Maks" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                    </LinearLayout>
+                </GridLayout>
+
+                <!-- Pace Chart -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/card_glass"
+                    android:padding="20dp"
+                    android:orientation="vertical">
+                    <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pace" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="18sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="min/km" android:textColor="#C8F43A" android:background="@drawable/card_glass" android:paddingHorizontal="8dp" android:paddingVertical="2dp" android:textSize="11sp"/>
+                    </RelativeLayout>
+                    <com.example.pace.views.LineChartView
+                        android:id="@+id/chartPaceDetail"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:layout_marginTop="15dp"/>
+                </LinearLayout>
+
+                <!-- Kadens Chart -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/card_glass"
+                    android:padding="20dp"
+                    android:orientation="vertical">
+                    <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kadens" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="18sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="langkah/mnt" android:textColor="#409C27B0" android:background="@drawable/card_glass" android:paddingHorizontal="8dp" android:paddingVertical="2dp" android:textSize="11sp"/>
+                    </RelativeLayout>
+                    <com.example.pace.views.LineChartView
+                        android:id="@+id/chartCadenceDetail"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:layout_marginTop="15dp"/>
+                </LinearLayout>
+
+                <!-- Elevasi Chart -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/card_glass"
+                    android:padding="20dp"
+                    android:orientation="vertical">
+                    <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Elevasi" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="18sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="meter" android:textColor="#40FF9800" android:background="@drawable/card_glass" android:paddingHorizontal="8dp" android:paddingVertical="2dp" android:textSize="11sp"/>
+                    </RelativeLayout>
+                    <com.example.pace.views.LineChartView
+                        android:id="@+id/chartElevationDetail"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:layout_marginTop="15dp"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- TAB CONTENT: SPLIT -->
+            <LinearLayout
+                android:id="@+id/layoutSplit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/card_glass"
+                    android:padding="20dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Split"
+                        android:textColor="@color/text_primary"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Table Header -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingBottom="10dp" android:paddingHorizontal="4dp">
+                        <TextView android:layout_width="40dp" android:layout_height="wrap_content" android:text="Km" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                        <TextView android:layout_width="70dp" android:layout_height="wrap_content" android:text="Pace" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+                        <TextView android:layout_width="40dp" android:layout_height="wrap_content" android:text="Elev" android:textColor="@color/muted_fg" android:textSize="12sp" android:gravity="end"/>
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#22FFFFFF" android:layout_marginBottom="8dp"/>
+
+                    <LinearLayout
+                        android:id="@+id/llSplitContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- BOTTOM BUTTON -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:padding="20dp"
+        android:background="@drawable/bottom_nav_gradient">
+
+        <LinearLayout
+            android:id="@+id/btnShare"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/btn_lime"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_nav_progress"
+                app:tint="@color/bg"
+                android:layout_marginEnd="10dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bagikan Aktivitas"
+                android:textColor="@color/bg"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>

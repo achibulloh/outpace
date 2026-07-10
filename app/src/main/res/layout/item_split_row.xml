@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="12dp"
+    android:gravity="center_vertical"
+    android:paddingHorizontal="4dp">
+
+    <TextView
+        android:id="@+id/tvSplitKm"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:text="1"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/tvSplitPace"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:text="8:20"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:textSize="14sp"/>
+
+    <ProgressBar
+        android:id="@+id/progressSplit"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="0dp"
+        android:layout_height="14dp"
+        android:layout_weight="1"
+        android:layout_marginEnd="16dp"
+        android:progress="80"
+        android:progressDrawable="@drawable/split_progress_lime" />
+
+    <TextView
+        android:id="@+id/tvSplitElev"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textColor="@color/text_primary"
+        android:gravity="end"
+        android:textSize="14sp"/>
+
+</LinearLayout>

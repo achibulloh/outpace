@@ -2,13 +2,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="PACE"
+        android:label="@string/app_name"
         android:theme="@style/Theme.Pace">
+
+        <!-- Ganti VALUE dengan API Key Google Maps Anda -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDOVqBkCpl0yDU2sLLVQQ_B17vuG_FRz0U" />
 
         <activity android:name=".activities.SplashActivity"
             android:exported="true">
@@ -19,6 +30,30 @@
         </activity>
 
         <activity android:name=".activities.LoginActivity" android:exported="false"/>
+        <activity android:name=".activities.RegisterActivity" android:exported="false"/>
+        <activity android:name=".activities.EditProfileActivity" android:exported="false"/>
+        <activity android:name=".activities.SettingsActivity" android:exported="false"/>
+        <activity android:name=".activities.WeatherActivity" android:exported="false"/>
         <activity android:name=".activities.MainActivity" android:exported="false"/>
+        <activity android:name=".activities.LeaderboardActivity" android:exported="false"/>
+        <activity android:name=".activities.NotificationActivity" android:exported="false"/>
+        <activity android:name=".activities.ActivityDetailActivity" android:exported="false"/>
+        <activity android:name=".activities.ShareActivity" android:exported="false"/>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <service
+            android:name=".services.TrackingService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location" />
     </application>
 </manifest>

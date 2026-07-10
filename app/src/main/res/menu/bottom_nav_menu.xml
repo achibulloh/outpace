@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/nav_home"
-        android:title="Beranda"
-        android:icon="@android:drawable/ic_menu_today"/>
+        android:title="Home"
+        android:icon="@drawable/ic_home"/>
     <item android:id="@+id/nav_history"
-        android:title="Riwayat"
-        android:icon="@android:drawable/ic_menu_recent_history"/>
-    <item android:id="@+id/nav_run"
-        android:title="Lari"
-        android:icon="@android:drawable/ic_media_play"/>
+        android:title="History"
+        android:icon="@drawable/ic_history"/>
+    <!-- Placeholder untuk FAB tengah -->
+    <item android:id="@+id/nav_placeholder"
+        android:title=""
+        android:enabled="false"
+        android:icon="@android:color/transparent"/>
     <item android:id="@+id/nav_progress"
-        android:title="Progress"
-        android:icon="@android:drawable/stat_sys_upload"/>
+        android:title="Stats"
+        android:icon="@drawable/ic_progress"/>
     <item android:id="@+id/nav_profile"
-        android:title="Profil"
-        android:icon="@android:drawable/ic_menu_myplaces"/>
+        android:title="Profile"
+        android:icon="@drawable/ic_person"/>
 </menu>

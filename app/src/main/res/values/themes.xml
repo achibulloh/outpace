@@ -4,8 +4,19 @@
         <item name="colorPrimary">@color/lime</item>
         <item name="android:windowBackground">@color/bg</item>
         <item name="android:statusBarColor">@color/bg</item>
-        <item name="android:navigationBarColor">@color/card</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+        <!-- Disable the Material 3 selection circle on BottomNav -->
+        <item name="bottomNavigationStyle">@style/Widget.App.BottomNavigationView</item>
     </style>
 
+    <style name="Widget.App.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="itemActiveIndicatorStyle">@null</item>
+        <item name="itemRippleColor">@null</item>
+    </style>
+    <style name="RoundedBottomAppBar">
+        <item name="cornerSize">24dp</item>
+    </style>
     <style name="Theme.Pace" parent="Base.Theme.Pace" />
 </resources>

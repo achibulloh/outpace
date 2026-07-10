@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <!-- Header -->
+    <RelativeLayout
+        android:id="@+id/shareHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="@color/card">
+
+        <ImageView
+            android:id="@+id/btnBackShare"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/text_primary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Editor OUTPACE"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/btnSaveGallery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SIMPAN"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:layout_marginEnd="16dp" />
+            <TextView
+                android:id="@+id/btnDoneShare"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BAGIKAN"
+                android:textColor="@color/lime"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Pratinjau Area -->
+    <FrameLayout
+        android:id="@+id/previewArea"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/layoutControls"
+        android:layout_below="@id/shareHeader"
+        android:background="#111">
+
+        <!-- THE CAPTURE CONTAINER -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardCapture"
+            android:layout_width="320dp"
+            android:layout_height="568dp"
+            android:layout_gravity="center"
+            app:cardCornerRadius="0dp"
+            app:cardElevation="10dp"
+            app:cardBackgroundColor="@color/bg">
+
+            <RelativeLayout
+                android:id="@+id/rlCaptureContent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <!-- Background Image -->
+                <ImageView
+                    android:id="@+id/ivShareBg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@color/bg" />
+
+                <!-- Transparent Overlay / Dim -->
+                <View
+                    android:id="@+id/viewBgDim"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#66000000" />
+
+                <!-- Route Track (Scalable) -->
+                <com.example.pace.views.PathDrawingView
+                    android:id="@+id/ivSharePath"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <!-- Stats Container (Draggable) -->
+                <LinearLayout
+                    android:id="@+id/draggableStats"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:id="@+id/layoutLogoApp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+                        <ImageView
+                            android:id="@+id/ivShareLogo"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_logo"
+                            android:layout_marginEnd="8dp"/>
+                        <TextView
+                            android:id="@+id/tvLabelApp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="OUTPACE"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.2"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvShareTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Berlari Sore"
+                        android:textColor="@color/text_primary"
+                        android:textSize="20sp"
+                        android:textStyle="bold"/>
+
+                    <LinearLayout
+                        android:id="@+id/layoutMainStats"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginEnd="16dp">
+                            <TextView android:id="@+id/tvLabelPace" android:text="Pace" android:textColor="@color/text_primary" android:textSize="10sp" android:alpha="0.7" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                            <TextView android:id="@+id/tvSharePace" android:text="5:56 /km" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:id="@+id/tvLabelWaktu" android:text="Waktu" android:textColor="@color/text_primary" android:textSize="10sp" android:alpha="0.7" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                            <TextView android:id="@+id/tvShareWaktu" android:text="20m 4d" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView android:id="@+id/tvLabelJarak" android:text="Jarak" android:textColor="@color/text_primary" android:textSize="10sp" android:alpha="0.7" android:layout_marginTop="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:id="@+id/tvShareJarak" android:text="3,38 km" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+                </LinearLayout>
+
+            </RelativeLayout>
+        </androidx.cardview.widget.CardView>
+    </FrameLayout>
+
+    <!-- Control Panel -->
+    <LinearLayout
+        android:id="@+id/layoutControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:background="@color/card"
+        android:elevation="20dp">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:padding="8dp">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button android:id="@+id/btnTabTemplate" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Template" android:textColor="@color/text_primary"/>
+                <Button android:id="@+id/btnTabBg" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BG &amp; Foto" android:textColor="@color/text_primary"/>
+                <Button android:id="@+id/btnTabScale" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ukuran" android:textColor="@color/text_primary"/>
+                <Button android:id="@+id/btnTabPath" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Warna Jalur" android:textColor="@color/text_primary"/>
+                <Button android:id="@+id/btnTabText" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Font &amp; Warna" android:textColor="@color/text_primary"/>
+                <Button android:id="@+id/btnTabMove" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Geser" android:textColor="@color/text_primary"/>
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <FrameLayout
+            android:id="@+id/optionContainer"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:padding="12dp">
+
+            <!-- Template List (10 Templates) -->
+            <HorizontalScrollView
+                android:id="@+id/scrollTemplates"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="none">
+                <LinearLayout
+                    android:id="@+id/llTemplateContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical" />
+            </HorizontalScrollView>
+
+            <!-- Photo & Scale Controls -->
+            <LinearLayout
+                android:id="@+id/layoutBgControls"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+                <Button
+                    android:id="@+id/btnSelectPhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Pilih Foto Galeri"
+                    android:backgroundTint="@color/lime"
+                    android:textColor="@color/bg" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp">
+                    <TextView android:text="Gelapkan BG" android:textColor="@color/muted_fg" android:textSize="12sp" android:layout_width="80dp" android:layout_height="wrap_content"/>
+                    <SeekBar android:id="@+id/sbBgAlpha" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="100" android:progress="40" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Scaling Controls -->
+            <LinearLayout
+                android:id="@+id/layoutScaleControls"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                    <TextView android:text="Skala Jalur" android:textColor="@color/muted_fg" android:textSize="12sp" android:layout_width="80dp" android:layout_height="wrap_content"/>
+                    <SeekBar android:id="@+id/sbPathScale" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="200" android:progress="100" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="12dp">
+                    <TextView android:text="Skala Teks" android:textColor="@color/muted_fg" android:textSize="12sp" android:layout_width="80dp" android:layout_height="wrap_content"/>
+                    <SeekBar android:id="@+id/sbTextScale" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="200" android:progress="100" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Move Controls -->
+            <LinearLayout
+                android:id="@+id/layoutMoveControls"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sentuh &amp; Seret elemen di atas untuk memindahkan posisi"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="13sp"
+                    android:gravity="center"
+                    android:textStyle="italic"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp">
+                    <Button android:id="@+id/btnModeDragStats" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Geser Teks" android:textSize="12sp" android:backgroundTint="@color/lime" android:textColor="@color/bg" android:layout_marginEnd="8dp"/>
+                    <Button android:id="@+id/btnModeDragPath" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Geser Jalur" android:textSize="12sp" android:backgroundTint="@color/muted" android:textColor="@color/text_primary"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Track Color List -->
+            <HorizontalScrollView
+                android:id="@+id/scrollPathColors"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="none"
+                android:visibility="gone">
+                <LinearLayout
+                    android:id="@+id/llPathColorContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical" />
+            </HorizontalScrollView>
+
+            <!-- Font & Text Settings -->
+            <LinearLayout
+                android:id="@+id/layoutTextSettings"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
+                    <LinearLayout android:id="@+id/llFontContainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" />
+                </HorizontalScrollView>
+
+                <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none" android:layout_marginTop="12dp">
+                    <LinearLayout android:id="@+id/llColorContainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" />
+                </HorizontalScrollView>
+            </LinearLayout>
+
+        </FrameLayout>
+    </LinearLayout>
+</RelativeLayout>

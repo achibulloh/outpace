@@ -1,169 +1,317 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg">
+    android:background="@color/bg"
+    android:fillViewport="true"
+    android:forceDarkAllowed="false"
+    tools:targetApi="q">
 
     <LinearLayout
-        android:orientation="vertical"
-        android:padding="20dp"
-        android:paddingTop="48dp"
-        android:paddingBottom="80dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
 
         <!-- Header -->
-        <TextView
-            android:text="Hei, Adi 👋"
-            android:textColor="@color/text_primary"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <!-- Stats row -->
-        <LinearLayout
-            android:orientation="horizontal"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp">
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp">
 
-            <LinearLayout android:id="@+id/cardStreak"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:padding="12dp"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="90dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/rounded_card">
-                <TextView android:text="🔥" android:textSize="20sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="12" android:textColor="@color/text_primary"
-                    android:textSize="18sp" android:textStyle="bold"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="Streak" android:textColor="@color/muted_fg"
-                    android:textSize="11sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvGreetingHoliday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Selamat Beraktivitas!"
+                    android:textColor="@color/lime"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    android:layout_marginBottom="2dp" />
+
+                <TextView
+                    android:id="@+id/tvCurrentDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SENIN, 30 JUN 2026"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvGreeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hei, Adi 👋"
+                    android:textColor="@color/text_primary"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
-            <LinearLayout android:id="@+id/cardKm"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:padding="12dp"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="90dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/rounded_card">
-                <TextView android:text="⚡" android:textSize="20sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="36.2" android:textColor="@color/lime"
-                    android:textSize="18sp" android:textStyle="bold"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="km minggu ini" android:textColor="@color/muted_fg"
-                    android:textSize="11sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            </LinearLayout>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnNotification"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                app:cardBackgroundColor="@color/card"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                android:clickable="true"
+                android:focusable="true">
 
-            <LinearLayout android:id="@+id/cardCalories"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:padding="12dp"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="90dp"
-                android:background="@drawable/rounded_card">
-                <TextView android:text="🫀" android:textSize="20sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="847" android:textColor="@color/text_primary"
-                    android:textSize="18sp" android:textStyle="bold"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="kkal" android:textColor="@color/muted_fg"
-                    android:textSize="11sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            </LinearLayout>
-        </LinearLayout>
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_notification"
+                        android:contentDescription="Notifications" />
 
-        <!-- Tombol Mulai Lari -->
-        <Button
-            android:id="@+id/btnStartRun"
-            android:text="▶  Mulai Lari"
-            android:textColor="@color/bg"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:background="@drawable/rounded_lime"
+                    <!-- Notification Badge -->
+                    <View
+                        android:id="@+id/viewNotificationBadge"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginEnd="12dp"
+                        android:background="@drawable/dot_red"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </RelativeLayout>
+
+        <!-- Weekly Target Card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginBottom="24dp"/>
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            app:cardBackgroundColor="@color/card"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp">
 
-        <!-- Recent Activity title -->
-        <TextView
-            android:text="Aktivitas Terakhir"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="12dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="24dp">
 
-        <!-- Activity item 1 -->
+                <TextView
+                    android:id="@+id/tvTargetTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TARGET MINGGUAN"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <LinearLayout
+                    android:id="@+id/llTargetStats"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="bottom"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvTargetTitle">
+
+                    <TextView
+                        android:id="@+id/tvWeeklyProgress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="36.2"
+                        android:textColor="@color/text_primary"
+                        android:textSize="32sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvWeeklyTargetLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:layout_marginStart="4dp"
+                        android:text="/ 40 km"
+                        android:textColor="@color/muted_fg"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Progress Circle -->
+                <RelativeLayout
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/daysLayout">
+
+                    <ProgressBar
+                        android:id="@+id/progressBar"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:indeterminate="false"
+                        android:max="100"
+                        android:progress="90"
+                        android:progressDrawable="@drawable/circular_progress_bar" />
+
+                    <TextView
+                        android:id="@+id/tvProgressPercent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:text="90%"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+
+                <!-- Days label -->
+                <LinearLayout
+                    android:id="@+id/daysLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="56dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintTop_toBottomOf="@id/llTargetStats"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <TextView style="@style/DayLabelStyle" android:text="S" />
+                    <TextView style="@style/DayLabelStyle" android:text="S" />
+                    <TextView style="@style/DayLabelStyle" android:text="R" />
+                    <TextView style="@style/DayLabelStyle" android:text="K" />
+                    <TextView style="@style/DayLabelStyle" android:text="J" />
+                    <TextView style="@style/DayLabelStyle" android:text="S" />
+                    <TextView style="@style/DayLabelStyle" android:text="M" />
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Stats Row -->
         <LinearLayout
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:layout_marginBottom="10dp"
-            android:gravity="center_vertical"
-            android:background="@drawable/rounded_card"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <LinearLayout android:orientation="vertical" android:layout_weight="1"
-                android:layout_width="0dp" android:layout_height="wrap_content">
-                <TextView android:text="Morning Run" android:textColor="@color/text_primary"
-                    android:textStyle="bold" android:textSize="14sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="Hari ini · 06:30" android:textColor="@color/muted_fg"
-                    android:textSize="12sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            </LinearLayout>
-            <LinearLayout android:orientation="vertical" android:gravity="end"
-                android:layout_width="wrap_content" android:layout_height="wrap_content">
-                <TextView android:text="5.2 km" android:textColor="@color/text_primary"
-                    android:textStyle="bold" android:textSize="14sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="5:14/km" android:textColor="@color/muted_fg"
-                    android:textSize="12sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.card.MaterialCardView style="@style/StatsCardStyle">
+                <LinearLayout style="@style/StatsContainerStyle">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥" android:textSize="20sp" />
+                    <TextView android:id="@+id/tvStreak" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="12" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="hari" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Streak" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView style="@style/StatsCardStyle">
+                <LinearLayout style="@style/StatsContainerStyle">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚡" android:textSize="20sp" />
+                    <TextView android:id="@+id/tvAvgPace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="/km" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Pace" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView style="@style/StatsCardStyle">
+                <LinearLayout style="@style/StatsContainerStyle">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🫀" android:textSize="20sp" />
+                    <TextView android:id="@+id/tvTotalCalories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="847" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="kkal" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kalori" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- Activity item 2 -->
-        <LinearLayout
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical"
-            android:background="@drawable/rounded_card"
+        <!-- Weather Info -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btnWeather"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <LinearLayout android:orientation="vertical" android:layout_weight="1"
-                android:layout_width="0dp" android:layout_height="wrap_content">
-                <TextView android:text="Long Run" android:textColor="@color/text_primary"
-                    android:textStyle="bold" android:textSize="14sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="Kemarin · 07:00" android:textColor="@color/muted_fg"
-                    android:textSize="12sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="@color/card"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+                <TextView android:id="@+id/tvWeatherIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⛅" android:textSize="32sp" />
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:id="@+id/tvWeatherTemp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="28°C - Cerah Berawan" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu yang tepat untuk lari!" android:textColor="@color/muted_fg" android:textSize="13sp" />
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_arrow_down" android:rotation="-90" app:tint="@color/muted_fg" android:contentDescription="Weather Detail" />
             </LinearLayout>
-            <LinearLayout android:orientation="vertical" android:gravity="end"
-                android:layout_width="wrap_content" android:layout_height="wrap_content">
-                <TextView android:text="7.8 km" android:textColor="@color/text_primary"
-                    android:textStyle="bold" android:textSize="14sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="5:27/km" android:textColor="@color/muted_fg"
-                    android:textSize="12sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Activity Section Title -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Aktivitas Terakhir" android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" />
+            <TextView android:id="@+id/btnViewAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text="Lihat semua" android:textColor="@color/lime" android:textSize="14sp" android:textStyle="bold" android:clickable="true" android:focusable="true" />
+        </RelativeLayout>
+
+        <!-- Empty State Home -->
+        <LinearLayout
+            android:id="@+id/layoutEmptyHome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp"
+            android:visibility="gone">
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/ic_empty_run"
+                android:alpha="0.5" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Belum ada aktivitas lari"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mulai lari sekarang untuk merekam aktivitas Anda."
+                android:textColor="@color/muted_fg"
+                android:textSize="13sp"
+                android:gravity="center"
+                android:layout_marginTop="4dp" />
         </LinearLayout>
+
+        <!-- Dynamic Last Activities -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLastActivities"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+
+        <!-- Bottom Spacer -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="120dp"/>
 
     </LinearLayout>
 </ScrollView>

@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">PACE</string>
+    <string name="welcome_back">Selamat Datang Kembali</string>
+    <string name="login_subtitle">Masuk untuk melanjutkan perjalananmu</string>
+    <string name="email">Email</string>
+    <string name="password">Kata Sandi</string>
+    <string name="login">Masuk</string>
+    <string name="or_login_with">Atau lanjutkan dengan</string>
+    <string name="sign_in_google">Masuk dengan Google</string>
+    <string name="sign_up_google">Daftar dengan Google</string>
+    <string name="google">Google</string>
+    <string name="dont_have_account">Belum punya akun? </string>
+    <string name="register">Daftar</string>
+
+    <string name="create_account">Buat Akun Baru</string>
+    <string name="register_subtitle">Mulai perjalanan sehatmu sekarang</string>
+    <string name="full_name">Nama Lengkap</string>
+    <string name="confirm_password">Konfirmasi Kata Sandi</string>
+    <string name="register_now">Daftar Sekarang</string>
+    <string name="already_have_account">Sudah punya akun? </string>
+
+    <string name="select_language">Bahasa</string>
+    <string name="lang_en">Inggris</string>
+    <string name="lang_id">Indonesia</string>
+
+    <string name="settings">Pengaturan</string>
+    <string name="edit_profile">Edit Profil</string>
+    <string name="gender">Jenis Kelamin</string>
+    <string name="date_of_birth">Tanggal Lahir</string>
+    <string name="weight">Berat Badan (kg)</string>
+    <string name="height">Tinggi Badan (cm)</string>
+    <string name="phone_number">Nomor Telepon</string>
+    <string name="save_changes">Simpan Perubahan</string>
+    <string name="profile_updated">Profil pelari diperbarui</string>
+</resources>

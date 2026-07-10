@@ -1,114 +1,476 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg">
 
-    <!-- Simulasi Peta (area gelap) -->
-    <FrameLayout
+    <!-- OpenStreetMap (Gratis) -->
+    <org.osmdroid.views.MapView
+        android:id="@+id/map"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#0D1117">
+        android:layout_height="match_parent" />
+
+    <!-- Map Loading Overlay -->
+    <LinearLayout
+        android:id="@+id/layoutMapLoading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="visible"
+        android:clickable="true"
+        android:focusable="true">
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminateTint="@color/lime" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Memuat Peta..."
+            android:textColor="@color/muted_fg"
+            android:layout_marginTop="12dp" />
+    </LinearLayout>
+
+    <!-- Overlay Atas: Header (Back + GPS) -->
+    <RelativeLayout
+        android:id="@+id/layoutHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp">
+
+        <LinearLayout
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:elevation="4dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_back"
+                app:tint="@color/text_primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Back"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutGpsStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/rounded_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:elevation="4dp">
+
+            <View
+                android:id="@+id/viewGpsIndicator"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/dot_red" />
+
+            <TextView
+                android:id="@+id/tvGpsStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="GPS Lemah"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- FULL SCREEN STATS OVERLAY (Strava Style) -->
+    <LinearLayout
+        android:id="@+id/layoutStatsOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#121212"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <!-- Top Header Overlay -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:background="#001F3F">
+
+            <!-- Real Minimize Button with Feedback -->
+            <ImageButton
+                android:id="@+id/btnMinimize"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_minimize"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="@color/text_primary"
+                android:scaleType="centerInside"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvOverlayGpsStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sinyal GPS lemah"
+                    android:textColor="#5C85FF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvOverlayDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00:00"
+                    android:textColor="@color/text_primary"
+                    android:textSize="48sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- Bigger Running Icon -->
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/ic_person_run"
+                app:tint="#88FFFFFF"
+                android:alpha="0.8"/>
+
+            <TextView
+                android:id="@+id/tvOverlayAvgPace"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--:--"
+                android:textColor="@color/text_primary"
+                android:textSize="84sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rata2 split (/km)"
+                android:textColor="@color/muted_fg"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="20dp"
+            android:baselineAligned="false">
+
+            <!-- Kalori & Elevasi (Sekarang di Kiri) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp">
+                <TextView
+                    android:id="@+id/tvOverlayCalories"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/text_primary"
+                    android:textSize="32sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Kalori"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvOverlayElevation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0m Up"
+                    android:textColor="@color/lime"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- Jarak (Sekarang di Tengah) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/tvOverlayDistance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/text_primary"
+                    android:textSize="72sp"
+                    android:textStyle="bold"
+                    android:includeFontPadding="false" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Jarak (km)"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Langkah (Tetap di Kanan) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp">
+                <TextView
+                    android:id="@+id/tvOverlaySteps"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--"
+                    android:textColor="@color/text_primary"
+                    android:textSize="32sp"
+                    android:textStyle="bold" />
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_person_run"
+                    app:tint="#FF00FF"
+                    android:layout_marginTop="4dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Split Bar Chart -->
+        <com.example.pace.views.BarChartView
+            android:id="@+id/splitBarChart"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="40dp" />
 
         <TextView
-            android:text="📍 GPS Aktif"
-            android:textColor="@color/lime"
-            android:textSize="13sp"
-            android:padding="12dp"
-            android:layout_gravity="top|start"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Split (/km)"
+            android:textColor="@color/muted_fg"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp" />
 
-        <!-- Dot posisi user -->
-        <View
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_gravity="center"
-            android:background="@color/lime"/>
-    </FrameLayout>
+        <!-- Controls inside Overlay -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:orientation="horizontal"
+            android:paddingHorizontal="24dp"
+            android:paddingBottom="24dp"
+            android:gravity="center">
 
-    <!-- Panel Stats -->
+            <Button
+                android:id="@+id/btnPauseOverlay"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginEnd="12dp"
+                android:text="⏸  JEDA"
+                android:textColor="@color/bg"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_lime" />
+
+            <Button
+                android:id="@+id/btnStopOverlay"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="⏹  BERHENTI"
+                android:textColor="@color/bg"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_lime" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Tombol Expand Stats -->
+    <ImageButton
+        android:id="@+id/btnToggleStats"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="20dp"
+        android:layout_marginBottom="220dp"
+        android:background="@drawable/rounded_card"
+        android:src="@drawable/ic_logo"
+        app:tint="@color/text_primary"
+        android:elevation="8dp" />
+
+    <!-- Panel Stats Bawah (Standard) -->
     <LinearLayout
-        android:orientation="vertical"
-        android:padding="20dp"
-        android:background="@color/card"
+        android:id="@+id/panelStatsBottom"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:background="@color/card"
+        android:elevation="12dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <!-- Handle for Swipe Indication -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:background="#44FFFFFF"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp" />
 
         <!-- Durasi, Jarak, Pace -->
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp">
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
 
-            <LinearLayout android:orientation="vertical" android:gravity="center"
-                android:layout_weight="1" android:layout_width="0dp" android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
                 <TextView android:id="@+id/tvDuration" android:text="00:00"
-                    android:textColor="@color/text_primary" android:textSize="28sp" android:textStyle="bold"
+                    android:textColor="@color/text_primary" android:textSize="32sp" android:textStyle="bold"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="DURASI" android:textColor="@color/muted_fg" android:textSize="10sp"
+                <TextView android:text="DURASI" android:textColor="@color/muted_fg" android:textSize="11sp"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <LinearLayout android:orientation="vertical" android:gravity="center"
-                android:layout_weight="1" android:layout_width="0dp" android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
                 <TextView android:id="@+id/tvDistance" android:text="0.00"
-                    android:textColor="@color/lime" android:textSize="28sp" android:textStyle="bold"
+                    android:textColor="@color/lime" android:textSize="32sp" android:textStyle="bold"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="KM" android:textColor="@color/muted_fg" android:textSize="10sp"
+                <TextView android:text="KM" android:textColor="@color/muted_fg" android:textSize="11sp"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <LinearLayout android:orientation="vertical" android:gravity="center"
-                android:layout_weight="1" android:layout_width="0dp" android:layout_height="wrap_content">
-                <TextView android:id="@+id/tvPace" android:text="--:--"
-                    android:textColor="@color/text_primary" android:textSize="28sp" android:textStyle="bold"
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView android:id="@+id/tvPace" android:text="00:00"
+                    android:textColor="@color/text_primary" android:textSize="32sp" android:textStyle="bold"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="PACE /KM" android:textColor="@color/muted_fg" android:textSize="10sp"
+                <TextView android:text="PACE /KM" android:textColor="@color/muted_fg" android:textSize="11sp"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Kalori & Langkah -->
+        <!-- Small Hidden Stats for Logic Binding -->
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp">
-
-            <LinearLayout android:orientation="vertical" android:gravity="center"
-                android:layout_weight="1" android:padding="10dp"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp" android:background="@drawable/rounded_card">
-                <TextView android:id="@+id/tvCalories" android:text="0"
-                    android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="Kalori" android:textColor="@color/muted_fg" android:textSize="11sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            </LinearLayout>
-
-            <LinearLayout android:orientation="vertical" android:gravity="center"
-                android:layout_weight="1" android:padding="10dp"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:background="@drawable/rounded_card">
-                <TextView android:id="@+id/tvSteps" android:text="0"
-                    android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="Langkah" android:textColor="@color/muted_fg" android:textSize="11sp"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            </LinearLayout>
+            android:layout_height="0dp"
+            android:visibility="invisible">
+            <TextView android:id="@+id/tvCalories" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <TextView android:id="@+id/tvSteps" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
         </LinearLayout>
 
-        <!-- Tombol Play/Pause -->
-        <Button
-            android:id="@+id/btnPlayPause"
-            android:text="▶  Mulai"
-            android:textColor="@color/bg"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:background="@drawable/rounded_lime"
+        <!-- Tombol Controls -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="60dp"/>
+            android:layout_height="64dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnStart"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="▶  MULAI"
+                android:textColor="@color/bg"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_lime"/>
+
+            <Button
+                android:id="@+id/btnPause"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginEnd="12dp"
+                android:text="⏸  JEDA"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:background="@drawable/rounded_card"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/btnStop"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="⏹  BERHENTI"
+                android:textColor="@color/bg"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_lime"
+                android:visibility="gone"/>
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>
