@@ -39,6 +39,8 @@
         <activity android:name=".activities.NotificationActivity" android:exported="false"/>
         <activity android:name=".activities.ActivityDetailActivity" android:exported="false"/>
         <activity android:name=".activities.ShareActivity" android:exported="false"/>
+        <activity android:name=".activities.PrivacyActivity" android:exported="false"/>
+        <activity android:name=".activities.HelpActivity" android:exported="false"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

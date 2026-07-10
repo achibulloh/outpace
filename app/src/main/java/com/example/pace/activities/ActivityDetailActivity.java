@@ -30,6 +30,7 @@ import org.osmdroid.views.overlay.TilesOverlay;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -41,7 +42,7 @@ public class ActivityDetailActivity extends AppCompatActivity {
     private View layoutRingkasan, layoutSplit;
     private LinearLayout llSplitContainer;
     
-    private TextView tvDistanceTop, tvTitle, tvDateTime, tvDistance, tvAvgPace, tvDuration;
+    private TextView tvDistanceTop, tvTitle, tvDateTime, tvLocation, tvDistance, tvAvgPace, tvDuration;
     private TextView tvCalories, tvSteps, tvElevation, tvMaxElev;
     
     private LineChartView chartPace, chartCadence, chartElevation;
@@ -97,6 +98,7 @@ public class ActivityDetailActivity extends AppCompatActivity {
         tvDistanceTop = findViewById(R.id.tvDetailDistanceTop);
         tvTitle = findViewById(R.id.tvDetailRunTitle);
         tvDateTime = findViewById(R.id.tvDetailDateTime);
+        tvLocation = findViewById(R.id.tvDetailLocation);
         tvDistance = findViewById(R.id.tvDetailDistance);
         tvAvgPace = findViewById(R.id.tvDetailAvgPace);
         tvDuration = findViewById(R.id.tvDetailDuration);
@@ -131,6 +133,27 @@ public class ActivityDetailActivity extends AppCompatActivity {
 
         SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMM · HH:mm", new Locale("id", "ID"));
         tvDateTime.setText(sdf.format(new Date(run.getTimestamp())));
+        
+        String loc = run.getLocationName();
+        if (loc != null) {
+            if (loc.contains(" - ")) {
+                loc = loc.replace(" - ", "\n");
+            }
+            tvLocation.setText(loc);
+            tvLocation.setVisibility(View.VISIBLE);
+        } else {
+            tvLocation.setVisibility(View.GONE);
+        }
+        
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(run.getTimestamp());
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        String title = "Berlari";
+        if (hour >= 5 && hour < 11) title = "Berlari Pagi";
+        else if (hour >= 11 && hour < 15) title = "Berlari Siang";
+        else if (hour >= 15 && hour < 19) title = "Berlari Sore";
+        else title = "Berlari Malam";
+        tvTitle.setText(title);
 
         tvCalories.setText(String.valueOf(run.getCalories()));
         tvSteps.setText(String.valueOf((int)(run.getDistance() * 1350))); 
@@ -200,20 +223,6 @@ public class ActivityDetailActivity extends AppCompatActivity {
                 polyline.getOutlinePaint().setColor(Color.parseColor("#CDFF00"));
                 polyline.getOutlinePaint().setStrokeWidth(10f);
                 map.getOverlayManager().add(polyline);
-
-                // Start Marker
-                Marker startMarker = new Marker(map);
-                startMarker.setPosition(path.get(0));
-                startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                startMarker.setTitle("Start");
-                map.getOverlays().add(startMarker);
-
-                // End Marker
-                Marker endMarker = new Marker(map);
-                endMarker.setPosition(path.get(path.size() - 1));
-                endMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                endMarker.setTitle("Finish");
-                map.getOverlays().add(endMarker);
 
                 // Zoom to fit
                 map.postDelayed(() -> {

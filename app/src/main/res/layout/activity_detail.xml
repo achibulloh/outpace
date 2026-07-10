@@ -49,7 +49,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:background="@drawable/icon_circle_bg"
-                        android:backgroundTint="#1A1A1D"
+                        android:backgroundTint="#B3000000"
                         android:clickable="true"
                         android:focusable="true">
                         <ImageView
@@ -66,7 +66,7 @@
                         android:layout_height="40dp"
                         android:layout_alignParentEnd="true"
                         android:background="@drawable/icon_circle_bg"
-                        android:backgroundTint="@color/lime">
+                        android:backgroundTint="#B3C8F43A">
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
@@ -115,53 +115,80 @@
             </RelativeLayout>
 
             <!-- ACTIVITY INFO -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:id="@+id/llTitleContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/tvDetailLocation"
+                    android:layout_marginEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/tvDetailRunTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Berlari"
+                        android:textColor="@color/text_primary"
+                        android:textSize="24sp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/tvDetailDateTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Hari ini · 06:30"
+                        android:textColor="@color/muted_fg"
+                        android:textSize="14sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvDetailLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignTop="@id/llTitleContainer"
+                    android:text="Kota Bandung\nSukapura"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:maxWidth="160dp"
+                    android:gravity="end"
+                    android:lines="2"
+                    android:ellipsize="end" />
+
+            </RelativeLayout>
+
+            <!-- Main Stats Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:paddingHorizontal="20dp">
 
-                <TextView
-                    android:id="@+id/tvDetailRunTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Morning Run"
-                    android:textColor="@color/text_primary"
-                    android:textSize="24sp"
-                    android:textStyle="bold"/>
-
-                <TextView
-                    android:id="@+id/tvDetailDateTime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Hari ini · 06:30 · 📍 Jakarta"
-                    android:textColor="@color/muted_fg"
-                    android:textSize="14sp"/>
-
-                <!-- Main Stats Row -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="24dp">
-
-                    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                        <TextView android:id="@+id/tvDetailDistance" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5.20" android:textColor="@color/lime" android:textSize="24sp" android:textStyle="bold"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="JARAK (KM)" android:textColor="@color/muted_fg" android:textSize="10sp"/>
-                    </LinearLayout>
-
-                    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                        <TextView android:id="@+id/tvDetailAvgPace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PACE RATA2" android:textColor="@color/muted_fg" android:textSize="10sp"/>
-                    </LinearLayout>
-
-                    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                        <TextView android:id="@+id/tvDetailDuration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27:14" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="DURASI" android:textColor="@color/muted_fg" android:textSize="10sp"/>
-                    </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:id="@+id/tvDetailDistance" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5.20" android:textColor="@color/lime" android:textSize="24sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="JARAK (KM)" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                 </LinearLayout>
 
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:id="@+id/tvDetailAvgPace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PACE RATA2" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:id="@+id/tvDetailDuration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27:14" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="DURASI" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                </LinearLayout>
             </LinearLayout>
 
             <!-- TABS -->
@@ -169,6 +196,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
                 android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="24dp"
                 android:layout_marginBottom="20dp"
                 android:background="@drawable/card_glass"
                 android:padding="5dp"
@@ -221,22 +249,18 @@
                     android:columnCount="4"
                     android:rowCount="1">
 
-                    <!-- Kalori -->
                     <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="8dp">
                         <TextView android:id="@+id/tvDetailCalories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="338" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kalori" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                     </LinearLayout>
-                    <!-- Langkah -->
                     <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="8dp">
                         <TextView android:id="@+id/tvDetailSteps" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6,933" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Langkah" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                     </LinearLayout>
-                    <!-- Kenaikan -->
                     <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="8dp">
                         <TextView android:id="@+id/tvDetailElevation" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="15 m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kenaikan" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                     </LinearLayout>
-                    <!-- Elev Maks -->
                     <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center">
                         <TextView android:id="@+id/tvDetailMaxElev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="18 m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Elev Maks" android:textColor="@color/muted_fg" android:textSize="10sp"/>

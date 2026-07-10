@@ -36,18 +36,12 @@ public class NotificationActivity extends AppCompatActivity implements Notificat
         new Thread(() -> {
             List<Notification> items = AppDatabase.getInstance(this).notificationDao().getAllNotifications();
             
-            // For demo: Add some dummy data if empty
-            if (items == null || items.isEmpty()) {
-                AppDatabase db = AppDatabase.getInstance(this);
-                db.notificationDao().insert(new Notification("Selamat Datang!", "Mulai lari pertamamu sekarang dan catat sejarah!", System.currentTimeMillis(), false));
-                db.notificationDao().insert(new Notification("Tips Hari Ini", "Pemanasan sebelum lari sangat penting untuk mencegah cedera.", System.currentTimeMillis() - 3600000, false));
-                items = db.notificationDao().getAllNotifications();
-            }
-
             final List<Notification> finalItems = items;
             runOnUiThread(() -> {
                 notificationList.clear();
-                notificationList.addAll(finalItems);
+                if (finalItems != null) {
+                    notificationList.addAll(finalItems);
+                }
                 adapter.notifyDataSetChanged();
             });
         }).start();

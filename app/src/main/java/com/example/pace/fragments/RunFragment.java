@@ -9,6 +9,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -463,17 +465,57 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     }
 
     private void saveRunBeforeStop() {
-        if (lastDistance < 0.01) {
+        if (lastDistance < 0.005) { // Minimum 5 meters to save
             goBack();
             return;
         }
-        RunRecord record = new RunRecord(System.currentTimeMillis(), lastDistance, lastTime, (lastDistance > 0) ? (lastTime / 60.0) / lastDistance : 0, (int)(lastDistance * userWeight * 1.036), lastElevation, new Gson().toJson(pathPoints));
-        
-        record.setSplitsJson(new Gson().toJson(currentSplits));
-        record.setElevationSplitsJson(new Gson().toJson(currentElevSplits));
-        record.setCadenceSplitsJson(new Gson().toJson(currentCadSplits));
+
+        long timestamp = System.currentTimeMillis();
+        double distance = lastDistance;
+        long duration = lastTime;
+        double pace = (distance > 0) ? (duration / 60.0) / distance : 0;
+        int calories = (int) (distance * userWeight * 1.036);
+        double elevation = lastElevation;
+        String pathJson = new Gson().toJson(pathPoints);
 
         new Thread(() -> {
+            // Fetch Location Name (Reverse Geocoding)
+            String locationName = "Lokasi Tidak Diketahui";
+            if (!pathPoints.isEmpty()) {
+                try {
+                    Geocoder geocoder = new Geocoder(requireContext(), new Locale("id", "ID"));
+                    GeoPoint firstPoint = pathPoints.get(0);
+                    List<Address> addresses = geocoder.getFromLocation(firstPoint.getLatitude(), firstPoint.getLongitude(), 1);
+                    if (addresses != null && !addresses.isEmpty()) {
+                        Address addr = addresses.get(0);
+                        
+                        // Priority for City: SubAdminArea (e.g. Kota Bandung) -> AdminArea
+                        String city = addr.getSubAdminArea();
+                        if (city == null) city = addr.getLocality();
+                        
+                        // Priority for Area: SubLocality (e.g. Sukapura) -> Locality
+                        String area = addr.getSubLocality();
+                        if (area == null) area = addr.getLocality();
+
+                        if (city != null && area != null && !city.equals(area)) {
+                            locationName = city + " - " + area;
+                        } else if (city != null) {
+                            locationName = city;
+                        } else if (area != null) {
+                            locationName = area;
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            RunRecord record = new RunRecord(timestamp, distance, duration, pace, calories, elevation, pathJson);
+            record.setSplitsJson(new Gson().toJson(currentSplits));
+            record.setElevationSplitsJson(new Gson().toJson(currentElevSplits));
+            record.setCadenceSplitsJson(new Gson().toJson(currentCadSplits));
+            record.setLocationName(locationName);
+
             AppDatabase.getInstance(requireContext()).runDao().insert(record);
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {

@@ -18,6 +18,7 @@ public class RunRecord {
     private String splitsJson; // Store pace splits as JSON
     private String elevationSplitsJson; // Store elevation splits
     private String cadenceSplitsJson; // Store cadence splits
+    private String locationName; // Store city/area name
 
     public RunRecord(long timestamp, double distance, long duration, double pace, int calories, double elevationGain, String pathJson) {
         this.timestamp = timestamp;
@@ -33,11 +34,13 @@ public class RunRecord {
     public void setSplitsJson(String splitsJson) { this.splitsJson = splitsJson; }
     public void setElevationSplitsJson(String elevationSplitsJson) { this.elevationSplitsJson = elevationSplitsJson; }
     public void setCadenceSplitsJson(String cadenceSplitsJson) { this.cadenceSplitsJson = cadenceSplitsJson; }
+    public void setLocationName(String locationName) { this.locationName = locationName; }
 
     // Getters for new fields
     public String getSplitsJson() { return splitsJson; }
     public String getElevationSplitsJson() { return elevationSplitsJson; }
     public String getCadenceSplitsJson() { return cadenceSplitsJson; }
+    public String getLocationName() { return locationName; }
 
     // Getters and Setters
     public int getId() { return id; }

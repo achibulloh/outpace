@@ -26,6 +26,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.pace.R;
 import com.example.pace.activities.MainActivity;
+import com.example.pace.database.AppDatabase;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -127,6 +128,9 @@ public class TrackingService extends Service implements SensorEventListener {
             isTracking = true;
             timerHandler.post(timerRunnable);
             registerSensors();
+            
+            // App-internal Notification
+            insertAppNotification("Aktivitas Dimulai", "Anda baru saja mulai merekam lari. Tetap semangat!");
         }
         
         startLocationUpdates();
@@ -161,6 +165,8 @@ public class TrackingService extends Service implements SensorEventListener {
         // Show summary notification
         showSummaryNotification();
         
+        insertAppNotification("Lari Selesai", String.format(Locale.getDefault(), "Berhasil menempuh %.2f KM. Terus tingkatkan!", totalDistance));
+
         stopForeground(true);
         stopSelf();
     }
@@ -344,6 +350,13 @@ public class TrackingService extends Service implements SensorEventListener {
     private void updateNotification() {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify(NOTIFICATION_ID, getNotification(null));
+    }
+
+    private void insertAppNotification(String title, String body) {
+        new Thread(() -> {
+            com.example.pace.model.Notification n = new com.example.pace.model.Notification(title, body, System.currentTimeMillis(), false);
+            AppDatabase.getInstance(this).notificationDao().insert(n);
+        }).start();
     }
 
     @Override

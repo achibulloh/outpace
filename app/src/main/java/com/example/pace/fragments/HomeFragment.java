@@ -47,6 +47,7 @@ public class HomeFragment extends Fragment {
 
     private TextView tvWeeklyProgress, tvProgressPercent, tvStreak, tvAvgPace, tvTotalCalories;
     private TextView tvWeeklyTargetLabel, tvGreetingHoliday, tvGreeting;
+    private TextView tvDayMon, tvDayTue, tvDayWed, tvDayThu, tvDayFri, tvDaySat, tvDaySun;
     private ProgressBar progressBar;
     private LinearLayout layoutEmptyHome;
     private View viewNotificationBadge;
@@ -68,6 +69,15 @@ public class HomeFragment extends Fragment {
         tvStreak = view.findViewById(R.id.tvStreak);
         tvAvgPace = view.findViewById(R.id.tvAvgPace);
         tvTotalCalories = view.findViewById(R.id.tvTotalCalories);
+        
+        tvDayMon = view.findViewById(R.id.tvDayMon);
+        tvDayTue = view.findViewById(R.id.tvDayTue);
+        tvDayWed = view.findViewById(R.id.tvDayWed);
+        tvDayThu = view.findViewById(R.id.tvDayThu);
+        tvDayFri = view.findViewById(R.id.tvDayFri);
+        tvDaySat = view.findViewById(R.id.tvDaySat);
+        tvDaySun = view.findViewById(R.id.tvDaySun);
+
         progressBar = view.findViewById(R.id.progressBar);
         layoutEmptyHome = view.findViewById(R.id.layoutEmptyHome);
         viewNotificationBadge = view.findViewById(R.id.viewNotificationBadge);
@@ -184,7 +194,8 @@ public class HomeFragment extends Fragment {
                     } else {
                         layoutEmptyHome.setVisibility(View.GONE);
                         rvLastActivities.setVisibility(View.VISIBLE);
-                        for (int i = 0; i < Math.min(allRecords.size(), 3); i++) {
+                        // Show up to 10 most recent activities
+                        for (int i = 0; i < Math.min(allRecords.size(), 10); i++) {
                             lastRuns.add(allRecords.get(i));
                         }
                         updateDashboard(allRecords);
@@ -234,6 +245,41 @@ public class HomeFragment extends Fragment {
         }
 
         tvStreak.setText(String.valueOf(count));
+        
+        updateDayCircles(records);
+    }
+
+    private void updateDayCircles(List<RunRecord> records) {
+        TextView[] dayViews = {tvDayMon, tvDayTue, tvDayWed, tvDayThu, tvDayFri, tvDaySat, tvDaySun};
+        boolean[] hasRun = new boolean[7];
+
+        Calendar cal = Calendar.getInstance();
+        cal.setFirstDayOfWeek(Calendar.MONDAY);
+        int curWeek = cal.get(Calendar.WEEK_OF_YEAR);
+        int curYear = cal.get(Calendar.YEAR);
+        int todayIndex = (cal.get(Calendar.DAY_OF_WEEK) + 5) % 7; // 0=Mon, 6=Sun
+
+        for (RunRecord r : records) {
+            cal.setTimeInMillis(r.getTimestamp());
+            if (cal.get(Calendar.WEEK_OF_YEAR) == curWeek && cal.get(Calendar.YEAR) == curYear) {
+                int dayIndex = (cal.get(Calendar.DAY_OF_WEEK) + 5) % 7;
+                hasRun[dayIndex] = true;
+            }
+        }
+
+        for (int i = 0; i < 7; i++) {
+            TextView tv = dayViews[i];
+            if (hasRun[i]) {
+                tv.setBackgroundResource(R.drawable.day_active);
+                tv.setTextColor(getResources().getColor(R.color.bg));
+            } else if (i < todayIndex) {
+                tv.setBackgroundResource(R.drawable.day_missed);
+                tv.setTextColor(getResources().getColor(R.color.text_primary));
+            } else {
+                tv.setBackgroundResource(R.drawable.day_future);
+                tv.setTextColor(getResources().getColor(R.color.muted_fg));
+            }
+        }
     }
 
     private void setCurrentDate(TextView tvDate) {

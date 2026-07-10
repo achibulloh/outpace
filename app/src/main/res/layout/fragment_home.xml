@@ -185,17 +185,24 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="56dp"
                     android:orientation="horizontal"
+                    android:gravity="center"
                     app:layout_constraintTop_toBottomOf="@id/llTargetStats"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent">
 
-                    <TextView style="@style/DayLabelStyle" android:text="S" />
-                    <TextView style="@style/DayLabelStyle" android:text="S" />
-                    <TextView style="@style/DayLabelStyle" android:text="R" />
-                    <TextView style="@style/DayLabelStyle" android:text="K" />
-                    <TextView style="@style/DayLabelStyle" android:text="J" />
-                    <TextView style="@style/DayLabelStyle" android:text="S" />
-                    <TextView style="@style/DayLabelStyle" android:text="M" />
+                    <TextView android:id="@+id/tvDayMon" style="@style/DayLabelStyle" android:text="S" />
+                    <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+                    <TextView android:id="@+id/tvDayTue" style="@style/DayLabelStyle" android:text="S" />
+                    <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+                    <TextView android:id="@+id/tvDayWed" style="@style/DayLabelStyle" android:text="R" />
+                    <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+                    <TextView android:id="@+id/tvDayThu" style="@style/DayLabelStyle" android:text="K" />
+                    <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+                    <TextView android:id="@+id/tvDayFri" style="@style/DayLabelStyle" android:text="J" />
+                    <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+                    <TextView android:id="@+id/tvDaySat" style="@style/DayLabelStyle" android:text="S" />
+                    <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+                    <TextView android:id="@+id/tvDaySun" style="@style/DayLabelStyle" android:text="M" />
                 </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>

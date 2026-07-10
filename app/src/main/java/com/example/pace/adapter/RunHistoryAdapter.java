@@ -44,7 +44,12 @@ public class RunHistoryAdapter extends RecyclerView.Adapter<RunHistoryAdapter.Vi
         holder.tvPace.setText(String.format(Locale.getDefault(), "%d:%02d/km", paceMins, paceSecs));
         
         SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMM · HH:mm", new Locale("id", "ID"));
-        holder.tvDate.setText(sdf.format(new Date(run.getTimestamp())));
+        String dateStr = sdf.format(new Date(run.getTimestamp()));
+        if (run.getLocationName() != null) {
+            String loc = run.getLocationName().replace(" - ", "\n");
+            dateStr += "\n" + loc;
+        }
+        holder.tvDate.setText(dateStr);
         
         // Logic for title based on time of day
         int hour = Integer.parseInt(new SimpleDateFormat("H", Locale.getDefault()).format(new Date(run.getTimestamp())));
