@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="1080px"
+    android:layout_height="1920px">
+
+    <ImageView
+        android:id="@+id/ivShareBg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@color/bg" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OUTPACE"
+        android:textColor="@color/lime"
+        android:textStyle="bold"
+        android:textSize="56px"
+        android:layout_gravity="top|start"
+        android:layout_margin="80px" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="40px"
+        android:background="@drawable/card_glass"
+        android:backgroundTint="#AA141416"
+        android:orientation="vertical"
+        android:padding="60px">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MORNING RUN"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="28px"
+                    android:letterSpacing="0.1" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="bottom"
+                    android:layout_marginTop="10px">
+                    <TextView
+                        android:id="@+id/tvShareJarak"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="5.20"
+                        android:textColor="@color/text_primary"
+                        android:textSize="120px"
+                        android:textStyle="bold"
+                        android:includeFontPadding="false" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="KM"
+                        android:textColor="@color/lime"
+                        android:textSize="42px"
+                        android:textStyle="bold"
+                        android:layout_marginStart="16px"
+                        android:layout_marginBottom="20px"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:gravity="end"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="OUTPACE"
+                    android:textColor="@color/lime"
+                    android:textSize="28px"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1"/>
+                <TextView
+                    android:id="@+id/tvLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📍 Bandung"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="24px"
+                    android:layout_marginTop="4px"/>
+            </LinearLayout>
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="#33FFFFFF"
+            android:layout_marginVertical="30px" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WAKTU" android:textColor="@color/muted_fg" android:textSize="22px" android:textStyle="bold"/>
+                <TextView android:id="@+id/tvShareWaktu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27:14" android:textColor="@color/text_primary" android:textSize="36px" android:textStyle="bold"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PACE" android:textColor="@color/muted_fg" android:textSize="22px" android:textStyle="bold"/>
+                <TextView android:id="@+id/tvSharePace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14" android:textColor="@color/text_primary" android:textSize="36px" android:textStyle="bold"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ELEV" android:textColor="@color/muted_fg" android:textSize="22px" android:textStyle="bold"/>
+                <TextView android:id="@+id/tvShareElev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="15 m" android:textColor="@color/text_primary" android:textSize="36px" android:textStyle="bold"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

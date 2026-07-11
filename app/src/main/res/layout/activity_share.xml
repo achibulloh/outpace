@@ -131,7 +131,7 @@
     </LinearLayout>
 
     <!-- 3) Preview Area -->
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/previewContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -141,15 +141,19 @@
         android:background="@color/bg">
 
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginHorizontal="32dp"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:layout_marginVertical="12dp"
             app:cardCornerRadius="24dp"
             app:cardElevation="12dp"
             app:cardBackgroundColor="#000000"
             app:strokeWidth="0dp"
-            app:cardPreventCornerOverlap="false">
+            app:cardPreventCornerOverlap="false"
+            app:layout_constraintDimensionRatio="9:16"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <View
                 android:layout_width="match_parent"
@@ -166,7 +170,7 @@
             </FrameLayout>
 
         </com.google.android.material.card.MaterialCardView>
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- 4) Theme navigator -->
     <LinearLayout

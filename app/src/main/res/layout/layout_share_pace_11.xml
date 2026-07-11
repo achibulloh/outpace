@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="1080px"
+    android:layout_height="1920px"
+    android:background="@color/bg">
+
+    <ImageView
+        android:id="@+id/ivShareBg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@color/bg" />
+
+    <!-- Dark Gradient Overlay -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bottom_nav_gradient" />
+
+    <!-- Thin Lime Border -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="20px"
+        android:background="@drawable/border_lime"
+        android:alpha="0.8" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="80px">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OUTPACE"
+            android:textColor="@color/lime"
+            android:textStyle="bold"
+            android:textSize="48px"
+            android:letterSpacing="0.2"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true" />
+
+        <TextView
+            android:id="@+id/tvLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📍 Bandung"
+            android:textColor="@color/text_primary"
+            android:textSize="32px"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="40px">
+
+            <TextView
+                android:id="@+id/tvShareTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MORNING RUN"
+                android:textColor="@color/muted_fg"
+                android:textSize="36px"
+                android:letterSpacing="0.2"
+                android:alpha="0.8"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="bottom"
+                android:layout_marginTop="10px">
+                <TextView
+                    android:id="@+id/tvShareJarak"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="5.20"
+                    android:textColor="@color/text_primary"
+                    android:textSize="200px"
+                    android:textStyle="bold"
+                    android:includeFontPadding="false"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="KM"
+                    android:textColor="@color/lime"
+                    android:textSize="56px"
+                    android:textStyle="bold"
+                    android:layout_marginStart="20px"
+                    android:layout_marginBottom="30px"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false"
+                android:layout_marginTop="60px">
+
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WAKTU" android:textColor="@color/muted_fg" android:textSize="24px" android:textStyle="bold"/>
+                    <TextView android:id="@+id/tvShareWaktu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27:14" android:textColor="@color/text_primary" android:textSize="42px" android:textStyle="bold"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PACE" android:textColor="@color/muted_fg" android:textSize="24px" android:textStyle="bold"/>
+                    <TextView android:id="@+id/tvSharePace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14" android:textColor="@color/text_primary" android:textSize="42px" android:textStyle="bold"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1.2" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="LANGKAH" android:textColor="@color/muted_fg" android:textSize="24px" android:textStyle="bold"/>
+                    <TextView android:id="@+id/tvShareSteps" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6,933" android:textColor="@color/text_primary" android:textSize="42px" android:textStyle="bold"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1.2" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="RITME" android:textColor="@color/muted_fg" android:textSize="24px" android:textStyle="bold"/>
+                    <TextView android:id="@+id/tvShareRitme" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="135 bpm" android:textColor="@color/text_primary" android:textSize="42px" android:textStyle="bold"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <com.example.pace.views.PathDrawingView
+        android:id="@+id/ivSharePath"
+        android:layout_width="400px"
+        android:layout_height="400px"
+        android:layout_gravity="center_vertical|end"
+        android:layout_marginEnd="60px"
+        android:alpha="0.2"/>
+
+</FrameLayout>

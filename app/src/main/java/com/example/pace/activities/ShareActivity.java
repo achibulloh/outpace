@@ -42,12 +42,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class ShareActivity extends AppCompatActivity {
 
-    private static final int THEME_COUNT = 10;
+    private static final int THEME_COUNT = 15;
 
     private FrameLayout shareFrame;
     private View tabPaceTheme, tabDefault, paceStyleSelector, defaultControls;
@@ -472,21 +474,169 @@ public class ShareActivity extends AppCompatActivity {
     }
 
     private void saveAndShare() {
-        if (shareFrame.getWidth() <= 0) { Toast.makeText(this, "Tunggu sejenak...", Toast.LENGTH_SHORT).show(); return; }
+        Toast.makeText(this, "Memproses gambar HD...", Toast.LENGTH_SHORT).show();
+        
         shareFrame.post(() -> {
             try {
-                Bitmap b = Bitmap.createBitmap(shareFrame.getWidth(), shareFrame.getHeight(), Bitmap.Config.ARGB_8888);
-                shareFrame.draw(new Canvas(b));
+                // 1. Create a high-res 1080x1920 bitmap
+                int targetWidth = 1080;
+                int targetHeight = 1920;
+                Bitmap highResBitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(highResBitmap);
+
+                // 2. Inflate the template for rendering (OFF-SCREEN)
+                int layoutRes = isDefaultMode ? R.layout.layout_share_activity : 
+                        getResources().getIdentifier("layout_share_pace_" + (currentThemeIndex + 1), "layout", getPackageName());
+                
+                View renderView = LayoutInflater.from(this).inflate(layoutRes, null);
+                
+                // 3. Fill data into the renderView
+                populateViewWithData(renderView);
+                
+                // 4. Measure & Layout at fixed 1080x1920
+                renderView.measure(
+                        View.MeasureSpec.makeMeasureSpec(targetWidth, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(targetHeight, View.MeasureSpec.EXACTLY)
+                );
+                renderView.layout(0, 0, targetWidth, targetHeight);
+
+                // 5. Draw to canvas
+                renderView.draw(canvas);
+
+                // 6. Save and Share
                 File f = new File(getCacheDir(), "images"); f.mkdirs();
-                File file = new File(f, "share.png");
-                FileOutputStream out = new FileOutputStream(file); b.compress(Bitmap.CompressFormat.PNG, 100, out); out.close();
-                saveImageToGallery(b);
+                File file = new File(f, "OUTPACE_HD_share.png");
+                FileOutputStream out = new FileOutputStream(file); 
+                highResBitmap.compress(Bitmap.CompressFormat.PNG, 100, out); 
+                out.close();
+                
+                saveImageToGallery(highResBitmap);
+                
                 Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
-                Intent si = new Intent(Intent.ACTION_SEND); si.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                si.putExtra(Intent.EXTRA_STREAM, uri); si.setType("image/png");
-                startActivity(Intent.createChooser(si, "Bagikan"));
-            } catch (Exception e) { e.printStackTrace(); }
+                Intent si = new Intent(Intent.ACTION_SEND); 
+                si.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                si.putExtra(Intent.EXTRA_STREAM, uri); 
+                si.setType("image/png");
+                startActivity(Intent.createChooser(si, "Bagikan Hasil Lari"));
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Gagal memproses gambar HD", Toast.LENGTH_SHORT).show();
+            }
         });
+    }
+
+    private void populateViewWithData(View view) {
+        updateTextView(view, R.id.tvShareJarak, isDefaultMode ? jarak + " km" : jarak);
+        updateTextView(view, R.id.tvShareWaktu, waktu);
+        updateTextView(view, R.id.tvShareElev, elev);
+        updateTextView(view, R.id.tvSharePace, pace + (isDefaultMode ? " /km" : ""));
+        updateTextView(view, R.id.tvShareRitme, "135 bpm");
+        updateTextView(view, R.id.tvShareSteps, runData != null ? String.format(Locale.getDefault(), "%,d", (int)(runData.getDistance() * 1350)) : "0");
+        
+        String loc = runData != null ? runData.getLocationName() : null;
+        if (loc != null) {
+            updateTextView(view, R.id.tvLocation, "📍 " + loc.replace(" - ", ", "));
+        } else {
+            updateTextView(view, R.id.tvLocation, "📍 Bandung, Indonesia");
+        }
+
+        // Set dynamic title based on timestamp
+        TextView tvTitle = view.findViewById(R.id.tvShareTitle);
+        if (tvTitle != null && runData != null) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(runData.getTimestamp());
+            int hour = cal.get(Calendar.HOUR_OF_DAY);
+            String title;
+            if (hour >= 5 && hour < 11) title = "MORNING RUN";
+            else if (hour >= 11 && hour < 15) title = "AFTERNOON RUN";
+            else if (hour >= 15 && hour < 19) title = "EVENING RUN";
+            else title = "NIGHT RUN";
+            tvTitle.setText(title);
+        }
+
+        PathDrawingView pv = view.findViewById(R.id.ivSharePath);
+        if (pv != null) {
+            pv.setPathPoints(pathPoints);
+            // Apply scale if in default mode (manually adjusted)
+            if (isDefaultMode && selectedView instanceof PathDrawingView) {
+                pv.setScaleFactor(sbSize.getProgress() / 100f);
+            }
+        }
+
+        // Apply Background
+        ImageView bg = view.findViewById(R.id.ivShareBg);
+        if (bg == null && view instanceof ViewGroup) {
+            bg = new ImageView(this);
+            bg.setId(R.id.ivShareBg);
+            ((ViewGroup) view).addView(bg, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            bg.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        }
+
+        if (bg != null) {
+            if (selectedBgUri != null) {
+                bg.setVisibility(View.VISIBLE);
+                bg.setImageURI(selectedBgUri);
+                view.setBackgroundColor(Color.TRANSPARENT);
+            } else {
+                bg.setVisibility(View.GONE);
+                view.setBackgroundColor(selectedBgColor);
+            }
+        }
+
+        // Apply positions if in default mode
+        if (isDefaultMode) {
+            applyPositionsToRenderView(view);
+        }
+    }
+
+    private void applyPositionsToRenderView(View view) {
+        // Find corresponding views in current preview and copy their relative positions
+        View previewJarak = shareFrame.findViewById(R.id.tvShareJarak);
+        if (previewJarak != null) {
+            View renderJarak = view.findViewById(R.id.tvShareJarak);
+            copyViewProperties(previewJarak, renderJarak);
+        }
+        
+        View previewWaktu = shareFrame.findViewById(R.id.tvShareWaktu);
+        if (previewWaktu != null) {
+            View renderWaktu = view.findViewById(R.id.tvShareWaktu);
+            copyViewProperties(previewWaktu, renderWaktu);
+        }
+
+        View previewElev = shareFrame.findViewById(R.id.tvShareElev);
+        if (previewElev != null) {
+            View renderElev = view.findViewById(R.id.tvShareElev);
+            copyViewProperties(previewElev, renderElev);
+        }
+
+        View previewPath = shareFrame.findViewById(R.id.ivSharePath);
+        if (previewPath != null) {
+            View renderPath = view.findViewById(R.id.ivSharePath);
+            copyViewProperties(previewPath, renderPath);
+        }
+
+        View previewMark = shareFrame.findViewById(R.id.tvPaceWatermark);
+        if (previewMark != null) {
+            View renderMark = view.findViewById(R.id.tvPaceWatermark);
+            copyViewProperties(previewMark, renderMark);
+        }
+    }
+
+    private void copyViewProperties(View source, View target) {
+        if (source == null || target == null) return;
+        
+        // Convert screen-scaled position back to pixel position (1080x1920)
+        target.setX(source.getX());
+        target.setY(source.getY());
+        target.setRotation(source.getRotation());
+        target.setScaleX(source.getScaleX());
+        target.setScaleY(source.getScaleY());
+        
+        if (source instanceof TextView && target instanceof TextView) {
+            ((TextView) target).setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, ((TextView) source).getTextSize());
+            ((TextView) target).setTextColor(((TextView) source).getCurrentTextColor());
+        }
     }
 
     private void saveImageToGallery(Bitmap b) {
