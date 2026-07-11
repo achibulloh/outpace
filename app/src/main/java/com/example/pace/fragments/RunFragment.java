@@ -47,12 +47,17 @@ import com.google.gson.Gson;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.tileprovider.tilesource.XYTileSource;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polyline;
 import org.osmdroid.views.overlay.TilesOverlay;
+import org.osmdroid.views.overlay.compass.CompassOverlay;
+import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider;
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay;
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +70,8 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     private MapView map = null;
     private Polyline polyline;
     private List<GeoPoint> pathPoints = new ArrayList<>();
-    private Marker userMarker;
+    private MyLocationNewOverlay myLocationOverlay;
+    private CompassOverlay compassOverlay;
     private FusedLocationProviderClient fusedLocationClient;
     private android.hardware.SensorManager sensorManager;
     private android.hardware.Sensor rotationSensor;
@@ -75,7 +81,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
 
     private Button btnStart, btnPause, btnStop;
     private Button btnPauseOverlay, btnStopOverlay;
-    private ImageButton btnToggleStats, btnMinimize;
+    private ImageButton btnMinimize, btnLayerToggle, btnMyLocation, btnCompass;
     private LinearLayout btnBack, layoutMapLoading, panelStatsBottom, layoutStatsOverlay;
     private TextView tvDuration, tvDistance, tvPace, tvCalories, tvSteps;
     private View viewGpsIndicator;
@@ -164,7 +170,9 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         btnPause = view.findViewById(R.id.btnPause);
         btnStop = view.findViewById(R.id.btnStop);
         btnBack = view.findViewById(R.id.btnBack);
-        btnToggleStats = view.findViewById(R.id.btnToggleStats);
+        btnLayerToggle = view.findViewById(R.id.btnLayerToggle);
+        btnMyLocation = view.findViewById(R.id.btnMyLocation);
+        btnCompass = view.findViewById(R.id.btnCompass);
         btnMinimize = view.findViewById(R.id.btnMinimize);
         layoutMapLoading = view.findViewById(R.id.layoutMapLoading);
         panelStatsBottom = view.findViewById(R.id.panelStatsBottom);
@@ -237,7 +245,19 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
             }
         });
 
-        btnToggleStats.setOnClickListener(v -> toggleStatsOverlay());
+        btnLayerToggle.setOnClickListener(v -> showLayerSelectionDialog());
+        btnMyLocation.setOnClickListener(v -> {
+            if (myLocationOverlay != null && myLocationOverlay.getMyLocation() != null) {
+                map.getController().animateTo(myLocationOverlay.getMyLocation());
+                map.getController().setZoom(18.0);
+            } else {
+                Toast.makeText(requireContext(), "Mencari sinyal GPS...", Toast.LENGTH_SHORT).show();
+            }
+        });
+        btnCompass.setOnClickListener(v -> {
+            map.setMapOrientation(0);
+            Toast.makeText(requireContext(), "Peta menghadap Utara", Toast.LENGTH_SHORT).show();
+        });
         if (btnMinimize != null) btnMinimize.setOnClickListener(v -> toggleStatsOverlay());
         panelStatsBottom.setOnClickListener(v -> toggleStatsOverlay());
         
@@ -265,11 +285,17 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         if (isStatsExpanded) {
             layoutStatsOverlay.setVisibility(View.VISIBLE);
             panelStatsBottom.setVisibility(View.GONE);
-            btnToggleStats.setVisibility(View.GONE);
+            // Hide Map Control Buttons when expanded
+            btnLayerToggle.setVisibility(View.GONE);
+            btnMyLocation.setVisibility(View.GONE);
+            btnCompass.setVisibility(View.GONE);
         } else {
             layoutStatsOverlay.setVisibility(View.GONE);
             panelStatsBottom.setVisibility(View.VISIBLE);
-            btnToggleStats.setVisibility(View.VISIBLE);
+            // Show Map Control Buttons when minimized
+            btnLayerToggle.setVisibility(View.VISIBLE);
+            btnMyLocation.setVisibility(View.VISIBLE);
+            btnCompass.setVisibility(View.VISIBLE);
         }
     }
 
@@ -282,18 +308,23 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         map.getController().setZoom(18.0);
         
         polyline = new Polyline();
-        polyline.getOutlinePaint().setColor(Color.parseColor("#CDFF00"));
-        polyline.getOutlinePaint().setStrokeWidth(12f);
+        polyline.getOutlinePaint().setColor(Color.parseColor("#C8F43A")); // Warna Lime sesuai aplikasi
+        polyline.getOutlinePaint().setStrokeWidth(14f);
         map.getOverlayManager().add(polyline);
-
-        userMarker = new Marker(map);
-        userMarker.setIcon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_person_run));
-        userMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-        map.getOverlays().add(userMarker);
 
         RotationGestureOverlay rotationGestureOverlay = new RotationGestureOverlay(map);
         rotationGestureOverlay.setEnabled(true);
         map.getOverlays().add(rotationGestureOverlay);
+
+        // My Location Overlay
+        myLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(requireContext()), map);
+        myLocationOverlay.enableMyLocation();
+        map.getOverlays().add(myLocationOverlay);
+
+        // Compass Overlay
+        compassOverlay = new CompassOverlay(requireContext(), new InternalCompassOrientationProvider(requireContext()), map);
+        compassOverlay.enableCompass();
+        map.getOverlays().add(compassOverlay);
 
         map.addOnFirstLayoutListener((v, left, top, right, bottom) -> {
             isMapReady = true;
@@ -308,7 +339,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
                 .addOnSuccessListener(location -> {
                     if (location != null && !isTracking) {
                         GeoPoint point = new GeoPoint(location.getLatitude(), location.getLongitude());
-                        if (userMarker != null) { userMarker.setPosition(point); map.getController().setCenter(point); }
+                        map.getController().setCenter(point);
                         updateGpsStatus(location.getAccuracy());
                     }
                     isLocationReady = true;
@@ -350,9 +381,61 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         }
     }
 
+    private void showLayerSelectionDialog() {
+        if (getContext() == null) return;
+        
+        String[] layers = {"Peta Standar (OSM)", "CyclOSM (Outdoor/Rute)", "Google Earth (Satelit)"};
+        
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
+        builder.setTitle("Pilih Lapisan Peta");
+        builder.setItems(layers, (dialog, which) -> {
+            if (map == null) return;
+            
+            switch (which) {
+                case 0:
+                    map.setTileSource(TileSourceFactory.MAPNIK);
+                    if (map.getOverlayManager().getTilesOverlay() != null) {
+                        map.getOverlayManager().getTilesOverlay().setColorFilter(TilesOverlay.INVERT_COLORS);
+                    }
+                    break;
+                case 1:
+                    XYTileSource cyclOSM = new XYTileSource("CyclOSM", 0, 20, 256, ".png",
+                            new String[]{"https://a.tile-cyclosm.openstreetmap.fr/cyclosm/",
+                                    "https://b.tile-cyclosm.openstreetmap.fr/cyclosm/",
+                                    "https://c.tile-cyclosm.openstreetmap.fr/cyclosm/"}, "© CyclOSM contributors");
+                    map.setTileSource(cyclOSM);
+                    if (map.getOverlayManager().getTilesOverlay() != null) {
+                        map.getOverlayManager().getTilesOverlay().setColorFilter(null);
+                    }
+                    break;
+                case 2:
+                    XYTileSource googleSatellite = new XYTileSource("GoogleSatellite", 0, 20, 256, ".png",
+                            new String[]{"https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                                    "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                                    "https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                                    "https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"});
+                    map.setTileSource(googleSatellite);
+                    if (map.getOverlayManager().getTilesOverlay() != null) {
+                        map.getOverlayManager().getTilesOverlay().setColorFilter(null);
+                    }
+                    break;
+            }
+            map.invalidate(); 
+        });
+        
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     private void updateUIFromService(Intent intent) {
         isTracking = intent.getBooleanExtra("isTracking", false);
         isAutoPaused = intent.getBooleanExtra("isAutoPaused", false);
+
+        // Pastikan overlay lokasi tetap aktif
+        if (myLocationOverlay != null && !myLocationOverlay.isMyLocationEnabled()) {
+            myLocationOverlay.enableMyLocation();
+        }
+
         long time = intent.getLongExtra("time", 0);
         double distance = intent.getDoubleExtra("distance", 0.0);
         double elevation = intent.getDoubleExtra("elevation", 0.0);
@@ -362,7 +445,11 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         float accuracy = intent.getFloatExtra("accuracy", 0);
         
         ArrayList<GeoPoint> fullPath = intent.getParcelableArrayListExtra("fullPath");
-        if (fullPath != null) { pathPoints = fullPath; polyline.setPoints(pathPoints); }
+        if (fullPath != null && !fullPath.isEmpty()) {
+            pathPoints = fullPath;
+            polyline.setPoints(pathPoints);
+            updateWaypoints(pathPoints);
+        }
 
         lastTime = time; lastDistance = distance; lastElevation = elevation;
         updateGpsStatus(accuracy);
@@ -398,7 +485,6 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
 
         if (lat != 0 && lng != 0) {
             GeoPoint point = new GeoPoint(lat, lng);
-            userMarker.setPosition(point);
             if (!isAutoPaused) map.getController().animateTo(point);
             map.invalidate();
         }
@@ -409,6 +495,33 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
             for(int i=0; i<splits.length; i++) sp[i] = (float) (splits[i] / 60.0);
             splitBarChart.setData(sp);
         }
+    }
+
+    private void updateWaypoints(List<GeoPoint> points) {
+        if (points == null || points.isEmpty()) return;
+
+        // Clear existing markers except user marker
+        map.getOverlays().removeIf(overlay -> {
+            if (overlay instanceof Marker) {
+                Marker m = (Marker) overlay;
+                return "start".equals(m.getTitle()) || "finish".equals(m.getTitle());
+            }
+            return false;
+        });
+
+        // Hapus penanda bendera agar hanya ada satu ikon (panah lokasi)
+
+        map.invalidate();
+    }
+
+    private void pasangWaypoint(GeoPoint lokasi, String id, String judul, int iconRes) {
+        Marker marker = new Marker(map);
+        marker.setPosition(lokasi);
+        marker.setTitle(id);
+        marker.setSubDescription(judul);
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        marker.setIcon(ContextCompat.getDrawable(requireContext(), iconRes));
+        map.getOverlays().add(marker);
     }
 
     private void updateButtons(boolean tracking) {
@@ -428,19 +541,6 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     private void startRunning() {
         sendAction(TrackingService.ACTION_START);
         if (!isStatsExpanded) toggleStatsOverlay();
-        openMusicApp();
-    }
-
-    private void openMusicApp() {
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_APP_MUSIC);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        try { startActivity(intent); } catch (Exception e) {
-            try {
-                Intent s = requireContext().getPackageManager().getLaunchIntentForPackage("com.spotify.music");
-                if (s != null) startActivity(s);
-            } catch (Exception ex) {}
-        }
     }
 
     private void showBackgroundLocationDialog() {
@@ -516,25 +616,44 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
 
     @Override
     public void onSensorChanged(android.hardware.SensorEvent event) {
-        if (event.sensor.getType() == android.hardware.Sensor.TYPE_ORIENTATION) {
-            if (userMarker != null) { userMarker.setRotation(-event.values[0]); if (map != null) map.invalidate(); }
-        }
     }
 
     @Override
     public void onAccuracyChanged(android.hardware.Sensor sensor, int accuracy) {}
 
     @Override
-    public void onStart() { super.onStart(); LocalBroadcastManager.getInstance(requireContext()).registerReceiver(trackingReceiver, new IntentFilter(TrackingService.TRACKING_UPDATE)); }
+    public void onStart() {
+        super.onStart();
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setNavigationVisibility(false);
+        }
+        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(trackingReceiver, new IntentFilter(TrackingService.TRACKING_UPDATE));
+    }
 
     @Override
     public void onStop() { super.onStop(); LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(trackingReceiver); }
 
     @Override
-    public void onResume() { super.onResume(); if (map != null) map.onResume(); if (rotationSensor != null) sensorManager.registerListener(this, rotationSensor, android.hardware.SensorManager.SENSOR_DELAY_UI); startStatusLocationUpdates(); }
+    public void onResume() { 
+        super.onResume(); 
+        if (map != null) map.onResume(); 
+        if (myLocationOverlay != null) myLocationOverlay.enableMyLocation();
+        if (compassOverlay != null) compassOverlay.enableCompass();
+        if (rotationSensor != null) sensorManager.registerListener(this, rotationSensor, android.hardware.SensorManager.SENSOR_DELAY_UI); 
+        startStatusLocationUpdates(); 
+        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(trackingReceiver, new IntentFilter(TrackingService.TRACKING_UPDATE));
+    }
 
     @Override
-    public void onPause() { super.onPause(); if (map != null) map.onPause(); sensorManager.unregisterListener(this); stopStatusLocationUpdates(); }
+    public void onPause() { 
+        super.onPause(); 
+        if (map != null) map.onPause(); 
+        if (myLocationOverlay != null) myLocationOverlay.disableMyLocation();
+        if (compassOverlay != null) compassOverlay.disableCompass();
+        sensorManager.unregisterListener(this); 
+        stopStatusLocationUpdates(); 
+        LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(trackingReceiver);
+    }
 
     @Override
     public void onRequestPermissionsResult(int rc, @NonNull String[] p, @NonNull int[] gr) {
@@ -551,5 +670,11 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     }
 
     @Override
-    public void onDestroy() { super.onDestroy(); stopStatusLocationUpdates(); }
+    public void onDestroy() {
+        super.onDestroy();
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setNavigationVisibility(true);
+        }
+        stopStatusLocationUpdates();
+    }
 }
