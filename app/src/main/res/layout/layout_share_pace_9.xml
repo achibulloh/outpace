@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="1080px"
+    android:layout_height="1920px"
+    android:background="@color/bg">
+
+    <ImageView
+        android:id="@+id/ivShareBg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+    <com.example.pace.views.PathDrawingView
+        android:id="@+id/ivSharePath"
+        android:layout_width="900px"
+        android:layout_height="900px"
+        android:layout_centerInParent="true" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="120px">
+        <ImageView
+            android:layout_width="60px"
+            android:layout_height="60px"
+            android:src="@drawable/ic_logo"
+            app:tint="@color/lime"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OUTPACE"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:textSize="48px"
+            android:layout_marginStart="20px"
+            android:letterSpacing="0.2"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentTop="true"
+        android:padding="80px">
+        <TextView android:id="@+id/tvShareJarak" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5.20 km" android:textColor="@color/text_primary" android:textSize="72px" android:textStyle="bold" android:layout_weight="1"/>
+        <TextView android:id="@+id/tvSharePace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14/km" android:textColor="@color/lime" android:textSize="72px" android:textStyle="bold"/>
+    </LinearLayout>
+
+</RelativeLayout>

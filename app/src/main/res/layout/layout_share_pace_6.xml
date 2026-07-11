@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="1080px"
+    android:layout_height="1920px"
+    android:background="@color/bg"
+    android:padding="60px">
+
+    <ImageView
+        android:id="@+id/ivShareBg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/llHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <ImageView
+            android:layout_width="60px"
+            android:layout_height="60px"
+            android:src="@drawable/ic_logo"
+            app:tint="@color/lime"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OUTPACE"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:textSize="42px"
+            android:layout_marginStart="20px"
+            android:letterSpacing="0.1"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="📍 Bandung"
+        android:textColor="@color/muted_fg"
+        android:textSize="32px"/>
+
+    <com.example.pace.views.PathDrawingView
+        android:id="@+id/ivSharePath"
+        android:layout_width="match_parent"
+        android:layout_height="600px"
+        android:layout_below="@id/llHeader"
+        android:layout_marginTop="100px"
+        android:layout_centerHorizontal="true"/>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:background="#22FFFFFF"
+        android:layout_below="@id/ivSharePath"
+        android:layout_marginTop="80px"/>
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider"
+        android:layout_marginTop="60px"
+        android:columnCount="3"
+        android:rowCount="2">
+
+        <LinearLayout android:orientation="vertical" android:layout_columnWeight="1" android:layout_marginBottom="60px" android:layout_width="0dp" android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="JARAK" android:textColor="@color/muted_fg" android:textSize="28px" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvShareJarak" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5.20 km" android:textColor="@color/text_primary" android:textSize="48px" android:textStyle="bold" android:layout_marginTop="8px"/>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="vertical" android:layout_columnWeight="1" android:layout_marginBottom="60px" android:layout_width="0dp" android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PACE" android:textColor="@color/muted_fg" android:textSize="28px" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvSharePace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14 /km" android:textColor="@color/text_primary" android:textSize="48px" android:textStyle="bold" android:layout_marginTop="8px"/>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="vertical" android:layout_columnWeight="1" android:layout_marginBottom="60px" android:gravity="end" android:layout_width="0dp" android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="RATA2 RITME" android:textColor="@color/muted_fg" android:textSize="28px" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvShareRitme" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="135 lpm" android:textColor="@color/text_primary" android:textSize="48px" android:textStyle="bold" android:layout_marginTop="8px"/>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="vertical" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WAKTU" android:textColor="@color/muted_fg" android:textSize="28px" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvShareWaktu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27:14" android:textColor="@color/text_primary" android:textSize="48px" android:textStyle="bold" android:layout_marginTop="8px"/>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="vertical" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="KENAIKAN ELEV" android:textColor="@color/muted_fg" android:textSize="28px" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvShareElev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="15 m" android:textColor="@color/text_primary" android:textSize="48px" android:textStyle="bold" android:layout_marginTop="8px"/>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="vertical" android:layout_columnWeight="1" android:gravity="end" android:layout_width="0dp" android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="LANGKAH" android:textColor="@color/muted_fg" android:textSize="28px" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvShareSteps" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6,933" android:textColor="@color/text_primary" android:textSize="48px" android:textStyle="bold" android:layout_marginTop="8px"/>
+        </LinearLayout>
+
+    </GridLayout>
+
+</RelativeLayout>

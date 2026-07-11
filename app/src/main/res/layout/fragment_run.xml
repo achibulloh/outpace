@@ -202,36 +202,7 @@
             android:paddingBottom="20dp"
             android:baselineAligned="false">
 
-            <!-- Jarak (Sekarang di Kiri) -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.4"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/tvOverlayDistance"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textColor="@color/text_primary"
-                    android:textSize="72sp"
-                    android:textStyle="bold"
-                    android:includeFontPadding="false"
-                    app:autoSizeTextType="uniform"
-                    app:autoSizeMinTextSize="40sp"
-                    app:autoSizeMaxTextSize="72sp"
-                    app:autoSizeStepGranularity="2sp"
-                    android:maxLines="1" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Jarak (km)"
-                    android:textColor="@color/muted_fg"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- Kalori & Elevasi (Sekarang di Tengah) -->
+            <!-- Kalori & Elevasi (Sekarang di Kiri) -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -266,11 +237,42 @@
                     android:layout_marginTop="4dp" />
             </LinearLayout>
 
+            <!-- Jarak (Sekarang di Tengah) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.5"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/tvOverlayDistance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/text_primary"
+                    android:textSize="72sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="30sp"
+                    app:autoSizeMaxTextSize="72sp"
+                    app:autoSizeStepGranularity="2sp"
+                    android:maxLines="1" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Jarak (km)"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
             <!-- Langkah (Tetap di Kanan) -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.8"
+                android:layout_weight="1"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:layout_marginTop="12dp">

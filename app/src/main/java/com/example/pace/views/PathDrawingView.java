@@ -22,8 +22,18 @@ public class PathDrawingView extends View {
     private int lineColor = Color.parseColor("#C8F43A");
     private float scaleFactor = 0.8f; // Default 80% to give some natural padding
 
+    public PathDrawingView(Context context) {
+        super(context);
+        init();
+    }
+
     public PathDrawingView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        init();
+    }
+
+    public PathDrawingView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
         init();
     }
 

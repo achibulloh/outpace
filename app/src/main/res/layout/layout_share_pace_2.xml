@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="1080px"
+    android:layout_height="1920px"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:background="@color/bg">
+
+    <ImageView
+        android:id="@+id/ivShareBg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:visibility="gone"/>
+
+    <com.example.pace.views.PathDrawingView
+        android:id="@+id/ivSharePath"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.4" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bottom_nav_gradient"
+        android:rotation="180"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true"
+        android:padding="80px"
+        android:background="@drawable/bottom_nav_gradient">
+
+        <TextView
+            android:id="@+id/tvShareJarak"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5.20 km"
+            android:textColor="@color/lime"
+            android:textSize="120px"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="20px">
+
+            <TextView
+                android:id="@+id/tvShareWaktu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="27:14"
+                android:textColor="@color/text_primary"
+                android:textSize="48px" />
+
+            <View
+                android:layout_width="2px"
+                android:layout_height="40px"
+                android:background="@color/muted_fg"
+                android:layout_marginHorizontal="24px"
+                android:layout_gravity="center_vertical"/>
+
+            <TextView
+                android:id="@+id/tvSharePace"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5:14 /km"
+                android:textColor="@color/text_primary"
+                android:textSize="48px" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvPaceLogo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OUTPACE"
+            android:textColor="@color/text_primary"
+            android:textSize="64px"
+            android:textStyle="bold"
+            android:letterSpacing="0.2"
+            android:layout_marginTop="60px"/>
+    </LinearLayout>
+
+</RelativeLayout>

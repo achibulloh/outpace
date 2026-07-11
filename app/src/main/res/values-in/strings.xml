@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PACE</string>
+    <string name="app_name">OUTPACE</string>
     <string name="welcome_back">Selamat Datang Kembali</string>
     <string name="login_subtitle">Masuk untuk melanjutkan perjalananmu</string>
     <string name="email">Email</string>

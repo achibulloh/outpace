@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/shareContainer"
+    android:layout_width="1080px"
+    android:layout_height="1920px"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:background="@color/bg">
+
+    <!-- Background Image Layer -->
+    <ImageView
+        android:id="@+id/ivShareBg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:visibility="gone"/>
+
+    <!-- Draggable Map Path -->
+    <com.example.pace.views.PathDrawingView
+        android:id="@+id/ivSharePath"
+        android:layout_width="600px"
+        android:layout_height="600px"
+        android:layout_gravity="center" />
+
+    <!-- Draggable Stats -->
+    <TextView
+        android:id="@+id/tvShareJarak"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="200px"
+        android:layout_gravity="top|center_horizontal"
+        android:text="5,20 km"
+        android:textColor="@color/text_primary"
+        android:textSize="120px"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvShareWaktu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="350px"
+        android:layout_gravity="top|center_horizontal"
+        android:text="27:14"
+        android:textColor="@color/text_primary"
+        android:textSize="60px"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvShareElev"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="200px"
+        android:layout_gravity="bottom|center_horizontal"
+        android:text="15 m"
+        android:textColor="@color/text_primary"
+        android:textSize="60px"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvPaceWatermark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="80px"
+        android:text="OUTPACE"
+        android:textColor="@color/lime"
+        android:textSize="48px"
+        android:textStyle="bold"
+        android:letterSpacing="0.2"/>
+
+</FrameLayout>

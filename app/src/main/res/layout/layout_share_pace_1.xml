@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="1080px"
+    android:layout_height="1920px"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:background="@color/bg"
+    android:padding="80px">
+
+    <ImageView
+        android:id="@+id/ivShareBg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/tvPaceLogo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OUTPACE"
+        android:textColor="@color/lime"
+        android:textSize="72px"
+        android:textStyle="bold"
+        android:letterSpacing="0.2"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40px"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerInParent="true"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tvShareJarak"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5.20"
+            android:textColor="@color/text_primary"
+            android:textSize="280px"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="KILOMETER"
+            android:textColor="@color/lime"
+            android:textSize="48px"
+            android:letterSpacing="0.3"
+            android:layout_marginTop="-20px"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="80px">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WAKTU"
+                android:textColor="@color/muted_fg"
+                android:textSize="32px" />
+            <TextView
+                android:id="@+id/tvShareWaktu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="27:14"
+                android:textColor="@color/text_primary"
+                android:textSize="56px"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RATA-RATA PACE"
+                android:textColor="@color/muted_fg"
+                android:textSize="32px" />
+            <TextView
+                android:id="@+id/tvSharePace"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5:14"
+                android:textColor="@color/text_primary"
+                android:textSize="56px"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="end">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ELEVASI"
+                android:textColor="@color/muted_fg"
+                android:textSize="32px" />
+            <TextView
+                android:id="@+id/tvShareElev"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="15m"
+                android:textColor="@color/text_primary"
+                android:textSize="56px"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <com.example.pace.views.PathDrawingView
+        android:id="@+id/ivSharePath"
+        android:layout_width="400px"
+        android:layout_height="400px"
+        android:layout_above="@id/tvPaceLogo"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone" />
+
+</RelativeLayout>
