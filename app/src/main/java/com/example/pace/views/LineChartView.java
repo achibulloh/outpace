@@ -22,16 +22,21 @@ public class LineChartView extends View {
     private float[] normalizedValues = {};
     private int selectedIndex = -1;
 
+    private int chartColor = Color.parseColor("#C8F43A");
+
     public LineChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        if (attrs != null) {
+            android.content.res.TypedArray a = context.obtainStyledAttributes(attrs, com.example.pace.R.styleable.LineChartView);
+            chartColor = a.getColor(com.example.pace.R.styleable.LineChartView_chartColor, chartColor);
+            a.recycle();
+        }
         init();
     }
 
     private void init() {
-        int limeColor = Color.parseColor("#C8F43A");
-        
         linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        linePaint.setColor(limeColor);
+        linePaint.setColor(chartColor);
         linePaint.setStyle(Paint.Style.STROKE);
         linePaint.setStrokeWidth(6f);
 
@@ -39,7 +44,7 @@ public class LineChartView extends View {
         fillPaint.setStyle(Paint.Style.FILL);
 
         pointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        pointPaint.setColor(limeColor);
+        pointPaint.setColor(chartColor);
         pointPaint.setStyle(Paint.Style.FILL);
 
         labelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -63,6 +68,13 @@ public class LineChartView extends View {
 
         linePath = new Path();
         fillPath = new Path();
+    }
+
+    public void setChartColor(int color) {
+        this.chartColor = color;
+        if (linePaint != null) linePaint.setColor(color);
+        if (pointPaint != null) pointPaint.setColor(color);
+        invalidate();
     }
 
     public void setData(float[] newValues) {
@@ -116,21 +128,34 @@ public class LineChartView extends View {
     }
 
     @Override
-protected void onDraw(Canvas canvas) {
-    super.onDraw(canvas);
-    if (normalizedValues.length < 2) return;
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        if (normalizedValues.length == 0) return;
 
-    float width = getWidth();
-    float height = getHeight();
-    float labelPadding = (infoLabels != null && infoLabels.length <= 7) ? 50f : 20f;
-    float chartHeight = height - labelPadding;
-    float spacing = width / (normalizedValues.length - 1);
+        float width = getWidth();
+        float height = getHeight();
+        float labelPadding = (infoLabels != null && infoLabels.length <= 7) ? 50f : 20f;
+        float chartHeight = height - labelPadding;
+        
+        // Handle single point or multiple points
+        if (normalizedValues.length == 1) {
+            float x = width / 2f;
+            float y = chartHeight * (1f - normalizedValues[0]);
+            canvas.drawCircle(x, y, 8f, pointPaint);
+            if (infoLabels != null && infoLabels.length > 0) {
+                canvas.drawText(infoLabels[0], x, height - 10f, labelPaint);
+            }
+            return;
+        }
+
+        float spacing = width / (normalizedValues.length - 1);
 
     linePath.reset();
     fillPath.reset();
     
+    int alphaColor = Color.argb(77, Color.red(chartColor), Color.green(chartColor), Color.blue(chartColor));
     fillPaint.setShader(new LinearGradient(0, 0, 0, chartHeight, 
-            Color.parseColor("#4DC8F43A"), Color.TRANSPARENT, Shader.TileMode.CLAMP));
+            alphaColor, Color.TRANSPARENT, Shader.TileMode.CLAMP));
 
     for (int i = 0; i < normalizedValues.length; i++) {
         float x = i * spacing;

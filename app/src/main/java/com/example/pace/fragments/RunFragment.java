@@ -13,7 +13,6 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -72,6 +71,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     private android.hardware.Sensor rotationSensor;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int ACTIVITY_RECOGNITION_REQUEST_CODE = 2;
+    private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 3;
 
     private Button btnStart, btnPause, btnStop;
     private Button btnPauseOverlay, btnStopOverlay;
@@ -90,16 +90,25 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     private long lastTime = 0;
     private double lastDistance = 0;
     private double lastElevation = 0;
-    private double[] currentSplits, currentElevSplits;
-    private int[] currentCadSplits;
+    private double[] currentSplits = new double[0];
+    private double[] currentElevSplits = new double[0];
+    private int[] currentCadSplits = new int[0];
     private int userWeight = 70;
 
     private boolean isMapReady = false;
     private boolean isLocationReady = false;
     private boolean isStatsExpanded = false;
 
-    private LocationCallback statusLocationCallback;
+    private LocationCallback statusLocationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(@NonNull LocationResult locationResult) {
+            android.location.Location loc = locationResult.getLastLocation();
+            if (loc != null) updateGpsStatus(loc.getAccuracy());
+        }
+    };
     private GestureDetector gestureDetector;
+
+    private boolean isSaving = false;
 
     private BroadcastReceiver trackingReceiver = new BroadcastReceiver() {
         @Override
@@ -126,7 +135,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         initUI(view);
         setupMap(view);
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity().getApplicationContext());
         enableInitialLocation();
         checkActivityRecognitionPermission();
 
@@ -187,8 +196,23 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         btnStopOverlay.setVisibility(View.GONE);
 
         btnStart.setOnClickListener(v -> {
-            sendAction(TrackingService.ACTION_START);
-            if (!isStatsExpanded) toggleStatsOverlay();
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+                return;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    showBackgroundLocationDialog();
+                    return;
+                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST_CODE);
+                    return;
+                }
+            }
+            startRunning();
         });
         
         View.OnClickListener pauseAction = v -> {
@@ -214,10 +238,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         });
 
         btnToggleStats.setOnClickListener(v -> toggleStatsOverlay());
-        if (btnMinimize != null) {
-            btnMinimize.setOnClickListener(v -> toggleStatsOverlay());
-        }
-        
+        if (btnMinimize != null) btnMinimize.setOnClickListener(v -> toggleStatsOverlay());
         panelStatsBottom.setOnClickListener(v -> toggleStatsOverlay());
         
         setupSwipeGestures();
@@ -228,23 +249,13 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
             @Override
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
                 if (e1 != null && e2 != null) {
-                    if (e1.getY() - e2.getY() > 100) { // Swipe Up
-                        if (!isStatsExpanded) toggleStatsOverlay();
-                        return true;
-                    } else if (e2.getY() - e1.getY() > 100) { // Swipe Down
-                        if (isStatsExpanded) toggleStatsOverlay();
-                        return true;
-                    }
+                    if (e1.getY() - e2.getY() > 100) { if (!isStatsExpanded) toggleStatsOverlay(); return true; }
+                    else if (e2.getY() - e1.getY() > 100) { if (isStatsExpanded) toggleStatsOverlay(); return true; }
                 }
                 return false;
             }
         });
-
-        View.OnTouchListener touchListener = (v, event) -> {
-            gestureDetector.onTouchEvent(event);
-            return false; 
-        };
-
+        View.OnTouchListener touchListener = (v, event) -> { gestureDetector.onTouchEvent(event); return false; };
         panelStatsBottom.setOnTouchListener(touchListener);
         layoutStatsOverlay.setOnTouchListener(touchListener);
     }
@@ -291,58 +302,36 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     }
 
     private void enableInitialLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-            return;
-        }
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
 
         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
                 .addOnSuccessListener(location -> {
                     if (location != null && !isTracking) {
                         GeoPoint point = new GeoPoint(location.getLatitude(), location.getLongitude());
-                        if (userMarker != null) {
-                            userMarker.setPosition(point);
-                            map.getController().setCenter(point);
-                        }
+                        if (userMarker != null) { userMarker.setPosition(point); map.getController().setCenter(point); }
                         updateGpsStatus(location.getAccuracy());
                     }
                     isLocationReady = true;
                     checkLoadingFinished();
                 })
-                .addOnFailureListener(e -> {
-                    isLocationReady = true;
-                    checkLoadingFinished();
-                });
+                .addOnFailureListener(e -> { isLocationReady = true; checkLoadingFinished(); });
     }
 
     private void startStatusLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
-
         LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 2000).build();
-        statusLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(@NonNull LocationResult locationResult) {
-                android.location.Location loc = locationResult.getLastLocation();
-                if (loc != null) {
-                    updateGpsStatus(loc.getAccuracy());
-                }
-            }
-        };
         fusedLocationClient.requestLocationUpdates(request, statusLocationCallback, android.os.Looper.getMainLooper());
     }
 
     private void stopStatusLocationUpdates() {
-        if (fusedLocationClient != null && statusLocationCallback != null) {
-            fusedLocationClient.removeLocationUpdates(statusLocationCallback);
-        }
+        if (fusedLocationClient != null && statusLocationCallback != null) fusedLocationClient.removeLocationUpdates(statusLocationCallback);
     }
 
     private void checkLoadingFinished() {
         if (isMapReady && isLocationReady && layoutMapLoading != null) {
             new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                 if (layoutMapLoading != null) {
-                    layoutMapLoading.animate().alpha(0).setDuration(500).withEndAction(() -> 
-                        layoutMapLoading.setVisibility(View.GONE)).start();
+                    layoutMapLoading.animate().alpha(0).setDuration(500).withEndAction(() -> layoutMapLoading.setVisibility(View.GONE)).start();
                 }
             }, 500);
         }
@@ -353,10 +342,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         int resId = (accuracy > 0 && accuracy < 20) ? R.drawable.progress_fill : R.drawable.dot_red;
         int color = (accuracy > 0 && accuracy < 20) ? Color.parseColor("#C8F43A") : Color.RED;
 
-        if (tvGpsStatus != null) {
-            tvGpsStatus.setText(statusText);
-            viewGpsIndicator.setBackgroundResource(resId);
-        }
+        if (tvGpsStatus != null) { tvGpsStatus.setText(statusText); viewGpsIndicator.setBackgroundResource(resId); }
         if (tvOverlayGpsStatus != null) {
             String text = isAutoPaused ? "AUTO-PAUSED" : "Sinyal GPS " + statusText.split(" ")[1].toLowerCase();
             tvOverlayGpsStatus.setText(text);
@@ -374,178 +360,164 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         double lat = intent.getDoubleExtra("lat", 0);
         double lng = intent.getDoubleExtra("lng", 0);
         float accuracy = intent.getFloatExtra("accuracy", 0);
-        double[] splits = intent.getDoubleArrayExtra("splits");
-        currentSplits = splits;
-        currentElevSplits = intent.getDoubleArrayExtra("elevSplits");
-        currentCadSplits = intent.getIntArrayExtra("cadSplits");
+        
+        ArrayList<GeoPoint> fullPath = intent.getParcelableArrayListExtra("fullPath");
+        if (fullPath != null) { pathPoints = fullPath; polyline.setPoints(pathPoints); }
 
-        lastTime = time;
-        lastDistance = distance;
-        lastElevation = elevation;
+        lastTime = time; lastDistance = distance; lastElevation = elevation;
         updateGpsStatus(accuracy);
 
-        String durationStr = String.format(Locale.getDefault(), "%02d:%02d", time / 60, time % 60);
-        String fullDurationStr = String.format(Locale.getDefault(), "%02d:%02d:%02d", time / 3600, (time % 3600) / 60, time % 60);
-        
-        tvDuration.setText(durationStr);
-        tvOverlayDuration.setText(fullDurationStr);
-        
+        double[] tempSplits = intent.getDoubleArrayExtra("splits");
+        if (tempSplits != null) currentSplits = tempSplits;
+        double[] tempElev = intent.getDoubleArrayExtra("elevSplits");
+        if (tempElev != null) currentElevSplits = tempElev;
+        int[] tempCad = intent.getIntArrayExtra("cadSplits");
+        if (tempCad != null) currentCadSplits = tempCad;
+
+        tvDuration.setText(String.format(Locale.getDefault(), "%02d:%02d", time / 60, time % 60));
+        tvOverlayDuration.setText(String.format(Locale.getDefault(), "%02d:%02d:%02d", time / 3600, (time % 3600) / 60, time % 60));
         tvDistance.setText(String.format(Locale.getDefault(), "%.2f", distance));
         tvOverlayDistance.setText(String.format(Locale.getDefault(), "%.1f", distance));
         
-        String caloriesStr = String.valueOf((int)(distance * userWeight * 1.036));
-        if (tvCalories != null) tvCalories.setText(caloriesStr);
-        if (tvOverlayCalories != null) tvOverlayCalories.setText(caloriesStr);
+        String cal = String.valueOf((int)(distance * userWeight * 1.036));
+        if (tvCalories != null) tvCalories.setText(cal);
+        if (tvOverlayCalories != null) tvOverlayCalories.setText(cal);
 
-        String stepsStr = (steps > 0) ? String.valueOf(steps) : "--";
-        if (tvSteps != null) tvSteps.setText(stepsStr);
-        if (tvOverlaySteps != null) tvOverlaySteps.setText(stepsStr);
-        
+        String s = (steps > 0) ? String.valueOf(steps) : "--";
+        if (tvSteps != null) tvSteps.setText(s);
+        if (tvOverlaySteps != null) tvOverlaySteps.setText(s);
         if (tvOverlayElevation != null) tvOverlayElevation.setText(String.format(Locale.getDefault(), "%.0fm Up", elevation));
 
         if (distance > 0.001) {
-            double paceDecimal = (time / 60.0) / distance;
-            int paceMins = (int) paceDecimal;
-            int paceSecs = (int) ((paceDecimal - paceMins) * 60);
-            String paceStr = String.format(Locale.getDefault(), "%d:%02d", paceMins, paceSecs);
-            tvPace.setText(paceStr);
-            tvOverlayAvgPace.setText(paceStr);
+            double p = (time / 60.0) / distance;
+            String ps = String.format(Locale.getDefault(), "%d:%02d", (int)p, (int)((p - (int)p) * 60));
+            tvPace.setText(ps); tvOverlayAvgPace.setText(ps);
         }
 
         updateButtons(isTracking && !isAutoPaused);
 
-        if (lat != 0 && lng != 0 && !isAutoPaused) {
+        if (lat != 0 && lng != 0) {
             GeoPoint point = new GeoPoint(lat, lng);
-            pathPoints.add(point);
-            polyline.setPoints(pathPoints);
             userMarker.setPosition(point);
-            map.getController().animateTo(point);
+            if (!isAutoPaused) map.getController().animateTo(point);
             map.invalidate();
         }
 
+        double[] splits = intent.getDoubleArrayExtra("splits");
         if (splits != null && splits.length > 0 && splitBarChart != null) {
-            float[] splitPaces = new float[splits.length];
-            for(int i=0; i<splits.length; i++) splitPaces[i] = (float) (splits[i] / 60.0);
-            splitBarChart.setData(splitPaces);
+            float[] sp = new float[splits.length];
+            for(int i=0; i<splits.length; i++) sp[i] = (float) (splits[i] / 60.0);
+            splitBarChart.setData(sp);
         }
     }
 
     private void updateButtons(boolean tracking) {
         if (isTracking) {
-            btnStart.setVisibility(View.GONE);
-            btnPause.setVisibility(View.VISIBLE);
-            btnPauseOverlay.setVisibility(View.VISIBLE);
-            
-            if (isAutoPaused) {
-                btnPause.setText("▶ LANJUT");
-                btnPauseOverlay.setText("▶ LANJUT");
-                btnStop.setVisibility(View.GONE);
-                btnStopOverlay.setVisibility(View.GONE);
-            } else {
-                btnPause.setText("⏸ JEDA");
-                btnPauseOverlay.setText("⏸ JEDA");
-                btnStop.setVisibility(View.VISIBLE);
-                btnStopOverlay.setVisibility(View.VISIBLE);
-            }
+            btnStart.setVisibility(View.GONE); btnPause.setVisibility(View.VISIBLE); btnPauseOverlay.setVisibility(View.VISIBLE);
+            if (isAutoPaused) { btnPause.setText("▶ LANJUT"); btnPauseOverlay.setText("▶ LANJUT"); btnStop.setVisibility(View.GONE); btnStopOverlay.setVisibility(View.GONE); }
+            else { btnPause.setText("⏸ JEDA"); btnPauseOverlay.setText("⏸ JEDA"); btnStop.setVisibility(View.VISIBLE); btnStopOverlay.setVisibility(View.VISIBLE); }
         } else if (lastTime > 0) {
-            btnStart.setVisibility(View.GONE);
-            btnPause.setVisibility(View.VISIBLE);
-            btnPauseOverlay.setVisibility(View.VISIBLE);
-            btnPause.setText("▶ LANJUT");
-            btnPauseOverlay.setText("▶ LANJUT");
-            btnStop.setVisibility(View.GONE); 
-            btnStopOverlay.setVisibility(View.GONE);
+            btnStart.setVisibility(View.GONE); btnPause.setVisibility(View.VISIBLE); btnPauseOverlay.setVisibility(View.VISIBLE);
+            btnPause.setText("▶ LANJUT"); btnPauseOverlay.setText("▶ LANJUT"); btnStop.setVisibility(View.GONE); btnStopOverlay.setVisibility(View.GONE);
         } else {
-            btnStart.setVisibility(View.VISIBLE);
-            btnPause.setVisibility(View.GONE);
-            btnPauseOverlay.setVisibility(View.GONE);
-            btnStop.setVisibility(View.GONE);
-            btnStopOverlay.setVisibility(View.GONE);
+            btnStart.setVisibility(View.VISIBLE); btnPause.setVisibility(View.GONE); btnPauseOverlay.setVisibility(View.GONE);
+            btnStop.setVisibility(View.GONE); btnStopOverlay.setVisibility(View.GONE);
         }
+    }
+
+    private void startRunning() {
+        sendAction(TrackingService.ACTION_START);
+        if (!isStatsExpanded) toggleStatsOverlay();
+        openMusicApp();
+    }
+
+    private void openMusicApp() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_APP_MUSIC);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try { startActivity(intent); } catch (Exception e) {
+            try {
+                Intent s = requireContext().getPackageManager().getLaunchIntentForPackage("com.spotify.music");
+                if (s != null) startActivity(s);
+            } catch (Exception ex) {}
+        }
+    }
+
+    private void showBackgroundLocationDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Izin Lokasi Latar Belakang")
+                .setMessage("Agar rute tetap tercatat saat layar mati atau membuka aplikasi lain, silakan pilih 'Izinkan Sepanjang Waktu' (Allow all the time) pada halaman pengaturan berikutnya.")
+                .setPositiveButton("Buka Pengaturan", (dialog, which) -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 999);
+                })
+                .setNegativeButton("Nanti Saja", (dialog, which) -> startRunning()).show();
     }
 
     private void saveRunBeforeStop() {
-        if (lastDistance < 0.005) { // Minimum 5 meters to save
-            goBack();
-            return;
+        if (isSaving) return;
+        if (lastDistance < 0.005) { 
+            sendAction(TrackingService.ACTION_STOP);
+            goBack(); 
+            return; 
         }
+        isSaving = true;
+        btnStop.setEnabled(false);
+        if (btnStopOverlay != null) btnStopOverlay.setEnabled(false);
 
-        long timestamp = System.currentTimeMillis();
-        double distance = lastDistance;
-        long duration = lastTime;
-        double pace = (distance > 0) ? (duration / 60.0) / distance : 0;
-        int calories = (int) (distance * userWeight * 1.036);
-        double elevation = lastElevation;
-        String pathJson = new Gson().toJson(pathPoints);
+        long ts = System.currentTimeMillis(); double d = lastDistance; long dur = lastTime;
+        double p = (d > 0) ? (dur / 60.0) / d : 0; int c = (int) (d * userWeight * 1.036);
+        double e = lastElevation; String pj = new Gson().toJson(pathPoints);
+
+        // Capture split data
+        String sJson = new Gson().toJson(currentSplits);
+        String eJson = new Gson().toJson(currentElevSplits);
+        String cJson = new Gson().toJson(currentCadSplits);
 
         new Thread(() -> {
-            // Fetch Location Name (Reverse Geocoding)
-            String locationName = "Lokasi Tidak Diketahui";
+            String ln = "Lokasi Tidak Diketahui";
             if (!pathPoints.isEmpty()) {
                 try {
-                    Geocoder geocoder = new Geocoder(requireContext(), new Locale("id", "ID"));
-                    GeoPoint firstPoint = pathPoints.get(0);
-                    List<Address> addresses = geocoder.getFromLocation(firstPoint.getLatitude(), firstPoint.getLongitude(), 1);
-                    if (addresses != null && !addresses.isEmpty()) {
-                        Address addr = addresses.get(0);
-                        
-                        // Priority for City: SubAdminArea (e.g. Kota Bandung) -> AdminArea
-                        String city = addr.getSubAdminArea();
-                        if (city == null) city = addr.getLocality();
-                        
-                        // Priority for Area: SubLocality (e.g. Sukapura) -> Locality
-                        String area = addr.getSubLocality();
-                        if (area == null) area = addr.getLocality();
-
-                        if (city != null && area != null && !city.equals(area)) {
-                            locationName = city + " - " + area;
-                        } else if (city != null) {
-                            locationName = city;
-                        } else if (area != null) {
-                            locationName = area;
-                        }
+                    Geocoder geo = new Geocoder(requireContext(), new Locale("id", "ID"));
+                    List<Address> ads = geo.getFromLocation(pathPoints.get(0).getLatitude(), pathPoints.get(0).getLongitude(), 1);
+                    if (ads != null && !ads.isEmpty()) {
+                        Address a = ads.get(0);
+                        String city = a.getSubAdminArea() != null ? a.getSubAdminArea() : a.getLocality();
+                        String area = a.getSubLocality() != null ? a.getSubLocality() : a.getLocality();
+                        if (city != null && area != null && !city.equals(area)) ln = city + " - " + area;
+                        else if (city != null) ln = city; else if (area != null) ln = area;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                } catch (Exception ex) {}
             }
+            RunRecord r = new RunRecord(ts, d, dur, p, c, e, pj);
+            r.setLocationName(ln);
+            r.setSplitsJson(sJson);
+            r.setElevationSplitsJson(eJson);
+            r.setCadenceSplitsJson(cJson);
 
-            RunRecord record = new RunRecord(timestamp, distance, duration, pace, calories, elevation, pathJson);
-            record.setSplitsJson(new Gson().toJson(currentSplits));
-            record.setElevationSplitsJson(new Gson().toJson(currentElevSplits));
-            record.setCadenceSplitsJson(new Gson().toJson(currentCadSplits));
-            record.setLocationName(locationName);
-
-            AppDatabase.getInstance(requireContext()).runDao().insert(record);
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    Toast.makeText(getContext(), "Aktivitas disimpan!", Toast.LENGTH_SHORT).show();
-                    goBack();
-                });
-            }
+            AppDatabase.getInstance(requireContext()).runDao().insert(r);
+            if (getActivity() != null) getActivity().runOnUiThread(() -> {
+                Toast.makeText(getContext(), "Aktivitas disimpan!", Toast.LENGTH_SHORT).show();
+                isSaving = false;
+                goBack();
+            });
         }).start();
     }
 
-    private void sendAction(String action) {
-        Intent intent = new Intent(getContext(), TrackingService.class);
-        intent.setAction(action);
-        requireActivity().startService(intent);
+    private void sendAction(String a) {
+        Intent i = new Intent(getContext(), TrackingService.class); i.setAction(a);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) requireContext().startForegroundService(i);
+        else requireContext().startService(i);
     }
 
     private void goBack() {
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).setNavigationVisibility(true);
-        }
+        if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).setNavigationVisibility(true);
         getParentFragmentManager().beginTransaction().replace(R.id.fragmentContainer, new HomeFragment()).commit();
     }
 
     @Override
     public void onSensorChanged(android.hardware.SensorEvent event) {
         if (event.sensor.getType() == android.hardware.Sensor.TYPE_ORIENTATION) {
-            if (userMarker != null) {
-                userMarker.setRotation(-event.values[0]);
-                if (map != null) map.invalidate();
-            }
+            if (userMarker != null) { userMarker.setRotation(-event.values[0]); if (map != null) map.invalidate(); }
         }
     }
 
@@ -553,50 +525,31 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     public void onAccuracyChanged(android.hardware.Sensor sensor, int accuracy) {}
 
     @Override
-    public void onStart() {
-        super.onStart();
-        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(trackingReceiver, new IntentFilter(TrackingService.TRACKING_UPDATE));
-    }
+    public void onStart() { super.onStart(); LocalBroadcastManager.getInstance(requireContext()).registerReceiver(trackingReceiver, new IntentFilter(TrackingService.TRACKING_UPDATE)); }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(trackingReceiver);
-    }
+    public void onStop() { super.onStop(); LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(trackingReceiver); }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        if (map != null) map.onResume();
-        if (rotationSensor != null) sensorManager.registerListener(this, rotationSensor, android.hardware.SensorManager.SENSOR_DELAY_UI);
-        startStatusLocationUpdates();
-    }
+    public void onResume() { super.onResume(); if (map != null) map.onResume(); if (rotationSensor != null) sensorManager.registerListener(this, rotationSensor, android.hardware.SensorManager.SENSOR_DELAY_UI); startStatusLocationUpdates(); }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        if (map != null) map.onPause();
-        sensorManager.unregisterListener(this);
-        stopStatusLocationUpdates();
-    }
+    public void onPause() { super.onPause(); if (map != null) map.onPause(); sensorManager.unregisterListener(this); stopStatusLocationUpdates(); }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enableInitialLocation();
-            }
-        } else if (requestCode == ACTIVITY_RECOGNITION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(getContext(), "Izin aktivitas fisik aktif!", Toast.LENGTH_SHORT).show();
-            }
+    public void onRequestPermissionsResult(int rc, @NonNull String[] p, @NonNull int[] gr) {
+        super.onRequestPermissionsResult(rc, p, gr);
+        if (rc == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (gr.length > 0 && gr[0] == PackageManager.PERMISSION_GRANTED) enableInitialLocation();
+        } else if (rc == ACTIVITY_RECOGNITION_REQUEST_CODE) {
+            if (gr.length > 0 && gr[0] == PackageManager.PERMISSION_GRANTED) Toast.makeText(getContext(), "Izin aktivitas fisik aktif!", Toast.LENGTH_SHORT).show();
+        } else if (rc == NOTIFICATION_PERMISSION_REQUEST_CODE) {
+            if (gr.length > 0 && gr[0] == PackageManager.PERMISSION_GRANTED) startRunning();
+        } else if (rc == 999) {
+            startRunning();
         }
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        stopStatusLocationUpdates();
-    }
+    public void onDestroy() { super.onDestroy(); stopStatusLocationUpdates(); }
 }

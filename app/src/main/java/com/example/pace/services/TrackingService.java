@@ -9,6 +9,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -16,9 +17,12 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -34,6 +38,8 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 
+import org.osmdroid.util.GeoPoint;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -47,7 +53,9 @@ public class TrackingService extends Service implements SensorEventListener {
     private static final String CHANNEL_ID = "TrackingChannel";
     private static final int NOTIFICATION_ID = 123;
 
+    private PowerManager.WakeLock wakeLock;
     private FusedLocationProviderClient fusedLocationClient;
+    private HandlerThread locationHandlerThread;
     private LocationCallback locationCallback;
     private SensorManager sensorManager;
     private Sensor stepCounterSensor;
@@ -68,10 +76,12 @@ public class TrackingService extends Service implements SensorEventListener {
     private ArrayList<Double> splits = new ArrayList<>();
     private ArrayList<Double> elevationSplits = new ArrayList<>();
     private ArrayList<Integer> cadenceSplits = new ArrayList<>();
+    private ArrayList<GeoPoint> fullPathPoints = new ArrayList<>();
 
     private int startSteps = -1;
     private int currentSteps = 0;
     private Location lastLocation;
+    private boolean isLocationUpdatesRunning = false;
     
     // Auto Pause Logic
     private long lowSpeedStartTime = 0;
@@ -96,7 +106,7 @@ public class TrackingService extends Service implements SensorEventListener {
     @Override
     public void onCreate() {
         super.onCreate();
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getApplicationContext());
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         stepDetectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
@@ -120,6 +130,13 @@ public class TrackingService extends Service implements SensorEventListener {
     }
 
     private void startTracking() {
+        // Satisfaction for Android 8.0+ requirements: call startForeground immediately
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, getNotification("Lari Sedang Berlangsung"), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+        } else {
+            startForeground(NOTIFICATION_ID, getNotification("Lari Sedang Berlangsung"));
+        }
+
         if (isTracking && !isAutoPaused) return;
         
         if (isAutoPaused) {
@@ -128,13 +145,21 @@ public class TrackingService extends Service implements SensorEventListener {
             isTracking = true;
             timerHandler.post(timerRunnable);
             registerSensors();
+
+            // Acquire WakeLock to keep CPU running when screen is off
+            PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (wakeLock == null) {
+                wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "OUTPACE:TrackingWakeLock");
+            }
+            if (!wakeLock.isHeld()) {
+                wakeLock.acquire();
+            }
             
             // App-internal Notification
             insertAppNotification("Aktivitas Dimulai", "Anda baru saja mulai merekam lari. Tetap semangat!");
         }
         
         startLocationUpdates();
-        startForeground(NOTIFICATION_ID, getNotification("Aktivitas Dimulai"));
         broadcastUpdate();
     }
 
@@ -160,6 +185,11 @@ public class TrackingService extends Service implements SensorEventListener {
         stopLocationUpdates();
         if (sensorManager != null) {
             sensorManager.unregisterListener(this);
+        }
+        
+        // Release WakeLock
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
         }
         
         // Show summary notification
@@ -227,6 +257,7 @@ public class TrackingService extends Service implements SensorEventListener {
                             }
                         }
                         lastLocation = location;
+                        fullPathPoints.add(new GeoPoint(location.getLatitude(), location.getLongitude()));
                         
                         // Fallback steps update every location change
                         if (currentSteps == 0 || (totalDistance * 1350 > currentSteps + 10)) {
@@ -260,14 +291,34 @@ public class TrackingService extends Service implements SensorEventListener {
     }
 
     private void startLocationUpdates() {
-        LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).build();
+        if (isLocationUpdatesRunning) return;
+
+        if (locationHandlerThread == null) {
+            locationHandlerThread = new HandlerThread("LocationUpdatesThread");
+            locationHandlerThread.start();
+        }
+
+        LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+                .setMinUpdateIntervalMillis(500)
+                .setMaxUpdateDelayMillis(2000)
+                .setWaitForAccurateLocation(false)
+                .build();
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, locationHandlerThread.getLooper());
+            isLocationUpdatesRunning = true;
         }
     }
 
     private void stopLocationUpdates() {
+        if (!isLocationUpdatesRunning) return;
+        
         fusedLocationClient.removeLocationUpdates(locationCallback);
+        if (locationHandlerThread != null) {
+            locationHandlerThread.quitSafely();
+            locationHandlerThread = null;
+        }
+        isLocationUpdatesRunning = false;
     }
 
     private void broadcastUpdate() {
@@ -290,6 +341,7 @@ public class TrackingService extends Service implements SensorEventListener {
         int[] cadSplitArray = new int[cadenceSplits.size()];
         for(int i=0; i<cadenceSplits.size(); i++) cadSplitArray[i] = cadenceSplits.get(i);
         intent.putExtra("cadSplits", cadSplitArray);
+        intent.putParcelableArrayListExtra("fullPath", fullPathPoints);
 
         if (lastLocation != null) {
             intent.putExtra("lat", lastLocation.getLatitude());
@@ -301,7 +353,8 @@ public class TrackingService extends Service implements SensorEventListener {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Pace Tracking", NotificationManager.IMPORTANCE_LOW);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Pace Tracking", NotificationManager.IMPORTANCE_HIGH);
+            channel.setSound(null, null); // Keep it high priority but silent
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel);
         }
@@ -381,6 +434,15 @@ public class TrackingService extends Service implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopLocationUpdates();
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
+        }
+    }
 
     @Nullable
     @Override

@@ -280,10 +280,25 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="min/km" android:textColor="#C8F43A" android:background="@drawable/card_glass" android:paddingHorizontal="8dp" android:paddingVertical="2dp" android:textSize="11sp"/>
                     </RelativeLayout>
                     <com.example.pace.views.LineChartView
-                        android:id="@+id/chartPaceDetail"
+                        android:id="@+id/chartPace"
                         android:layout_width="match_parent"
                         android:layout_height="120dp"
-                        android:layout_marginTop="15dp"/>
+                        android:layout_marginTop="15dp"
+                        app:chartColor="@color/lime"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15dp">
+                        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:id="@+id/tvDetailPaceAvg" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:-- /km" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pace Rata2" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:id="@+id/tvDetailPaceTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:-- /km" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pace Total" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:id="@+id/tvDetailPaceFast" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:-- /km" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Split Cepat" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Kadens Chart -->
@@ -299,10 +314,21 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="langkah/mnt" android:textColor="#409C27B0" android:background="@drawable/card_glass" android:paddingHorizontal="8dp" android:paddingVertical="2dp" android:textSize="11sp"/>
                     </RelativeLayout>
                     <com.example.pace.views.LineChartView
-                        android:id="@+id/chartCadenceDetail"
+                        android:id="@+id/chartKadens"
                         android:layout_width="match_parent"
                         android:layout_height="120dp"
-                        android:layout_marginTop="15dp"/>
+                        android:layout_marginTop="15dp"
+                        app:chartColor="#9C27B0"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15dp">
+                        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:id="@+id/tvDetailCadenceAvg" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-- spm" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kadens Rata2" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:id="@+id/tvDetailCadenceMax" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-- spm" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kadens Maks" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Elevasi Chart -->
@@ -318,10 +344,21 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="meter" android:textColor="#40FF9800" android:background="@drawable/card_glass" android:paddingHorizontal="8dp" android:paddingVertical="2dp" android:textSize="11sp"/>
                     </RelativeLayout>
                     <com.example.pace.views.LineChartView
-                        android:id="@+id/chartElevationDetail"
+                        android:id="@+id/chartElevasi"
                         android:layout_width="match_parent"
                         android:layout_height="120dp"
-                        android:layout_marginTop="15dp"/>
+                        android:layout_marginTop="15dp"
+                        app:chartColor="#FF9800"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15dp">
+                        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:id="@+id/tvDetailElevGain" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-- m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kenaikan" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:id="@+id/tvDetailElevMax" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-- m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Elev Maks" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
 
             </LinearLayout>

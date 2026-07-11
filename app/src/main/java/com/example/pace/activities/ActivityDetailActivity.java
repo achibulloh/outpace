@@ -44,6 +44,7 @@ public class ActivityDetailActivity extends AppCompatActivity {
     
     private TextView tvDistanceTop, tvTitle, tvDateTime, tvLocation, tvDistance, tvAvgPace, tvDuration;
     private TextView tvCalories, tvSteps, tvElevation, tvMaxElev;
+    private TextView tvPaceAvg, tvPaceTotal, tvPaceFast, tvCadenceAvg, tvCadenceMax, tvElevGain, tvElevMax;
     
     private LineChartView chartPace, chartCadence, chartElevation;
 
@@ -106,10 +107,18 @@ public class ActivityDetailActivity extends AppCompatActivity {
         tvSteps = findViewById(R.id.tvDetailSteps);
         tvElevation = findViewById(R.id.tvDetailElevation);
         tvMaxElev = findViewById(R.id.tvDetailMaxElev);
+
+        tvPaceAvg = findViewById(R.id.tvDetailPaceAvg);
+        tvPaceTotal = findViewById(R.id.tvDetailPaceTotal);
+        tvPaceFast = findViewById(R.id.tvDetailPaceFast);
+        tvCadenceAvg = findViewById(R.id.tvDetailCadenceAvg);
+        tvCadenceMax = findViewById(R.id.tvDetailCadenceMax);
+        tvElevGain = findViewById(R.id.tvDetailElevGain);
+        tvElevMax = findViewById(R.id.tvDetailElevMax);
         
-        chartPace = findViewById(R.id.chartPaceDetail);
-        chartCadence = findViewById(R.id.chartCadenceDetail);
-        chartElevation = findViewById(R.id.chartElevationDetail);
+        chartPace = findViewById(R.id.chartPace);
+        chartCadence = findViewById(R.id.chartKadens);
+        chartElevation = findViewById(R.id.chartElevasi);
     }
 
     private void loadRunData(int id) {
@@ -166,50 +175,77 @@ public class ActivityDetailActivity extends AppCompatActivity {
     }
 
     private void setupDetailedCharts(RunRecord run) {
+        if (run.getSplitsJson() == null || run.getSplitsJson().equals("null")) return;
         Gson gson = new Gson();
-        double[] paceSplits = gson.fromJson(run.getSplitsJson(), double[].class);
-        double[] elevSplits = gson.fromJson(run.getElevationSplitsJson(), double[].class);
-        int[] cadSplits = gson.fromJson(run.getCadenceSplitsJson(), int[].class);
+        try {
+            double[] paceSplits = gson.fromJson(run.getSplitsJson(), double[].class);
+            double[] elevSplits = gson.fromJson(run.getElevationSplitsJson(), double[].class);
+            int[] cadSplits = gson.fromJson(run.getCadenceSplitsJson(), int[].class);
 
-        if (paceSplits != null && paceSplits.length > 0) {
-            float[] paceData = new float[paceSplits.length];
-            String[] paceInfo = new String[paceSplits.length];
-            long accumulatedTime = 0;
-            SimpleDateFormat timeSdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-            
-            for (int i = 0; i < paceSplits.length; i++) {
-                double p = paceSplits[i] / 60.0; // split duration in mins
-                paceData[i] = (float) p;
+            if (paceSplits != null && paceSplits.length > 0) {
+                float[] paceData = new float[paceSplits.length];
+                String[] paceInfo = new String[paceSplits.length];
+                long accumulatedTime = 0;
+                double totalPaceSecs = 0;
+                double minPaceSecs = 999999;
+                SimpleDateFormat timeSdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
                 
-                accumulatedTime += (long)paceSplits[i];
-                String timeAtKm = timeSdf.format(new Date(run.getTimestamp() + accumulatedTime * 1000));
+                for (int i = 0; i < paceSplits.length; i++) {
+                    double p = paceSplits[i] / 60.0; // split duration in mins
+                    paceData[i] = (float) p;
+                    totalPaceSecs += paceSplits[i];
+                    if (paceSplits[i] < minPaceSecs) minPaceSecs = paceSplits[i];
+                    
+                    accumulatedTime += (long)paceSplits[i];
+                    String timeAtKm = timeSdf.format(new Date(run.getTimestamp() + accumulatedTime * 1000));
+                    
+                    int mins = (int) p;
+                    int secs = (int) ((p - mins) * 60);
+                    paceInfo[i] = String.format(Locale.getDefault(), "%d:%02d /km @ %s", mins, secs, timeAtKm);
+                }
+                chartPace.setDetailedData(paceData, paceInfo);
+
+                // Update Pace Summary
+                double avgPace = (totalPaceSecs / paceSplits.length) / 60.0;
+                tvPaceAvg.setText(String.format(Locale.getDefault(), "%d:%02d /km", (int)avgPace, (int)((avgPace - (int)avgPace) * 60)));
                 
-                int mins = (int) p;
-                int secs = (int) ((p - mins) * 60);
-                paceInfo[i] = String.format(Locale.getDefault(), "%d:%02d /km @ %s", mins, secs, timeAtKm);
+                double totPace = run.getPace();
+                tvPaceTotal.setText(String.format(Locale.getDefault(), "%d:%02d /km", (int)totPace, (int)((totPace - (int)totPace) * 60)));
+                
+                double fastPace = minPaceSecs / 60.0;
+                tvPaceFast.setText(String.format(Locale.getDefault(), "%d:%02d /km", (int)fastPace, (int)((fastPace - (int)fastPace) * 60)));
             }
-            chartPace.setDetailedData(paceData, paceInfo);
-        }
 
-        if (elevSplits != null && elevSplits.length > 0) {
-            float[] elevData = new float[elevSplits.length];
-            String[] elevInfo = new String[elevSplits.length];
-            for (int i = 0; i < elevSplits.length; i++) {
-                elevData[i] = (float) elevSplits[i];
-                elevInfo[i] = String.format(Locale.getDefault(), "KM %d: +%.0fm", i+1, elevSplits[i]);
+            if (elevSplits != null && elevSplits.length > 0) {
+                float[] elevData = new float[elevSplits.length];
+                String[] elevInfo = new String[elevSplits.length];
+                double maxElev = -9999;
+                for (int i = 0; i < elevSplits.length; i++) {
+                    elevData[i] = (float) elevSplits[i];
+                    elevInfo[i] = String.format(Locale.getDefault(), "KM %d: +%.0fm", i+1, elevSplits[i]);
+                    if (elevSplits[i] > maxElev) maxElev = elevSplits[i];
+                }
+                chartElevation.setDetailedData(elevData, elevInfo);
+                tvElevGain.setText(String.format(Locale.getDefault(), "%.0f m", run.getElevationGain()));
+                tvElevMax.setText(String.format(Locale.getDefault(), "%.0f m", Math.max(maxElev, run.getElevationGain())));
             }
-            chartElevation.setDetailedData(elevData, elevInfo);
-        }
 
-        if (cadSplits != null && cadSplits.length > 0) {
-            float[] cadData = new float[cadSplits.length];
-            String[] cadInfo = new String[cadSplits.length];
-            for (int i = 0; i < cadSplits.length; i++) {
-                cadData[i] = (float) cadSplits[i];
-                cadInfo[i] = String.format(Locale.getDefault(), "KM %d: %d spm", i+1, cadSplits[i]);
+            if (cadSplits != null && cadSplits.length > 0) {
+                float[] cadData = new float[cadSplits.length];
+                String[] cadInfo = new String[cadSplits.length];
+                long totalCad = 0;
+                int maxCad = 0;
+                for (int i = 0; i < cadSplits.length; i++) {
+                    cadData[i] = (float) cadSplits[i];
+                    cadInfo[i] = String.format(Locale.getDefault(), "KM %d: %d spm", i+1, cadSplits[i]);
+                    totalCad += cadSplits[i];
+                    if (cadSplits[i] > maxCad) maxCad = cadSplits[i];
+                }
+                chartCadence.setDetailedData(cadData, cadInfo);
+                tvCadenceAvg.setText(String.format(Locale.getDefault(), "%d spm", totalCad / cadSplits.length));
+                tvCadenceMax.setText(String.format(Locale.getDefault(), "%d spm", maxCad));
             }
-            chartCadence.setDetailedData(cadData, cadInfo);
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void drawRoute(String pathJson) {
