@@ -140,8 +140,12 @@ public class ActivityDetailActivity extends AppCompatActivity {
         double pace = run.getPace();
         tvAvgPace.setText(String.format(Locale.getDefault(), "%d:%02d", (int)pace, (int)((pace - (int)pace) * 60)));
 
-        SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMM · HH:mm", new Locale("id", "ID"));
-        tvDateTime.setText(sdf.format(new Date(run.getTimestamp())));
+        if (run.getDate() != null && run.getStartTime() != null && run.getEndTime() != null) {
+            tvDateTime.setText(String.format("%s · %s - %s", run.getDate(), run.getStartTime(), run.getEndTime()));
+        } else {
+            SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMM · HH:mm", new Locale("id", "ID"));
+            tvDateTime.setText(sdf.format(new Date(run.getTimestamp())));
+        }
         
         String loc = run.getLocationName();
         if (loc != null) {

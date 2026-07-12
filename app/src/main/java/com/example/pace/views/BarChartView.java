@@ -43,11 +43,15 @@ public class BarChartView extends View {
         if (newValues == null || newValues.length == 0) return;
         
         this.values = new float[newValues.length];
-        float max = 0.1f;
+        float max = 0.0f;
         for (float v : newValues) if (v > max) max = v;
         
-        for (int i = 0; i < newValues.length; i++) {
-            this.values[i] = (newValues[i] / max) * 0.8f + 0.1f;
+        if (max <= 0) {
+            for (int i = 0; i < newValues.length; i++) this.values[i] = 0.1f;
+        } else {
+            for (int i = 0; i < newValues.length; i++) {
+                this.values[i] = (newValues[i] / max) * 0.8f + 0.1f;
+            }
         }
         invalidate();
     }

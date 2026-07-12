@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
+import android.util.Log;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.GestureDetector;
@@ -38,6 +39,9 @@ import com.example.pace.database.AppDatabase;
 import com.example.pace.model.RunRecord;
 import com.example.pace.services.TrackingService;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -59,7 +63,9 @@ import org.osmdroid.views.overlay.gestures.RotationGestureOverlay;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -231,8 +237,11 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         btnPauseOverlay.setOnClickListener(pauseAction);
 
         View.OnClickListener stopAction = v -> {
-            saveRunBeforeStop();
-            sendAction(TrackingService.ACTION_STOP);
+            if (!isSaving) {
+                isSaving = true;
+                saveRunBeforeStop();
+                sendAction(TrackingService.ACTION_STOP);
+            }
         };
         btnStop.setOnClickListener(stopAction);
         btnStopOverlay.setOnClickListener(stopAction);
@@ -554,19 +563,26 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     }
 
     private void saveRunBeforeStop() {
-        if (isSaving) return;
         if (lastDistance < 0.005) { 
+            isSaving = false;
             sendAction(TrackingService.ACTION_STOP);
             goBack(); 
             return; 
         }
-        isSaving = true;
         btnStop.setEnabled(false);
         if (btnStopOverlay != null) btnStopOverlay.setEnabled(false);
 
         long ts = System.currentTimeMillis(); double d = lastDistance; long dur = lastTime;
         double p = (d > 0) ? (dur / 60.0) / d : 0; int c = (int) (d * userWeight * 1.036);
         double e = lastElevation; String pj = new Gson().toJson(pathPoints);
+
+        // Format tanggal dan waktu
+        long startTs = ts - (dur * 1000);
+        SimpleDateFormat sdfDate = new SimpleDateFormat("EEEE, dd MMM yyyy", new Locale("id", "ID"));
+        SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm", new Locale("id", "ID"));
+        String dateStr = sdfDate.format(new Date(startTs));
+        String startTimeStr = sdfTime.format(new Date(startTs));
+        String endTimeStr = sdfTime.format(new Date(ts));
 
         // Capture split data
         String sJson = new Gson().toJson(currentSplits);
@@ -593,8 +609,30 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
             r.setSplitsJson(sJson);
             r.setElevationSplitsJson(eJson);
             r.setCadenceSplitsJson(cJson);
+            r.setDate(dateStr);
+            r.setStartTime(startTimeStr);
+            r.setEndTime(endTimeStr);
+            r.setSynced(false); // Awalnya belum sinkron
 
             AppDatabase.getInstance(requireContext()).runDao().insert(r);
+            
+            // Sync to Firebase if user is logged in
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                FirebaseFirestore.getInstance()
+                        .collection("users").document(user.getUid())
+                        .collection("runs").document(r.getFirebaseId())
+                        .set(r)
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("RunFragment", "Run synced to Firebase");
+                            new Thread(() -> {
+                                r.setSynced(true);
+                                AppDatabase.getInstance(requireContext()).runDao().insert(r); // Update status di Room
+                            }).start();
+                        })
+                        .addOnFailureListener(error -> Log.e("RunFragment", "Firebase sync failed", error));
+            }
+
             if (getActivity() != null) getActivity().runOnUiThread(() -> {
                 Toast.makeText(getContext(), "Aktivitas disimpan!", Toast.LENGTH_SHORT).show();
                 isSaving = false;

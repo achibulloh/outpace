@@ -33,6 +33,11 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.Calendar;
@@ -52,7 +57,7 @@ public class HomeFragment extends Fragment {
     private LinearLayout layoutEmptyHome;
     private View viewNotificationBadge;
 
-    private float weeklyTargetKm = 40.0f;
+    private float weeklyTargetKm = 12.5f;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -158,14 +163,50 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        loadPreferences();
+        loadFirestorePreferences();
         loadHomeData();
         checkUnreadNotifications();
     }
 
+    private void loadFirestorePreferences() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            Object targetObj = documentSnapshot.get("monthly_target");
+                            int monthlyTarget = 50; 
+                            
+                            if (targetObj != null) {
+                                try {
+                                    if (targetObj instanceof Number) {
+                                        monthlyTarget = ((Number) targetObj).intValue();
+                                    } else {
+                                        monthlyTarget = (int) Double.parseDouble(String.valueOf(targetObj));
+                                    }
+                                } catch (Exception ignored) {}
+                            }
+                            
+                            weeklyTargetKm = monthlyTarget / 4.0f;
+                            if (getActivity() != null) {
+                                tvWeeklyTargetLabel.setText(String.format(Locale.getDefault(), "/ %.1f km", weeklyTargetKm));
+                                // Refresh dashboard progress if we already have records
+                                loadHomeData();
+                            }
+                        } else {
+                            loadPreferences();
+                        }
+                    })
+                    .addOnFailureListener(e -> loadPreferences());
+        } else {
+            loadPreferences();
+        }
+    }
+
     private void loadPreferences() {
         SharedPreferences prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-        int monthlyTarget = prefs.getInt("monthly_target", 150);
+        int monthlyTarget = prefs.getInt("monthly_target", 50);
         weeklyTargetKm = monthlyTarget / 4.0f;
         tvWeeklyTargetLabel.setText(String.format(Locale.getDefault(), "/ %.1f km", weeklyTargetKm));
     }
@@ -182,10 +223,14 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadHomeData() {
+        Context context = getContext();
+        if (context == null) return;
+        
         new Thread(() -> {
-            List<RunRecord> allRecords = AppDatabase.getInstance(requireContext()).runDao().getAllRuns();
-            if (getActivity() != null) {
+            List<RunRecord> allRecords = AppDatabase.getInstance(context).runDao().getAllRuns();
+            if (getActivity() != null && isAdded()) {
                 getActivity().runOnUiThread(() -> {
+                    if (!isAdded()) return;
                     lastRuns.clear();
                     if (allRecords == null || allRecords.isEmpty()) {
                         layoutEmptyHome.setVisibility(View.VISIBLE);
@@ -201,9 +246,51 @@ public class HomeFragment extends Fragment {
                         updateDashboard(allRecords);
                     }
                     adapter.notifyDataSetChanged();
+                    syncHomeFromFirebase();
                 });
             }
         }).start();
+    }
+
+    private void syncHomeFromFirebase() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null || !isAdded()) return;
+
+        FirebaseFirestore.getInstance()
+                .collection("users").document(user.getUid())
+                .collection("runs")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!isAdded()) return;
+                    
+                    List<RunRecord> cloudRecords = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        cloudRecords.add(doc.toObject(RunRecord.class));
+                    }
+
+                    if (!cloudRecords.isEmpty()) {
+                        new Thread(() -> {
+                            Context context = getContext();
+                            if (context == null || !isAdded()) return;
+                            
+                            AppDatabase.getInstance(context).runDao().insertAll(cloudRecords);
+                            List<RunRecord> updatedRecords = AppDatabase.getInstance(context).runDao().getAllRuns();
+                            if (getActivity() != null && isAdded()) {
+                                getActivity().runOnUiThread(() -> {
+                                    if (!isAdded()) return;
+                                    lastRuns.clear();
+                                    layoutEmptyHome.setVisibility(View.GONE);
+                                    rvLastActivities.setVisibility(View.VISIBLE);
+                                    for (int i = 0; i < Math.min(updatedRecords.size(), 10); i++) {
+                                        lastRuns.add(updatedRecords.get(i));
+                                    }
+                                    updateDashboard(updatedRecords);
+                                    adapter.notifyDataSetChanged();
+                                });
+                            }
+                        }).start();
+                    }
+                });
     }
 
     private void updateDashboard(List<RunRecord> records) {

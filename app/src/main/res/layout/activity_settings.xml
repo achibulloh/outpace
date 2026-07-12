@@ -24,7 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Pengaturan Profil"
+            android:text="Pengaturan"
             android:textColor="@color/text_primary"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -38,45 +38,139 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Weight -->
+            <!-- Language Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Berat Badan (kg)"
+                android:text="Bahasa"
                 android:textColor="@color/muted_fg"
-                android:layout_marginBottom="8dp" />
-            <EditText
-                android:id="@+id/etWeight"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="@drawable/card_glass"
-                android:paddingHorizontal="16dp"
-                android:inputType="number"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginBottom="12dp"
+                android:textStyle="bold"/>
 
-            <!-- Monthly Target -->
+            <LinearLayout
+                android:id="@+id/btnLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/card_glass"
+                android:padding="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginBottom="24dp">
+                <ImageView
+                    android:id="@+id/ivSettingsFlag"
+                    android:layout_width="28dp"
+                    android:layout_height="20dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_flag_id" />
+                <TextView
+                    android:id="@+id/tvSettingsLanguageName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="Bahasa Indonesia"
+                    android:textColor="@color/text_primary" />
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_back"
+                    android:rotation="180"
+                    app:tint="@color/muted_fg" />
+            </LinearLayout>
+
+            <!-- Theme Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Target Bulanan (km)"
+                android:text="Tampilan"
                 android:textColor="@color/muted_fg"
-                android:layout_marginBottom="8dp" />
-            <EditText
-                android:id="@+id/etMonthlyTarget"
+                android:layout_marginBottom="12dp"
+                android:textStyle="bold"/>
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/card_glass"
-                android:paddingHorizontal="16dp"
-                android:inputType="number"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="32dp" />
+                android:padding="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="32dp">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_edit"
+                    app:tint="@color/lime" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="Mode Gelap"
+                    android:textColor="@color/text_primary" />
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchDarkMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:thumbTint="@color/lime"
+                    app:trackTint="@color/muted_fg" />
+            </LinearLayout>
+
+            <!-- Account Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Akun"
+                android:textColor="@color/muted_fg"
+                android:layout_marginBottom="12dp"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:id="@+id/btnLinkGoogle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/card_glass"
+                android:padding="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginBottom="32dp">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_google" />
+                <TextView
+                    android:id="@+id/tvGoogleStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="Kaitkan Akun Google"
+                    android:textColor="@color/text_primary" />
+                <TextView
+                    android:id="@+id/tvLinkAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="KAITKAN"
+                    android:textColor="@color/lime"
+                    android:textStyle="bold"
+                    android:textSize="12sp" />
+                <ProgressBar
+                    android:id="@+id/pbGoogleLink"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="8dp"
+                    android:visibility="gone"
+                    android:indeterminateTint="@color/lime"/>
+            </LinearLayout>
 
             <Button
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:text="Simpan Perubahan"
+                android:text="Simpan Pengaturan"
                 android:textColor="@color/bg"
                 android:textStyle="bold"
                 android:background="@drawable/btn_lime" />

@@ -18,6 +18,9 @@ import com.example.pace.activities.HelpActivity;
 import com.example.pace.activities.LoginActivity;
 import com.example.pace.activities.PrivacyActivity;
 import com.example.pace.activities.SettingsActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileFragment extends Fragment {
 
@@ -44,6 +47,7 @@ public class ProfileFragment extends Fragment {
         });
 
         view.findViewById(R.id.btnLogout).setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
             SharedPreferences prefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
             prefs.edit().clear().apply();
             
@@ -57,11 +61,25 @@ public class ProfileFragment extends Fragment {
     }
 
     private void loadUserData(View view) {
-        SharedPreferences prefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-        String name = prefs.getString("full_name", "User Name");
-        String email = prefs.getString("email", "user@email.com");
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String uid = currentUser.getUid();
+            String email = currentUser.getEmail();
+            
+            TextView tvUserName = view.findViewById(R.id.tvUserName);
+            TextView tvUserEmail = view.findViewById(R.id.tvUserEmail);
+            
+            tvUserEmail.setText(email);
 
-        ((TextView) view.findViewById(R.id.tvUserName)).setText(name);
-        ((TextView) view.findViewById(R.id.tvUserEmail)).setText(email);
+            FirebaseFirestore.getInstance().collection("users").document(uid).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String name = documentSnapshot.getString("name");
+                            tvUserName.setText(name != null ? name : currentUser.getDisplayName());
+                        } else {
+                            tvUserName.setText(currentUser.getDisplayName());
+                        }
+                    });
+        }
     }
 }

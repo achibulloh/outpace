@@ -21,6 +21,10 @@ import com.example.pace.views.BarChartView;
 import com.example.pace.views.CalendarDotsView;
 import com.example.pace.views.LineChartView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -38,28 +42,86 @@ public class ProgressFragment extends Fragment {
     private LineChartView lineChart;
     private CalendarDotsView calendarDots;
 
-    private float monthlyTargetKm = 150.0f;
-    private float weeklyTargetKm = 37.5f;
+    private float monthlyTargetKm = 50.0f;
+    private float weeklyTargetKm = 12.5f;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_progress, container, false);
-        
-        loadPreferences();
-        initUI(view);
-        
-        view.findViewById(R.id.btnLeaderboard).setOnClickListener(v -> {
-            startActivity(new Intent(getActivity(), LeaderboardActivity.class));
-        });
-        
-        loadProgressData();
+        View view = null;
+        try {
+            view = inflater.inflate(R.layout.fragment_progress, container, false);
+            initUI(view);
+            
+            View btnLeaderboard = view.findViewById(R.id.btnLeaderboard);
+            if (btnLeaderboard != null) {
+                btnLeaderboard.setOnClickListener(v -> {
+                    if (isAdded()) startActivity(new Intent(getActivity(), LeaderboardActivity.class));
+                });
+            }
+            
+            loadPreferences();
+            loadProgressData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadFirestorePreferences();
+    }
+
+    private void loadFirestorePreferences() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (!isAdded() || getActivity() == null) return;
+                        if (documentSnapshot.exists()) {
+                            Object targetObj = documentSnapshot.get("monthly_target");
+                            int monthlyTarget = 50; // Default
+                            
+                            if (targetObj != null) {
+                                try {
+                                    if (targetObj instanceof Number) {
+                                        monthlyTarget = ((Number) targetObj).intValue();
+                                    } else {
+                                        monthlyTarget = (int) Double.parseDouble(String.valueOf(targetObj));
+                                    }
+                                } catch (Exception ignored) {}
+                            }
+                            
+                            monthlyTargetKm = monthlyTarget;
+                            weeklyTargetKm = monthlyTargetKm / 4.0f;
+                            
+                            tvMonthlyTargetKm.setText(String.format(Locale.getDefault(), "%.0f km", monthlyTargetKm));
+                            tvWeeklyTargetKm.setText(String.format(Locale.getDefault(), "%.1f km", weeklyTargetKm));
+                            loadProgressData(); // Refresh data with new targets
+                        } else {
+                            loadPreferences();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        if (isAdded()) loadPreferences();
+                    });
+        }
+    }
+
     private void loadPreferences() {
-        SharedPreferences prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-        monthlyTargetKm = prefs.getInt("monthly_target", 150);
+        Context context = getContext();
+        if (context == null) return;
+        
+        SharedPreferences prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        monthlyTargetKm = prefs.getInt("monthly_target", 50);
         weeklyTargetKm = monthlyTargetKm / 4.0f;
+        
+        if (getActivity() != null) {
+            tvMonthlyTargetKm.setText(String.format(Locale.getDefault(), "%.0f km", monthlyTargetKm));
+            tvWeeklyTargetKm.setText(String.format(Locale.getDefault(), "%.1f km", weeklyTargetKm));
+        }
     }
 
     private void initUI(View view) {
@@ -105,15 +167,24 @@ public class ProgressFragment extends Fragment {
     }
 
     private void loadProgressData() {
+        Context context = getContext();
+        if (context == null) return;
+        
         new Thread(() -> {
-            List<RunRecord> records = AppDatabase.getInstance(requireContext()).runDao().getAllRuns();
-            if (getActivity() != null) {
-                calculateAndDisplay(records);
+            try {
+                List<RunRecord> records = AppDatabase.getInstance(context).runDao().getAllRuns();
+                if (isAdded() && getActivity() != null) {
+                    calculateAndDisplay(records);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }).start();
     }
 
     private void calculateAndDisplay(List<RunRecord> records) {
+        if (!isAdded() || getActivity() == null) return;
+
         double monthlyKm = 0;
         double weeklyKm = 0;
         Set<Integer> activeDays = new HashSet<>();
@@ -165,6 +236,8 @@ public class ProgressFragment extends Fragment {
         final Set<Integer> finalActiveDays = activeDays;
         
         getActivity().runOnUiThread(() -> {
+            if (!isAdded() || getActivity() == null) return;
+
             updateProgress(progressMonthly, tvTargetAchieved, tvTargetPercent, (float)finalMonthlyKm, monthlyTargetKm);
             updateProgress(progressWeekly, tvWeeklyAchieved, tvWeeklyPercent, (float)finalWeeklyKm, weeklyTargetKm);
             
@@ -182,7 +255,9 @@ public class ProgressFragment extends Fragment {
     }
 
     private void updateProgress(View bar, TextView tvAchieved, TextView tvPercent, float current, float target) {
-        float percent = current / target;
+        if (bar == null || tvAchieved == null || tvPercent == null) return;
+        
+        float percent = (target > 0) ? current / target : 0;
         if (percent > 1.0f) percent = 1.0f;
         final float finalPercent = percent;
 
@@ -192,7 +267,11 @@ public class ProgressFragment extends Fragment {
         bar.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                bar.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                if (bar.getViewTreeObserver().isAlive()) {
+                    bar.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
+                if (!isAdded() || getActivity() == null) return;
+
                 if (bar.getParent() instanceof FrameLayout) {
                     int parentWidth = ((FrameLayout) bar.getParent()).getWidth();
                     ViewGroup.LayoutParams lp = bar.getLayoutParams();

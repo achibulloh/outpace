@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "677717783349",
+    "project_id": "outpace-1aae0",
+    "storage_bucket": "outpace-1aae0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:677717783349:android:6f5d945f73d56b4409d27c",
+        "android_client_info": {
+          "package_name": "com.example.pace"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "677717783349-8gqtqsosh3st97gm0l128mab8uskgvav.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pace",
+            "certificate_hash": "05f72082a053cd3ff7b261c2383a6428b25d3d12"
+          }
+        },
+        {
+          "client_id": "677717783349-bgu0pbujq5pd9fq7e00ccts3r5o08m44.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsN4k7ogD8XoeD5clby7h_Vc221iqqHk0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "677717783349-bgu0pbujq5pd9fq7e00ccts3r5o08m44.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

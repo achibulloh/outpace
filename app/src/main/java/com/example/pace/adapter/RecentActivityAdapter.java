@@ -39,8 +39,12 @@ public class RecentActivityAdapter extends RecyclerView.Adapter<RecentActivityAd
         int paceSecs = (int) ((run.getPace() - paceMins) * 60);
         holder.tvPace.setText(String.format(Locale.getDefault(), "%d:%02d/km", paceMins, paceSecs));
         
-        SimpleDateFormat sdf = new SimpleDateFormat("EEEE · HH:mm", new Locale("id", "ID"));
-        holder.tvDate.setText(sdf.format(new Date(run.getTimestamp())));
+        if (run.getDate() != null && run.getStartTime() != null && run.getEndTime() != null) {
+            holder.tvDate.setText(String.format("%s · %s", run.getDate(), run.getStartTime()));
+        } else {
+            SimpleDateFormat sdf = new SimpleDateFormat("EEEE · HH:mm", new Locale("id", "ID"));
+            holder.tvDate.setText(sdf.format(new Date(run.getTimestamp())));
+        }
         
         int hour = Integer.parseInt(new SimpleDateFormat("H", Locale.getDefault()).format(new Date(run.getTimestamp())));
         String title = "Run";

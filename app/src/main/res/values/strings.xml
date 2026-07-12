@@ -32,4 +32,20 @@
     <string name="phone_number">Phone Number</string>
     <string name="save_changes">Save Changes</string>
     <string name="profile_updated">Runner profile updated</string>
+    <string name="link_google">Link Google Account</string>
+    <string name="unlink_google">Unlink Google Account</string>
+    <string name="linked_with">Linked with: %1$s</string>
+    <string name="action_link">LINK</string>
+    <string name="action_unlink">UNLINK</string>
+    <string name="account_linked">Account linked successfully</string>
+    <string name="account_unlinked">Google account unlinked</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="reset_subtitle">Enter your email to receive an OTP code</string>
+    <string name="send_otp">Send OTP Code</string>
+    <string name="verify_otp">Verify OTP</string>
+    <string name="otp_subtitle">Enter the code sent to your email</string>
+    <string name="new_password">New Password</string>
+    <string name="update_password">Update Password</string>
+    <string name="password_updated">Password updated successfully</string>
 </resources>

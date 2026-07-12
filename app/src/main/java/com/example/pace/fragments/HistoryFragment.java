@@ -1,5 +1,6 @@
 package com.example.pace.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,10 @@ import com.example.pace.R;
 import com.example.pace.adapter.RunHistoryAdapter;
 import com.example.pace.database.AppDatabase;
 import com.example.pace.model.RunRecord;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -130,16 +135,63 @@ public class HistoryFragment extends Fragment {
     }
 
     private void loadHistoryData() {
+        Context context = getContext();
+        if (context == null) return;
+
+        // Load Local first
         new Thread(() -> {
-            List<RunRecord> records = AppDatabase.getInstance(requireContext()).runDao().getAllRuns();
-            if (getActivity() != null) {
+            List<RunRecord> localRecords = AppDatabase.getInstance(context).runDao().getAllRuns();
+            if (getActivity() != null && isAdded()) {
                 getActivity().runOnUiThread(() -> {
+                    if (!isAdded()) return;
                     allRecords.clear();
-                    if (records != null) allRecords.addAll(records);
-                    applyFilter("WEEK"); // Default
+                    if (localRecords != null) allRecords.addAll(localRecords);
+                    applyFilter("WEEK"); 
+                    syncFromFirebase(); // Start sync from cloud
                 });
             }
         }).start();
+    }
+
+    private void syncFromFirebase() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null || !isAdded()) return;
+
+        FirebaseFirestore.getInstance()
+                .collection("users").document(user.getUid())
+                .collection("runs")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!isAdded()) return;
+                    
+                    List<RunRecord> cloudRecords = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        RunRecord r = doc.toObject(RunRecord.class);
+                        r.setSynced(true); // Data dari cloud sudah pasti sinkron
+                        cloudRecords.add(r);
+                    }
+                    
+                    if (!cloudRecords.isEmpty()) {
+                        new Thread(() -> {
+                            Context context = getContext();
+                            if (context == null || !isAdded()) return;
+                            
+                            // Update local DB (Room will use REPLACE strategy based on unique index)
+                            AppDatabase.getInstance(context).runDao().insertAll(cloudRecords);
+                            
+                            // Re-fetch everything and update UI
+                            List<RunRecord> updatedRecords = AppDatabase.getInstance(context).runDao().getAllRuns();
+                            if (getActivity() != null && isAdded()) {
+                                getActivity().runOnUiThread(() -> {
+                                    if (!isAdded()) return;
+                                    allRecords.clear();
+                                    allRecords.addAll(updatedRecords);
+                                    applyFilter("WEEK");
+                                });
+                            }
+                        }).start();
+                    }
+                });
     }
 
     private void calculateSummary(List<RunRecord> records) {

@@ -43,8 +43,14 @@ public class RunHistoryAdapter extends RecyclerView.Adapter<RunHistoryAdapter.Vi
         int paceSecs = (int) ((run.getPace() - paceMins) * 60);
         holder.tvPace.setText(String.format(Locale.getDefault(), "%d:%02d/km", paceMins, paceSecs));
         
-        SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMM · HH:mm", new Locale("id", "ID"));
-        String dateStr = sdf.format(new Date(run.getTimestamp()));
+        String dateStr;
+        if (run.getDate() != null && run.getStartTime() != null && run.getEndTime() != null) {
+            dateStr = String.format("%s · %s - %s", run.getDate(), run.getStartTime(), run.getEndTime());
+        } else {
+            SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMM · HH:mm", new Locale("id", "ID"));
+            dateStr = sdf.format(new Date(run.getTimestamp()));
+        }
+
         if (run.getLocationName() != null) {
             String loc = run.getLocationName().replace(" - ", "\n");
             dateStr += "\n" + loc;

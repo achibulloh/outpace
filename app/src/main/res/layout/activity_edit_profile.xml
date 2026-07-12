@@ -160,6 +160,24 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
+            <!-- Monthly Target -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Target Bulanan (km)"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/lime"
+                app:hintTextColor="@color/lime"
+                android:textColorHint="@color/muted_fg">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etMonthlyTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:textColor="@color/text_primary"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Height -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
