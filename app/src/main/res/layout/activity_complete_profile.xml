@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <!-- Header / Progress Area -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="32dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvStepTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Data Diri"
+            android:textColor="@color/text_primary"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvStepSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Lengkapi informasi dasar Anda"
+            android:textColor="@color/muted_fg"
+            android:textSize="14sp" />
+
+        <!-- Simple Progress Dots -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal">
+            <View
+                android:id="@+id/dot1"
+                android:layout_width="24dp"
+                android:layout_height="6dp"
+                android:background="@drawable/rounded_lime" />
+            <View
+                android:id="@+id/dot2"
+                android:layout_width="24dp"
+                android:layout_height="6dp"
+                android:layout_marginStart="8dp"
+                android:background="@color/muted"
+                android:alpha="1.0"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="32dp">
+
+            <!-- STEP 1: Personal Info -->
+            <LinearLayout
+                android:id="@+id/layoutStep1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/full_name"
+                    android:layout_marginBottom="20dp"
+                    app:boxStrokeColor="@color/lime_stroke_color"
+                    app:boxStrokeWidth="1.5dp"
+                    app:hintTextColor="@color/lime"
+                    android:textColorHint="@color/muted_fg"
+                    app:startIconDrawable="@drawable/ic_person"
+                    app:startIconTint="@color/lime">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_primary"
+                        android:textCursorDrawable="@null"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/phone_number"
+                    android:layout_marginBottom="20dp"
+                    app:boxStrokeColor="@color/lime_stroke_color"
+                    app:boxStrokeWidth="1.5dp"
+                    app:hintTextColor="@color/lime"
+                    android:textColorHint="@color/muted_fg"
+                    app:startIconDrawable="@drawable/ic_help"
+                    app:startIconTint="@color/lime">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="phone"
+                        android:textColor="@color/text_primary"
+                        android:textCursorDrawable="@null"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/gender"
+                    android:layout_marginBottom="20dp"
+                    app:boxStrokeColor="@color/lime_stroke_color"
+                    app:boxStrokeWidth="1.5dp"
+                    app:hintTextColor="@color/lime"
+                    android:textColorHint="@color/muted_fg"
+                    app:startIconDrawable="@drawable/ic_person"
+                    app:startIconTint="@color/lime">
+                    <AutoCompleteTextView
+                        android:id="@+id/spinnerGender"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:textColor="@color/text_primary"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/date_of_birth"
+                    android:layout_marginBottom="20dp"
+                    app:boxStrokeColor="@color/lime_stroke_color"
+                    app:boxStrokeWidth="1.5dp"
+                    app:hintTextColor="@color/lime"
+                    android:textColorHint="@color/muted_fg"
+                    app:startIconDrawable="@drawable/ic_history"
+                    app:startIconTint="@color/lime">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etDOB"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:textColor="@color/text_primary"
+                        android:textCursorDrawable="@null"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <!-- STEP 2: Physical & Target -->
+            <LinearLayout
+                android:id="@+id/layoutStep2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/weight"
+                    android:layout_marginBottom="20dp"
+                    app:boxStrokeColor="@color/lime_stroke_color"
+                    app:boxStrokeWidth="1.5dp"
+                    app:hintTextColor="@color/lime"
+                    android:textColorHint="@color/muted_fg"
+                    app:suffixText="kg"
+                    app:suffixTextColor="@color/lime">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etWeight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:textColor="@color/text_primary"
+                        android:textCursorDrawable="@null"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/height"
+                    android:layout_marginBottom="20dp"
+                    app:boxStrokeColor="@color/lime_stroke_color"
+                    app:boxStrokeWidth="1.5dp"
+                    app:hintTextColor="@color/lime"
+                    android:textColorHint="@color/muted_fg"
+                    app:suffixText="cm"
+                    app:suffixTextColor="@color/lime">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etHeight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:textColor="@color/text_primary"
+                        android:textCursorDrawable="@null"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Target Bulanan"
+                    android:layout_marginBottom="20dp"
+                    app:boxStrokeColor="@color/lime_stroke_color"
+                    app:boxStrokeWidth="1.5dp"
+                    app:hintTextColor="@color/lime"
+                    android:textColorHint="@color/muted_fg"
+                    app:suffixText="km"
+                    app:suffixTextColor="@color/lime">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMonthlyTarget"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:textColor="@color/text_primary"
+                        android:textCursorDrawable="@null"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+    </ScrollView>
+
+    <!-- Bottom Actions -->
+    <LinearLayout
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="32dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button
+            android:id="@+id/btnBack"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:text="Kembali"
+            android:textColor="@color/muted_fg"
+            android:visibility="gone" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/btnAction"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:minWidth="140dp"
+            android:text="Lanjut"
+            android:textColor="@color/bg"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:background="@drawable/btn_lime"/>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

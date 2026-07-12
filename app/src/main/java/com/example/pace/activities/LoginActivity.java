@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.pace.R;
 import com.example.pace.model.User;
 import com.example.pace.utils.LocaleHelper;
+import com.example.pace.utils.ProfileUtils;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -104,7 +105,7 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(LoginActivity.this, "Login Berhasil!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        startActivity(new Intent(LoginActivity.this, SplashActivity.class));
                         finish();
                     } else {
                         Toast.makeText(LoginActivity.this, "Login Gagal: " + task.getException().getMessage(),
@@ -168,7 +169,7 @@ public class LoginActivity extends AppCompatActivity {
                         } else {
                             // User sudah ada
                             Toast.makeText(LoginActivity.this, "Login Berhasil!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            startActivity(new Intent(LoginActivity.this, SplashActivity.class));
                             finish();
                         }
                     }
@@ -181,7 +182,7 @@ public class LoginActivity extends AppCompatActivity {
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(LoginActivity.this, "Login Berhasil!", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    startActivity(new Intent(LoginActivity.this, SplashActivity.class));
                     finish();
                 })
                 .addOnFailureListener(e -> {

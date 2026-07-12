@@ -31,7 +31,9 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".activities.PermissionActivity" android:exported="false"/>
         <activity android:name=".activities.LoginActivity" android:exported="false"/>
+        <activity android:name=".activities.CompleteProfileActivity" android:exported="false"/>
         <activity android:name=".activities.ForgotPasswordActivity" android:exported="false"/>
         <activity android:name=".activities.RegisterActivity" android:exported="false"/>
         <activity android:name=".activities.EditProfileActivity" android:exported="false"/>

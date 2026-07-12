@@ -175,7 +175,7 @@ public class RegisterActivity extends AppCompatActivity {
                             saveUserToFirestore(firebaseUser.getUid(), firebaseUser.getDisplayName(), firebaseUser.getEmail());
                         } else {
                             Toast.makeText(RegisterActivity.this, "Login Berhasil!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                            startActivity(new Intent(RegisterActivity.this, SplashActivity.class));
                             finish();
                         }
                     }
@@ -188,7 +188,7 @@ public class RegisterActivity extends AppCompatActivity {
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(RegisterActivity.this, "Registrasi Berhasil!", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                    startActivity(new Intent(RegisterActivity.this, SplashActivity.class));
                     finish();
                 })
                 .addOnFailureListener(e -> {

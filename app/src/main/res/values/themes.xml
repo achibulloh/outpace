@@ -19,4 +19,20 @@
         <item name="cornerSize">24dp</item>
     </style>
     <style name="Theme.Pace" parent="Base.Theme.Pace" />
+
+    <!-- Style for DatePickerDialog -->
+    <style name="CustomDatePickerDialog" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="colorPrimary">@color/lime</item>
+        <item name="colorAccent">@color/lime</item>
+        <item name="android:windowBackground">@color/card</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">#BCBCC4</item>
+        <item name="android:headerBackground">@color/lime</item>
+        <item name="android:dayOfWeekTextAppearance">@style/CalendarDayOfWeekStyle</item>
+    </style>
+
+    <style name="CalendarDayOfWeekStyle" parent="@android:style/TextAppearance.Small">
+        <item name="android:textColor">#BCBCC4</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 </resources>

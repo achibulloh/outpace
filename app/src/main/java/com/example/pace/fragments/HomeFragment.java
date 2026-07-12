@@ -175,6 +175,10 @@ public class HomeFragment extends Fragment {
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
+                            String fullName = documentSnapshot.getString("name");
+                            if (fullName == null) fullName = "Runner";
+                            String firstName = fullName.split(" ")[0];
+                            
                             Object targetObj = documentSnapshot.get("monthly_target");
                             int monthlyTarget = 50; 
                             
@@ -190,6 +194,7 @@ public class HomeFragment extends Fragment {
                             
                             weeklyTargetKm = monthlyTarget / 4.0f;
                             if (getActivity() != null) {
+                                tvGreeting.setText("Hei, " + firstName + " 👋");
                                 tvWeeklyTargetLabel.setText(String.format(Locale.getDefault(), "/ %.1f km", weeklyTargetKm));
                                 // Refresh dashboard progress if we already have records
                                 loadHomeData();
@@ -209,6 +214,10 @@ public class HomeFragment extends Fragment {
         int monthlyTarget = prefs.getInt("monthly_target", 50);
         weeklyTargetKm = monthlyTarget / 4.0f;
         tvWeeklyTargetLabel.setText(String.format(Locale.getDefault(), "/ %.1f km", weeklyTargetKm));
+        
+        String fullName = prefs.getString("full_name", "Runner");
+        String firstName = fullName.split(" ")[0];
+        tvGreeting.setText("Hei, " + firstName + " 👋");
     }
 
     private void checkUnreadNotifications() {
