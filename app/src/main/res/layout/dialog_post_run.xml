@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/rounded_card"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="How was your run?"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mood"
+        android:textColor="@color/muted_fg"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="24dp">
+
+        <TextView
+            android:id="@+id/btnMoodGreat"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🤩\nGreat"
+            android:gravity="center"
+            android:padding="8dp"
+            android:background="@drawable/tab_unselected"
+            android:textColor="@color/muted_fg"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/btnMoodGood"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🙂\nGood"
+            android:gravity="center"
+            android:padding="8dp"
+            android:background="@drawable/tab_unselected"
+            android:textColor="@color/muted_fg"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/btnMoodNeutral"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="😐\nNeutral"
+            android:gravity="center"
+            android:padding="8dp"
+            android:background="@drawable/tab_unselected"
+            android:textColor="@color/muted_fg"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/btnMoodTired"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="😫\nTired"
+            android:gravity="center"
+            android:padding="8dp"
+            android:background="@drawable/tab_unselected"
+            android:textColor="@color/muted_fg"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fatigue Level (1-10)"
+        android:textColor="@color/muted_fg"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp"/>
+
+    <SeekBar
+        android:id="@+id/sbFatigue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="9"
+        android:progress="4"
+        android:progressDrawable="@drawable/seekbar_track"
+        android:thumb="@drawable/seekbar_thumb"
+        android:layout_marginBottom="32dp"/>
+
+    <Button
+        android:id="@+id/btnSubmitPostRun"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@drawable/btn_lime"
+        android:text="Save Activity"
+        android:textColor="@color/bg"
+        android:textStyle="bold"
+        android:textAllCaps="false"/>
+
+</LinearLayout>

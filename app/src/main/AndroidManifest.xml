@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
+        android:name=".PaceApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -46,6 +47,10 @@
         <activity android:name=".activities.ShareActivity" android:exported="false"/>
         <activity android:name=".activities.PrivacyActivity" android:exported="false"/>
         <activity android:name=".activities.HelpActivity" android:exported="false"/>
+        <activity android:name=".activities.ChatHistoryActivity" android:exported="false"/>
+        <activity android:name=".activities.GeminiChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

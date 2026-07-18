@@ -17,10 +17,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.example.pace.R;
+import com.example.pace.utils.LocaleHelper;
 
 public class PermissionActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 200;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
+    }
     private ImageView ivCheckLocation, ivCheckActivity, ivCheckNotification;
     private Button btnGrantAll;
     private android.view.View btnLocationSetting;
@@ -66,7 +72,7 @@ public class PermissionActivity extends AppCompatActivity {
         ivCheckNotification.setColorFilter(notification ? ContextCompat.getColor(this, R.color.lime) : ContextCompat.getColor(this, R.color.muted));
 
         if (locationAndGps && activity && notification) {
-            btnGrantAll.setText("Lanjutkan");
+            btnGrantAll.setText(R.string.btn_continue);
             btnGrantAll.setEnabled(true);
             btnGrantAll.setAlpha(1.0f);
             btnGrantAll.setOnClickListener(v -> {
@@ -74,11 +80,11 @@ public class PermissionActivity extends AppCompatActivity {
                 finish();
             });
         } else {
-            btnGrantAll.setText("Izinkan Semua");
+            btnGrantAll.setText(R.string.btn_allow_all);
             btnGrantAll.setEnabled(true); // Biarkan aktif agar bisa memicu request permission
             btnGrantAll.setOnClickListener(v -> {
                 if (!locationAndGps) {
-                    Toast.makeText(this, "Harap pastikan izin Lokasi 'Izinkan sepanjang waktu' dan GPS aktif!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, R.string.toast_perm_location_gps, Toast.LENGTH_LONG).show();
                     requestNecessaryPermissions();
                 } else {
                     requestNecessaryPermissions();
@@ -129,10 +135,10 @@ public class PermissionActivity extends AppCompatActivity {
 
     private void showGpsDialog() {
         new AlertDialog.Builder(this)
-                .setTitle("GPS Tidak Aktif")
-                .setMessage("Silakan aktifkan GPS untuk melanjutkan.")
-                .setPositiveButton("Pengaturan", (d, w) -> startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)))
-                .setNegativeButton("Batal", null)
+                .setTitle(R.string.gps_disabled_title)
+                .setMessage(R.string.gps_disabled_msg)
+                .setPositiveButton(R.string.settings, (d, w) -> startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)))
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
@@ -150,7 +156,7 @@ public class PermissionActivity extends AppCompatActivity {
                 }
             }
             if (allGranted) updateStatus();
-            else Toast.makeText(this, "Beberapa izin ditolak. Harap izinkan semua untuk melanjutkan.", Toast.LENGTH_SHORT).show();
+            else Toast.makeText(this, R.string.toast_perm_denied, Toast.LENGTH_SHORT).show();
         }
     }
 

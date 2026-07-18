@@ -28,7 +28,32 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="40px"/>
 
+    <TextView
+        android:id="@+id/tvShareTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="MORNING RUN"
+        android:textColor="@color/text_primary"
+        android:textSize="36px"
+        android:layout_below="@id/tvPaceLogo"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20px"
+        android:alpha="0.7"
+        android:letterSpacing="0.1"/>
+
+    <TextView
+        android:id="@+id/tvLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bandung, Indonesia"
+        android:textColor="@color/lime"
+        android:textSize="32px"
+        android:layout_above="@id/llCenter"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20px"/>
+
     <LinearLayout
+        android:id="@+id/llCenter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"

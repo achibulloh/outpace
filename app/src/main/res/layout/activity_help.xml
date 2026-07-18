@@ -23,7 +23,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Bantuan"
+            android:text="@string/help_title"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -42,7 +42,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pusat Bantuan"
+                android:text="@string/help_center"
                 android:textColor="@color/lime"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -64,14 +64,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Bagaimana cara mulai merekam lari?"
+                        android:text="@string/faq_1_q"
                         android:textColor="@color/text_primary"
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tekan tombol logo pelari di tengah navigasi bawah, lalu klik tombol MULAI."
+                        android:text="@string/faq_1_a"
                         android:textColor="@color/muted_fg"
                         android:textSize="13sp"/>
                 </LinearLayout>
@@ -93,14 +93,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Mengapa GPS saya tidak akurat?"
+                        android:text="@string/faq_2_q"
                         android:textColor="@color/text_primary"
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Pastikan Anda berada di luar ruangan dan memberikan izin lokasi 'Selalu' pada pengaturan aplikasi."
+                        android:text="@string/faq_2_a"
                         android:textColor="@color/muted_fg"
                         android:textSize="13sp"/>
                 </LinearLayout>
@@ -109,7 +109,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Kontak Kami"
+                android:text="@string/contact_us"
                 android:textColor="@color/lime"
                 android:textSize="16sp"
                 android:textStyle="bold"

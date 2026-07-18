@@ -38,6 +38,7 @@
             android:alpha="0.8" />
 
         <TextView
+            android:id="@+id/tvShareTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="MORNING RUN"

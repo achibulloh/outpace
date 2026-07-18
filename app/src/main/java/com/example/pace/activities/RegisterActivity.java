@@ -65,12 +65,12 @@ public class RegisterActivity extends AppCompatActivity {
 
         // Set initial language UI
         String currentLang = LocaleHelper.getLanguage(this);
-        if (currentLang.equals("in")) {
+        if (currentLang.equals("id") || currentLang.equals("in")) {
             ivFlag.setImageResource(R.drawable.ic_flag_id);
-            tvLanguageName.setText("Indonesia");
+            tvLanguageName.setText(R.string.lang_id);
         } else {
             ivFlag.setImageResource(R.drawable.ic_flag_en);
-            tvLanguageName.setText("English");
+            tvLanguageName.setText(R.string.lang_en);
         }
 
         btnRegister.setOnClickListener(v -> registerUser());
@@ -94,17 +94,17 @@ public class RegisterActivity extends AppCompatActivity {
         String confirmPassword = etConfirmPassword.getText().toString().trim();
 
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Semua field harus diisi", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.fill_email_password, Toast.LENGTH_SHORT).show(); // Reusing the same string
             return;
         }
 
         if (!password.equals(confirmPassword)) {
-            Toast.makeText(this, "Password tidak cocok", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.password_not_match, Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (password.length() < 6) {
-            Toast.makeText(this, "Password minimal 6 karakter", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.password_min_chars, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -116,7 +116,7 @@ public class RegisterActivity extends AppCompatActivity {
                             saveUserToFirestore(firebaseUser.getUid(), name, email);
                         }
                     } else {
-                        Toast.makeText(RegisterActivity.this, "Registrasi gagal: " + task.getException().getMessage(),
+                        Toast.makeText(RegisterActivity.this, getString(R.string.register_failed, task.getException().getMessage()),
                                 Toast.LENGTH_LONG).show();
                     }
                 });
@@ -148,7 +148,7 @@ public class RegisterActivity extends AppCompatActivity {
                 firebaseAuthWithGoogle(account.getIdToken());
             }
         } catch (ApiException e) {
-            Toast.makeText(this, "Google Sign-In Gagal: " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.google_sign_in_failed_val, e.getStatusCode()), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -162,7 +162,7 @@ public class RegisterActivity extends AppCompatActivity {
                             checkUserInFirestore(user);
                         }
                     } else {
-                        Toast.makeText(RegisterActivity.this, "Autentikasi Firebase Gagal.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RegisterActivity.this, R.string.firebase_auth_failed_val, Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -174,7 +174,7 @@ public class RegisterActivity extends AppCompatActivity {
                         if (!task.getResult().exists()) {
                             saveUserToFirestore(firebaseUser.getUid(), firebaseUser.getDisplayName(), firebaseUser.getEmail());
                         } else {
-                            Toast.makeText(RegisterActivity.this, "Login Berhasil!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RegisterActivity.this, R.string.login_success, Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(RegisterActivity.this, SplashActivity.class));
                             finish();
                         }
@@ -187,25 +187,25 @@ public class RegisterActivity extends AppCompatActivity {
         db.collection("users").document(uid)
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(RegisterActivity.this, "Registrasi Berhasil!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegisterActivity.this, R.string.register_success, Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(RegisterActivity.this, SplashActivity.class));
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(RegisterActivity.this, "Gagal menyimpan data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegisterActivity.this, getString(R.string.data_save_failed_val, e.getMessage()), Toast.LENGTH_SHORT).show();
                 });
     }
 
     private void showLanguageMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
-        popup.getMenu().add(0, 1, 0, "English");
-        popup.getMenu().add(0, 2, 1, "Indonesia");
+        popup.getMenu().add(0, 1, 0, getString(R.string.lang_en));
+        popup.getMenu().add(0, 2, 1, getString(R.string.lang_id));
 
         popup.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == 1) {
                 LocaleHelper.setLocale(this, "en");
             } else {
-                LocaleHelper.setLocale(this, "in");
+                LocaleHelper.setLocale(this, "id");
             }
             recreate();
             return true;

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -66,20 +67,17 @@ public class LoginActivity extends AppCompatActivity {
 
         // Set initial language UI
         String currentLang = LocaleHelper.getLanguage(this);
-        if (currentLang.equals("in")) {
+        if (currentLang.equals("id") || currentLang.equals("in")) {
             ivFlag.setImageResource(R.drawable.ic_flag_id);
-            tvLanguageName.setText("Indonesia");
+            tvLanguageName.setText(R.string.lang_id);
         } else {
             ivFlag.setImageResource(R.drawable.ic_flag_en);
-            tvLanguageName.setText("English");
+            tvLanguageName.setText(R.string.lang_en);
         }
 
         btnLogin.setOnClickListener(v -> loginUser());
 
-        btnGoogle.setOnClickListener(v -> {
-            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-            googleSignInLauncher.launch(signInIntent);
-        });
+        btnGoogle.setOnClickListener(v -> initiateGoogleLogin());
 
         tvRegister.setOnClickListener(v -> {
             startActivity(new Intent(this, RegisterActivity.class));
@@ -97,50 +95,76 @@ public class LoginActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
 
         if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Email dan Password harus diisi", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.fill_email_password, Toast.LENGTH_SHORT).show();
             return;
         }
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(LoginActivity.this, "Login Berhasil!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, R.string.login_success, Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(LoginActivity.this, SplashActivity.class));
                         finish();
                     } else {
-                        Toast.makeText(LoginActivity.this, "Login Gagal: " + task.getException().getMessage(),
+                        Toast.makeText(LoginActivity.this, getString(R.string.login_failed, task.getException().getMessage()),
                                 Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
     private void setupGoogleSignIn() {
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        try {
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .build();
+            mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        googleSignInLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK) {
-                        Intent data = result.getData();
-                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-                        handleSignInResult(task);
-                    }
-                }
-        );
+            // Register launcher here in onCreate/init - NEVER call this again
+            if (googleSignInLauncher == null) {
+                googleSignInLauncher = registerForActivityResult(
+                        new ActivityResultContracts.StartActivityForResult(),
+                        result -> {
+                            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                                handleSignInResult(task);
+                            }
+                        }
+                );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void initiateGoogleLogin() {
+        if (mGoogleSignInClient == null) {
+            Toast.makeText(this, "Google Sign-In is initializing...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Force sign out first to ensure account picker always appears
+        mGoogleSignInClient.signOut().addOnCompleteListener(task -> {
+            try {
+                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                googleSignInLauncher.launch(signInIntent);
+            } catch (Exception e) {
+                Log.e("LoginActivity", "Failed to launch Google Sign In", e);
+            }
+        });
     }
 
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            if (account != null) {
+            if (account != null && account.getIdToken() != null) {
                 firebaseAuthWithGoogle(account.getIdToken());
+            } else {
+                Toast.makeText(this, "Google login failed: Empty token", Toast.LENGTH_SHORT).show();
             }
         } catch (ApiException e) {
-            Toast.makeText(this, "Google Sign-In Gagal: " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
+            Log.e("LoginActivity", "Google login failed: " + e.getStatusCode());
+            Toast.makeText(this, "Google Sign-In failed (Code " + e.getStatusCode() + ")", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -154,7 +178,7 @@ public class LoginActivity extends AppCompatActivity {
                             checkUserInFirestore(user);
                         }
                     } else {
-                        Toast.makeText(LoginActivity.this, "Autentikasi Firebase Gagal.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, R.string.firebase_auth_failed_val, Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -168,7 +192,7 @@ public class LoginActivity extends AppCompatActivity {
                             saveUserToFirestore(firebaseUser.getUid(), firebaseUser.getDisplayName(), firebaseUser.getEmail());
                         } else {
                             // User sudah ada
-                            Toast.makeText(LoginActivity.this, "Login Berhasil!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, R.string.login_success, Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, SplashActivity.class));
                             finish();
                         }
@@ -181,25 +205,25 @@ public class LoginActivity extends AppCompatActivity {
         db.collection("users").document(uid)
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(LoginActivity.this, "Login Berhasil!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, R.string.login_success, Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(LoginActivity.this, SplashActivity.class));
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(LoginActivity.this, "Gagal menyimpan data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, getString(R.string.data_save_failed_val, e.getMessage()), Toast.LENGTH_SHORT).show();
                 });
     }
 
     private void showLanguageMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
-        popup.getMenu().add(0, 1, 0, "English");
-        popup.getMenu().add(0, 2, 1, "Indonesia");
+        popup.getMenu().add(0, 1, 0, getString(R.string.lang_en));
+        popup.getMenu().add(0, 2, 1, getString(R.string.lang_id));
 
         popup.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == 1) {
                 LocaleHelper.setLocale(this, "en");
             } else {
-                LocaleHelper.setLocale(this, "in");
+                LocaleHelper.setLocale(this, "id");
             }
             recreate();
             return true;

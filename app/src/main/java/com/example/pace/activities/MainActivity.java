@@ -45,6 +45,11 @@ public class MainActivity extends AppCompatActivity {
             else if (id == R.id.nav_profile) f = new ProfileFragment();
             
             if (f != null) {
+                // Check if the current fragment is the same to avoid unnecessary reload
+                Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+                if (current != null && current.getClass().equals(f.getClass())) {
+                    return true;
+                }
                 loadFragment(f);
                 return true;
             }
@@ -52,9 +57,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         fabCenter.setOnClickListener(v -> {
-            loadFragment(new RunFragment());
-            // Optional: reset selection on bottomNav
-            // bottomNav.setSelectedItemId(R.id.nav_placeholder);
+            Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+            if (current == null || !(current instanceof RunFragment)) {
+                loadFragment(new RunFragment());
+            }
         });
     }
 
@@ -70,7 +76,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadFragment(Fragment f) {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragmentContainer, f).commit();
+        if (isFinishing() || isDestroyed()) return;
+        
+        try {
+            getSupportFragmentManager().beginTransaction()
+                    .setReorderingAllowed(true)
+                    .replace(R.id.fragmentContainer, f, f.getClass().getSimpleName())
+                    .commit();
+        } catch (IllegalStateException e) {
+            // Fallback for cases where state might be saved
+            getSupportFragmentManager().beginTransaction()
+                    .setReorderingAllowed(true)
+                    .replace(R.id.fragmentContainer, f, f.getClass().getSimpleName())
+                    .commitAllowingStateLoss();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Terminate Firestore to avoid ManagedChannel leak warning on app close
+        try {
+            com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+            db.terminate();
+        } catch (Exception ignored) {}
+        super.onDestroy();
+    }
+
+    @Override
+    public void onConfigurationChanged(android.content.res.Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        LocaleHelper.onAttach(this);
     }
 }

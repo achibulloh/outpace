@@ -6,42 +6,47 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import com.example.pace.R;
+import com.example.pace.model.User;
+import com.example.pace.utils.LocaleHelper;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
 public class EditProfileActivity extends AppCompatActivity {
-    
-    private TextInputEditText etName, etEmail, etPhone, etWeight, etHeight, etMonthlyTarget;
-    private AutoCompleteTextView spinnerGender;
-    private TextInputEditText etDOB;
+
+    private TextInputEditText etName, etEmail, etPhone, etWeight, etHeight, etMonthlyTarget, etTargetWeight, etDOB;
+    private AutoCompleteTextView spinnerGender, spinnerGoal, spinnerFitness;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
-
         initUI();
         loadUserData();
-
-        findViewById(R.id.btnSave).setOnClickListener(v -> saveProfile());
     }
 
     private void initUI() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+        if (getSupportActionBar() != null) getSupportActionBar().setDisplayShowTitleEnabled(false);
         toolbar.setNavigationOnClickListener(v -> finish());
 
         etName = findViewById(R.id.etName);
@@ -50,119 +55,95 @@ public class EditProfileActivity extends AppCompatActivity {
         etWeight = findViewById(R.id.etWeight);
         etHeight = findViewById(R.id.etHeight);
         etMonthlyTarget = findViewById(R.id.etMonthlyTarget);
-        spinnerGender = findViewById(R.id.spinnerGender);
+        etTargetWeight = findViewById(R.id.etTargetWeight);
         etDOB = findViewById(R.id.etDOB);
+        spinnerGender = findViewById(R.id.spinnerGender);
+        spinnerGoal = findViewById(R.id.spinnerGoal);
+        spinnerFitness = findViewById(R.id.spinnerFitness);
 
-        // Setup Gender Dropdown
-        String[] genders = new String[]{"Laki-laki", "Perempuan"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, genders);
-        spinnerGender.setAdapter(adapter);
+        String[] genders = {getString(R.string.gender_male), getString(R.string.gender_female)};
+        spinnerGender.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, genders));
 
-        // Setup Date of Birth Picker
+        String[] goals = {"Weight Loss", "Increase Speed", "Health & Wellness", "Marathon Training"};
+        spinnerGoal.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, goals));
+
+        String[] fitness = {"Beginner", "Intermediate", "Pro"};
+        spinnerFitness.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, fitness));
+
         etDOB.setOnClickListener(v -> showDatePicker(etDOB));
+        findViewById(R.id.btnSave).setOnClickListener(v -> saveProfile());
     }
 
     private void loadUserData() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            etEmail.setText(currentUser.getEmail());
-            etEmail.setEnabled(false); // Email usually not editable directly
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
 
-            FirebaseFirestore.getInstance().collection("users").document(currentUser.getUid()).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            etName.setText(documentSnapshot.getString("name"));
-                            etPhone.setText(documentSnapshot.getString("phone"));
-                            etWeight.setText(documentSnapshot.getString("weight"));
-                            etHeight.setText(documentSnapshot.getString("height"));
-                            etDOB.setText(documentSnapshot.getString("dob"));
-                            spinnerGender.setText(documentSnapshot.getString("gender"), false);
-                            
-                            // Load monthly target
-                            Object targetObj = documentSnapshot.get("monthly_target");
-                            int monthlyTarget = 50;
-                            if (targetObj != null) {
-                                try {
-                                    if (targetObj instanceof Number) {
-                                        monthlyTarget = ((Number) targetObj).intValue();
-                                    } else {
-                                        monthlyTarget = (int) Double.parseDouble(String.valueOf(targetObj));
-                                    }
-                                } catch (Exception ignored) {}
-                            }
-                            etMonthlyTarget.setText(String.valueOf(monthlyTarget));
-                        } else {
-                            etMonthlyTarget.setText("50");
-                        }
-                    })
-                    .addOnFailureListener(e -> etMonthlyTarget.setText("50"));
-        }
+        FirebaseFirestore.getInstance().collection("users").document(user.getUid()).get()
+                .addOnSuccessListener(doc -> {
+                    User u = doc.toObject(User.class);
+                    if (u != null) {
+                        etName.setText(u.getName());
+                        etEmail.setText(u.getEmail());
+                        etEmail.setEnabled(false); // Email cannot be changed
+                        etPhone.setText(u.getPhone());
+                        etWeight.setText(u.getWeight());
+                        etHeight.setText(u.getHeight());
+                        etMonthlyTarget.setText(u.getMonthlyTarget());
+                        etTargetWeight.setText(u.getTargetWeight());
+                        etDOB.setText(u.getDob());
+                        spinnerGender.setText(u.getGender(), false);
+                        spinnerGoal.setText(u.getGoal(), false);
+                        
+                        String fLevel = "Beginner";
+                        if (u.getFitnessLevel() == 2) fLevel = "Intermediate";
+                        else if (u.getFitnessLevel() == 3) fLevel = "Pro";
+                        spinnerFitness.setText(fLevel, false);
+                    }
+                });
     }
 
     private void saveProfile() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) return;
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
 
-        String name = etName.getText().toString().trim();
-        String phone = etPhone.getText().toString().trim();
-        String weight = etWeight.getText().toString().trim();
-        String height = etHeight.getText().toString().trim();
-        String monthlyTargetStr = etMonthlyTarget.getText().toString().trim();
-        String dob = etDOB.getText().toString().trim();
-        String gender = spinnerGender.getText().toString();
+        Map<String, Object> data = new HashMap<>();
+        data.put("name", etName.getText().toString());
+        data.put("phone", etPhone.getText().toString());
+        data.put("weight", etWeight.getText().toString());
+        data.put("height", etHeight.getText().toString());
+        data.put("monthly_target", etMonthlyTarget.getText().toString());
+        data.put("targetWeight", etTargetWeight.getText().toString());
+        data.put("dob", etDOB.getText().toString());
+        data.put("gender", spinnerGender.getText().toString());
+        data.put("goal", spinnerGoal.getText().toString());
+        
+        int fIdx = 1;
+        String fTxt = spinnerFitness.getText().toString();
+        if (fTxt.equals("Intermediate")) fIdx = 2;
+        else if (fTxt.equals("Pro")) fIdx = 3;
+        data.put("fitnessLevel", fIdx);
 
-        int monthlyTargetInt = 50;
-        if (!monthlyTargetStr.isEmpty()) {
-            try {
-                monthlyTargetInt = Integer.parseInt(monthlyTargetStr);
-            } catch (NumberFormatException e) {
-                Toast.makeText(this, "Target bulanan harus berupa angka", Toast.LENGTH_SHORT).show();
-                return;
-            }
-        }
-
-        if (name.isEmpty()) {
-            Toast.makeText(this, "Nama tidak boleh kosong", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("name", name);
-        userData.put("phone", phone);
-        userData.put("weight", weight);
-        userData.put("height", height);
-        userData.put("monthly_target", monthlyTargetInt); // Simpan sebagai Number, bukan String
-        userData.put("dob", dob);
-        userData.put("gender", gender);
-
-        int finalMonthlyTargetInt = monthlyTargetInt;
-        FirebaseFirestore.getInstance().collection("users").document(currentUser.getUid())
-                .update(userData)
+        final int finalFIdx = fIdx;
+        FirebaseFirestore.getInstance().collection("users").document(user.getUid()).update(data)
                 .addOnSuccessListener(aVoid -> {
-                    // Update SharedPreferences
                     SharedPreferences.Editor editor = getSharedPreferences("user_prefs", Context.MODE_PRIVATE).edit();
-                    editor.putInt("monthly_target", finalMonthlyTargetInt);
+                    editor.putString("full_name", etName.getText().toString());
+                    editor.putString("goal", spinnerGoal.getText().toString());
+                    editor.putInt("fitnessLevel", finalFIdx);
+                    editor.putInt("weight", (int) Double.parseDouble(etWeight.getText().toString()));
                     editor.apply();
-
-                    Toast.makeText(this, "Profil berhasil diperbarui", Toast.LENGTH_SHORT).show();
+                    
+                    Toast.makeText(this, R.string.profile_updated, Toast.LENGTH_SHORT).show();
                     finish();
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Gagal memperbarui profil: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void showDatePicker(EditText et) {
         final Calendar c = Calendar.getInstance();
-        int year = c.get(Calendar.YEAR);
-        int month = c.get(Calendar.MONTH);
-        int day = c.get(Calendar.DAY_OF_MONTH);
-
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
-                (view, year1, monthOfYear, dayOfMonth) -> {
-                    String date = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year1;
-                    et.setText(date);
-                }, year, month, day);
-        datePickerDialog.show();
+        DatePickerDialog dpd = new DatePickerDialog(this, R.style.CustomDatePickerDialog, (view, year, month, day) -> {
+            et.setText(day + "/" + (month + 1) + "/" + year);
+        }, c.get(Calendar.YEAR) - 20, c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+        dpd.show();
     }
 }

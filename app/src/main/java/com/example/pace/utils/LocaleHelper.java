@@ -4,21 +4,23 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.os.LocaleList;
 import java.util.Locale;
 
 public class LocaleHelper {
     private static final String SELECTED_LANGUAGE = "Locale.Helper.Selected.Language";
 
     public static Context onAttach(Context context) {
-        String lang = getPersistedData(context, Locale.getDefault().getLanguage());
+        String lang = getPersistedData(context, "en");
         return setLocale(context, lang);
     }
 
     public static String getLanguage(Context context) {
-        return getPersistedData(context, Locale.getDefault().getLanguage());
+        return getPersistedData(context, "en");
     }
 
     public static Context setLocale(Context context, String language) {
+        if (language.equals("in")) language = "id";
         persist(context, language);
         return updateResources(context, language);
     }
@@ -39,11 +41,24 @@ public class LocaleHelper {
         Locale locale = new Locale(language);
         Locale.setDefault(locale);
 
-        Resources resources = context.getResources();
-        Configuration configuration = resources.getConfiguration();
-        configuration.setLocale(locale);
-        configuration.setLayoutDirection(locale);
+        Resources res = context.getResources();
+        Configuration config = new Configuration(res.getConfiguration());
+        
+        config.setLocale(locale);
+        LocaleList localeList = new LocaleList(locale);
+        LocaleList.setDefault(localeList);
+        config.setLocales(localeList);
 
-        return context.createConfigurationContext(configuration);
+        // Update Application resources
+        Context appContext = context.getApplicationContext();
+        if (appContext != null && appContext != context) {
+            Resources appRes = appContext.getResources();
+            appRes.updateConfiguration(config, appRes.getDisplayMetrics());
+        }
+
+        // Update current context resources
+        res.updateConfiguration(config, res.getDisplayMetrics());
+
+        return context.createConfigurationContext(config);
     }
 }

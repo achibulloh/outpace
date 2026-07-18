@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg">
@@ -87,14 +88,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="● Start"
+                        android:text="@string/label_start"
                         android:textColor="@color/text_primary"
                         android:textSize="12sp"
                         android:layout_marginEnd="15dp"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="● Finish"
+                        android:text="@string/label_finish"
                         android:textColor="@color/lime"
                         android:textSize="12sp"/>
                 </LinearLayout>
@@ -176,18 +177,18 @@
                 android:paddingHorizontal="20dp">
 
                 <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                    <TextView android:id="@+id/tvDetailDistance" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5.20" android:textColor="@color/lime" android:textSize="24sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="JARAK (KM)" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                    <TextView android:id="@+id/tvDetailDistance" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="5.20" android:textColor="@color/lime" android:textSize="24sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_km_upper" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                 </LinearLayout>
 
                 <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                    <TextView android:id="@+id/tvDetailAvgPace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PACE RATA2" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                    <TextView android:id="@+id/tvDetailAvgPace" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="5:14" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_avg_pace_upper" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                 </LinearLayout>
 
                 <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                    <TextView android:id="@+id/tvDetailDuration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27:14" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="DURASI" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                    <TextView android:id="@+id/tvDetailDuration" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="27:14" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_duration_upper" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                 </LinearLayout>
             </LinearLayout>
 
@@ -213,7 +214,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:text="Ringkasan"
+                        android:text="@string/tab_summary"
                         android:textStyle="bold"
                         android:textColor="@color/bg"/>
                 </FrameLayout>
@@ -228,7 +229,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:text="Split"
+                        android:text="@string/tab_split"
                         android:textColor="@color/muted_fg" />
                 </FrameLayout>
             </LinearLayout>
@@ -250,20 +251,20 @@
                     android:rowCount="1">
 
                     <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="8dp">
-                        <TextView android:id="@+id/tvDetailCalories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="338" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kalori" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                        <TextView android:id="@+id/tvDetailCalories" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="338" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_calories_label" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="8dp">
-                        <TextView android:id="@+id/tvDetailSteps" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6,933" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Langkah" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                        <TextView android:id="@+id/tvDetailSteps" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="6,933" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_steps_label" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="8dp">
-                        <TextView android:id="@+id/tvDetailElevation" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="15 m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kenaikan" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                        <TextView android:id="@+id/tvDetailElevation" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="15 m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_elevation_gain" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="0dp" android:layout_columnWeight="1" android:layout_height="wrap_content" android:background="@drawable/card_glass" android:padding="12dp" android:orientation="vertical" android:gravity="center">
-                        <TextView android:id="@+id/tvDetailMaxElev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="18 m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Elev Maks" android:textColor="@color/muted_fg" android:textSize="10sp"/>
+                        <TextView android:id="@+id/tvDetailMaxElev" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="18 m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="16sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_max_elevation" android:textColor="@color/muted_fg" android:textSize="10sp"/>
                     </LinearLayout>
                 </GridLayout>
 
@@ -287,16 +288,16 @@
                         app:chartColor="@color/lime"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15dp">
                         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:id="@+id/tvDetailPaceAvg" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:-- /km" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pace Rata2" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                            <TextView android:id="@+id/tvDetailPaceAvg" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="--:-- /km" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_pace_avg" android:textColor="@color/muted_fg" android:textSize="11sp"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:id="@+id/tvDetailPaceTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:-- /km" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pace Total" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                            <TextView android:id="@+id/tvDetailPaceTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="--:-- /km" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_pace_total" android:textColor="@color/muted_fg" android:textSize="11sp"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:id="@+id/tvDetailPaceFast" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:-- /km" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Split Cepat" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                            <TextView android:id="@+id/tvDetailPaceFast" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="--:-- /km" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_fastest_split" android:textColor="@color/muted_fg" android:textSize="11sp"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -321,12 +322,12 @@
                         app:chartColor="#9C27B0"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15dp">
                         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:id="@+id/tvDetailCadenceAvg" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-- spm" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kadens Rata2" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                            <TextView android:id="@+id/tvDetailCadenceAvg" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="-- spm" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_cadence_avg" android:textColor="@color/muted_fg" android:textSize="11sp"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:id="@+id/tvDetailCadenceMax" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-- spm" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kadens Maks" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                            <TextView android:id="@+id/tvDetailCadenceMax" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="-- spm" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_cadence_max" android:textColor="@color/muted_fg" android:textSize="11sp"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -351,14 +352,64 @@
                         app:chartColor="#FF9800"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15dp">
                         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:id="@+id/tvDetailElevGain" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-- m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kenaikan" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                            <TextView android:id="@+id/tvDetailElevGain" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="-- m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_elevation_gain" android:textColor="@color/muted_fg" android:textSize="11sp"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:id="@+id/tvDetailElevMax" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-- m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Elev Maks" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                            <TextView android:id="@+id/tvDetailElevMax" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="-- m" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stat_max_elevation" android:textColor="@color/muted_fg" android:textSize="11sp"/>
                         </LinearLayout>
                     </LinearLayout>
+                </LinearLayout>
+
+                <!-- AI Insights Section -->
+                <LinearLayout
+                    android:id="@+id/layoutAIInsights"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/card_glass"
+                    android:padding="20dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_logo"
+                            app:tint="@color/lime"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/ai_coach_title"
+                            android:textColor="@color/lime"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:layout_marginStart="8dp"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvAIInsights"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/ai_generating"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:lineSpacingExtra="4dp"
+                        android:alpha="0.8"/>
+
+                    <ProgressBar
+                        android:id="@+id/pbAI"
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:visibility="gone"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -382,7 +433,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Split"
+                        android:text="@string/tab_split"
                         android:textColor="@color/text_primary"
                         android:textSize="22sp"
                         android:textStyle="bold"
@@ -434,7 +485,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Bagikan Aktivitas"
+                android:text="@string/btn_share_activity"
                 android:textColor="@color/bg"
                 android:textStyle="bold"
                 android:textSize="16sp"/>

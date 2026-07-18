@@ -27,9 +27,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 public class ProgressFragment extends Fragment {
@@ -37,7 +39,7 @@ public class ProgressFragment extends Fragment {
     private View progressMonthly, progressWeekly;
     private TextView tvTargetAchieved, tvTargetPercent, tvMonthlyTargetKm;
     private TextView tvWeeklyAchieved, tvWeeklyPercent, tvWeeklyTargetKm;
-    private TextView tvWeeklyRange, tvCurrentMonthYear, tvPaceTrend;
+    private TextView tvWeeklyRange, tvCurrentMonthYear, tvPaceTrend, tvAIProgressInsights;
     private BarChartView barChart;
     private LineChartView lineChart;
     private CalendarDotsView calendarDots;
@@ -97,8 +99,8 @@ public class ProgressFragment extends Fragment {
                             monthlyTargetKm = monthlyTarget;
                             weeklyTargetKm = monthlyTargetKm / 4.0f;
                             
-                            tvMonthlyTargetKm.setText(String.format(Locale.getDefault(), "%.0f km", monthlyTargetKm));
-                            tvWeeklyTargetKm.setText(String.format(Locale.getDefault(), "%.1f km", weeklyTargetKm));
+                            tvMonthlyTargetKm.setText(getString(R.string.distance_km_val_short, monthlyTargetKm));
+                            tvWeeklyTargetKm.setText(getString(R.string.distance_km_val, weeklyTargetKm));
                             loadProgressData(); // Refresh data with new targets
                         } else {
                             loadPreferences();
@@ -119,8 +121,8 @@ public class ProgressFragment extends Fragment {
         weeklyTargetKm = monthlyTargetKm / 4.0f;
         
         if (getActivity() != null) {
-            tvMonthlyTargetKm.setText(String.format(Locale.getDefault(), "%.0f km", monthlyTargetKm));
-            tvWeeklyTargetKm.setText(String.format(Locale.getDefault(), "%.1f km", weeklyTargetKm));
+            tvMonthlyTargetKm.setText(getString(R.string.distance_km_val_short, monthlyTargetKm));
+            tvWeeklyTargetKm.setText(getString(R.string.distance_km_val, weeklyTargetKm));
         }
     }
 
@@ -138,6 +140,7 @@ public class ProgressFragment extends Fragment {
         
         tvWeeklyRange = view.findViewById(R.id.tvWeeklyRange);
         tvCurrentMonthYear = view.findViewById(R.id.tvCurrentMonthYear);
+        tvAIProgressInsights = view.findViewById(R.id.tvAIProgressInsights);
         tvPaceTrend = view.findViewById(R.id.tvPaceTrend);
         
         barChart = view.findViewById(R.id.barChart);
@@ -145,11 +148,19 @@ public class ProgressFragment extends Fragment {
         calendarDots = view.findViewById(R.id.calendarDots);
 
         if (barChart != null) {
-            barChart.setLabels(new String[]{"Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"});
+            barChart.setLabels(new String[]{
+                    getString(R.string.day_mon_short),
+                    getString(R.string.day_tue_short),
+                    getString(R.string.day_wed_short),
+                    getString(R.string.day_thu_short),
+                    getString(R.string.day_fri_short),
+                    getString(R.string.day_sat_short),
+                    getString(R.string.day_sun_short)
+            });
         }
 
-        tvMonthlyTargetKm.setText(String.format(Locale.getDefault(), "%.0f km", monthlyTargetKm));
-        tvWeeklyTargetKm.setText(String.format(Locale.getDefault(), "%.1f km", weeklyTargetKm));
+        tvMonthlyTargetKm.setText(getString(R.string.distance_km_val_short, monthlyTargetKm));
+        tvWeeklyTargetKm.setText(getString(R.string.distance_km_val, weeklyTargetKm));
         
         setLabels();
     }
@@ -184,6 +195,7 @@ public class ProgressFragment extends Fragment {
 
     private void calculateAndDisplay(List<RunRecord> records) {
         if (!isAdded() || getActivity() == null) return;
+        fetchAIProgressInsights(records);
 
         double monthlyKm = 0;
         double weeklyKm = 0;
@@ -248,10 +260,89 @@ public class ProgressFragment extends Fragment {
             if (calendarDots != null) calendarDots.setActiveDays(finalActiveDays);
             
             if (runCountPerWeek[3] > 0 && runCountPerWeek[2] > 0) {
-                if (weeklyPaceData[3] < weeklyPaceData[2]) tvPaceTrend.setText("Membaik");
-                else tvPaceTrend.setText("Menurun");
+                if (weeklyPaceData[3] < weeklyPaceData[2]) tvPaceTrend.setText(getString(R.string.pace_improving));
+                else tvPaceTrend.setText(getString(R.string.pace_declining));
             }
         });
+    }
+
+    private void fetchAIProgressInsights(List<RunRecord> allRuns) {
+        if (!isAdded() || getContext() == null) return;
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null || allRuns == null || allRuns.isEmpty()) return;
+
+        // SMART CACHE (LOCAL + CLOUD)
+        SharedPreferences prefs = getContext().getSharedPreferences("ai_cache", Context.MODE_PRIVATE);
+        String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
+        String progressKey = "progress_" + allRuns.size() + "_" + today;
+        String cachedProgress = prefs.getString(progressKey, null);
+
+        if (cachedProgress != null) {
+            tvAIProgressInsights.setText(cachedProgress);
+            return;
+        }
+
+        // CHECK CLOUD BEFORE CALLING AI
+        FirebaseFirestore.getInstance().collection("users").document(user.getUid()).get()
+                .addOnSuccessListener(doc -> {
+                    if (!isAdded()) return;
+                    if (doc.exists() && doc.contains("cachedProgressInsights")) {
+                        String cloudKey = doc.getString("cachedProgressKey");
+                        if (progressKey.equals(cloudKey)) {
+                            String cloudInsights = doc.getString("cachedProgressInsights");
+                            if (cloudInsights != null) {
+                                prefs.edit().putString(progressKey, cloudInsights).apply();
+                                if (getActivity() != null) getActivity().runOnUiThread(() -> tvAIProgressInsights.setText(cloudInsights));
+                                return;
+                            }
+                        }
+                    }
+                    
+                    // CALL AI IF NO CACHE
+                    generateNewProgressInsights(allRuns, user.getUid(), progressKey, prefs);
+                });
+    }
+
+    private void generateNewProgressInsights(List<RunRecord> allRuns, String uid, String progressKey, SharedPreferences prefs) {
+        if (!isAdded()) return;
+        FirebaseFirestore.getInstance().collection("users").document(uid).get()
+                .addOnSuccessListener(doc -> {
+                    if (!isAdded()) return;
+                    com.example.pace.model.User userModel = doc.toObject(com.example.pace.model.User.class);
+                    if (userModel == null) return;
+
+                    StringBuilder history = new StringBuilder();
+                    for (int i = 0; i < Math.min(3, allRuns.size()); i++) {
+                        RunRecord r = allRuns.get(i);
+                        history.append(String.format(Locale.getDefault(), "R%d: %.1fkm, P:%.1f. ", i+1, r.getDistance(), r.getPace()));
+                    }
+
+                    String prompt = String.format(Locale.getDefault(),
+                        "History: %s. Goal: %s. Brief progress insight + 1 advice. Max 2 sentences.",
+                        history.toString(), userModel.getGoal());
+
+                    String firstName = userModel.getName() != null ? userModel.getName().split(" ")[0] : "Runner";
+                    new com.example.pace.utils.GeminiAssistant().chat(prompt, firstName, true, new com.example.pace.utils.GeminiAssistant.AIResponseCallback() {
+                        @Override
+                        public void onSuccess(String response) {
+                            if (isAdded() && getActivity() != null) getActivity().runOnUiThread(() -> {
+                                if (!response.contains("retry") && !response.contains("busy") && !response.contains("{") && !response.contains("Unexpected")) {
+                                    prefs.edit().putString(progressKey, response).apply();
+                                    // Save to Firestore
+                                    Map<String, Object> data = new HashMap<>();
+                                    data.put("cachedProgressKey", progressKey);
+                                    data.put("cachedProgressInsights", response);
+                                    FirebaseFirestore.getInstance().collection("users").document(uid).update(data);
+                                }
+                                tvAIProgressInsights.setText(response);
+                            });
+                        }
+                        @Override
+                        public void onError(String friendlyError) {
+                            if (isAdded() && getActivity() != null) getActivity().runOnUiThread(() -> tvAIProgressInsights.setText(friendlyError));
+                        }
+                    });
+                });
     }
 
     private void updateProgress(View bar, TextView tvAchieved, TextView tvPercent, float current, float target) {
@@ -261,8 +352,8 @@ public class ProgressFragment extends Fragment {
         if (percent > 1.0f) percent = 1.0f;
         final float finalPercent = percent;
 
-        tvAchieved.setText(String.format(Locale.getDefault(), "%.1f km tercapai", current));
-        tvPercent.setText(String.format(Locale.getDefault(), "%d%%", (int)(finalPercent * 100)));
+        tvAchieved.setText(getString(R.string.target_achieved_format, current));
+        tvPercent.setText(getString(R.string.percent_val, (int)(finalPercent * 100)));
 
         bar.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override

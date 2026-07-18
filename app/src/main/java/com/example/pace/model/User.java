@@ -10,6 +10,25 @@ public class User {
     private String weight;
     private String height;
     private String monthly_target;
+    private String goal = "Health & Wellness"; // Weight Loss, Increase Speed, Health & Wellness, Marathon Training
+    private String targetWeight = "0";
+    private int fitnessLevel = 1; // 1: Beginner, 2: Intermediate, 3: Pro
+
+    // Leaderboard stats
+    private double totalDistanceToday = 0;
+    private double totalDistanceWeek = 0;
+    private double totalDistanceMonth = 0;
+    private double bestPace = 999; 
+    private double bestPaceToday = 999;
+    private double bestPaceWeek = 999;
+    private double bestPaceMonth = 999;
+    private double longestRun = 0;
+    private int currentStreak = 0;
+    private int streakWeek = 0;
+    private int streakMonth = 0;
+    private String lastRunDate = ""; // yyyy-MM-dd
+    private int lastRunWeek = -1;
+    private int lastRunMonth = -1;
 
     public User() {
         // Required for Firestore
@@ -20,6 +39,49 @@ public class User {
         this.name = name;
         this.email = email;
     }
+
+    // Getters and Setters for stats
+    public double getTotalDistanceToday() { return totalDistanceToday; }
+    public void setTotalDistanceToday(double totalDistanceToday) { this.totalDistanceToday = totalDistanceToday; }
+
+    public double getTotalDistanceWeek() { return totalDistanceWeek; }
+    public void setTotalDistanceWeek(double totalDistanceWeek) { this.totalDistanceWeek = totalDistanceWeek; }
+
+    public double getTotalDistanceMonth() { return totalDistanceMonth; }
+    public void setTotalDistanceMonth(double totalDistanceMonth) { this.totalDistanceMonth = totalDistanceMonth; }
+
+    public double getBestPace() { return bestPace; }
+    public void setBestPace(double bestPace) { this.bestPace = bestPace; }
+
+    public double getBestPaceToday() { return bestPaceToday; }
+    public void setBestPaceToday(double bestPaceToday) { this.bestPaceToday = bestPaceToday; }
+
+    public double getBestPaceWeek() { return bestPaceWeek; }
+    public void setBestPaceWeek(double bestPaceWeek) { this.bestPaceWeek = bestPaceWeek; }
+
+    public double getBestPaceMonth() { return bestPaceMonth; }
+    public void setBestPaceMonth(double bestPaceMonth) { this.bestPaceMonth = bestPaceMonth; }
+
+    public double getLongestRun() { return longestRun; }
+    public void setLongestRun(double longestRun) { this.longestRun = longestRun; }
+
+    public int getCurrentStreak() { return currentStreak; }
+    public void setCurrentStreak(int currentStreak) { this.currentStreak = currentStreak; }
+
+    public int getStreakWeek() { return streakWeek; }
+    public void setStreakWeek(int streakWeek) { this.streakWeek = streakWeek; }
+
+    public int getStreakMonth() { return streakMonth; }
+    public void setStreakMonth(int streakMonth) { this.streakMonth = streakMonth; }
+
+    public String getLastRunDate() { return lastRunDate; }
+    public void setLastRunDate(String lastRunDate) { this.lastRunDate = lastRunDate; }
+
+    public int getLastRunWeek() { return lastRunWeek; }
+    public void setLastRunWeek(int lastRunWeek) { this.lastRunWeek = lastRunWeek; }
+
+    public int getLastRunMonth() { return lastRunMonth; }
+    public void setLastRunMonth(int lastRunMonth) { this.lastRunMonth = lastRunMonth; }
 
     public String getUid() { return uid; }
     public void setUid(String uid) { this.uid = uid; }
@@ -47,4 +109,13 @@ public class User {
 
     public String getMonthlyTarget() { return monthly_target; }
     public void setMonthlyTarget(String monthly_target) { this.monthly_target = monthly_target; }
+
+    public String getGoal() { return goal; }
+    public void setGoal(String goal) { this.goal = goal; }
+
+    public String getTargetWeight() { return targetWeight; }
+    public void setTargetWeight(String targetWeight) { this.targetWeight = targetWeight; }
+
+    public int getFitnessLevel() { return fitnessLevel; }
+    public void setFitnessLevel(int fitnessLevel) { this.fitnessLevel = fitnessLevel; }
 }

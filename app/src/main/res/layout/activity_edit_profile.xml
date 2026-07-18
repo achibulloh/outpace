@@ -184,7 +184,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/height"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="16dp"
                 app:boxStrokeColor="@color/lime"
                 app:hintTextColor="@color/lime"
                 android:textColorHint="@color/muted_fg">
@@ -193,6 +193,60 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
+                    android:textColor="@color/text_primary"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Target Weight -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Target Weight (kg)"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/lime"
+                app:hintTextColor="@color/lime"
+                android:textColorHint="@color/muted_fg">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etTargetWeight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:textColor="@color/text_primary"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Goal -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Your Goal"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/lime"
+                app:hintTextColor="@color/lime"
+                android:textColorHint="@color/muted_fg">
+                <AutoCompleteTextView
+                    android:id="@+id/spinnerGoal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:textColor="@color/text_primary"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Fitness Level -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Fitness Level"
+                android:layout_marginBottom="32dp"
+                app:boxStrokeColor="@color/lime"
+                app:hintTextColor="@color/lime"
+                android:textColorHint="@color/muted_fg">
+                <AutoCompleteTextView
+                    android:id="@+id/spinnerFitness"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
                     android:textColor="@color/text_primary"/>
             </com.google.android.material.textfield.TextInputLayout>
 

@@ -77,25 +77,23 @@ public class LineChartView extends View {
         invalidate();
     }
 
-    public void setData(float[] newValues) {
-        setDetailedData(newValues, null);
-    }
-
     public void setDetailedData(float[] values, String[] labels) {
         if (values == null || values.length == 0) return;
         this.rawValues = values;
         this.infoLabels = labels;
         this.normalizedValues = new float[values.length];
         
-        float max = 0.1f;
-        float min = 999999f;
+        float max = -Float.MAX_VALUE;
+        float min = Float.MAX_VALUE;
         for (float v : values) {
             if (v > max) max = v;
             if (v < min) min = v;
         }
         
         if (max == min) {
-            for (int i = 0; i < values.length; i++) normalizedValues[i] = 0.5f;
+            for (int i = 0; i < values.length; i++) {
+                normalizedValues[i] = (max == 0) ? 0.2f : 0.5f;
+            }
         } else {
             for (int i = 0; i < values.length; i++) {
                 normalizedValues[i] = (values[i] - min) / (max - min) * 0.6f + 0.2f;
@@ -134,58 +132,102 @@ public class LineChartView extends View {
 
         float width = getWidth();
         float height = getHeight();
-        float labelPadding = (infoLabels != null && infoLabels.length <= 7) ? 50f : 20f;
+        float labelPadding = (infoLabels != null && infoLabels.length > 0 && infoLabels.length <= 7) ? 50f : 20f;
         float chartHeight = height - labelPadding;
-        
-        // Handle single point or multiple points
+
+        linePath.reset();
+        fillPath.reset();
+
+        int alphaColor = Color.argb(77, Color.red(chartColor), Color.green(chartColor), Color.blue(chartColor));
+        fillPaint.setShader(new LinearGradient(0, 0, 0, chartHeight,
+                alphaColor, Color.TRANSPARENT, Shader.TileMode.CLAMP));
+
+        float spacing = 0;
+        if (normalizedValues.length > 1) {
+            spacing = width / (normalizedValues.length - 1);
+        }
+
         if (normalizedValues.length == 1) {
-            float x = width / 2f;
             float y = chartHeight * (1f - normalizedValues[0]);
-            canvas.drawCircle(x, y, 8f, pointPaint);
-            if (infoLabels != null && infoLabels.length > 0) {
-                canvas.drawText(infoLabels[0], x, height - 10f, labelPaint);
-            }
-            return;
-        }
-
-        float spacing = width / (normalizedValues.length - 1);
-
-    linePath.reset();
-    fillPath.reset();
-    
-    int alphaColor = Color.argb(77, Color.red(chartColor), Color.green(chartColor), Color.blue(chartColor));
-    fillPaint.setShader(new LinearGradient(0, 0, 0, chartHeight, 
-            alphaColor, Color.TRANSPARENT, Shader.TileMode.CLAMP));
-
-    for (int i = 0; i < normalizedValues.length; i++) {
-        float x = i * spacing;
-        float y = chartHeight * (1f - normalizedValues[i]);
-
-        if (i == 0) {
-            linePath.moveTo(x, y);
-            fillPath.moveTo(x, chartHeight);
-            fillPath.lineTo(x, y);
-        } else {
-            linePath.lineTo(x, y);
-        }
-        
-        if (i == normalizedValues.length - 1) {
-            fillPath.lineTo(x, y);
-            fillPath.lineTo(x, chartHeight);
+            
+            linePath.moveTo(0, y);
+            linePath.lineTo(width, y);
+            
+            fillPath.moveTo(0, chartHeight);
+            fillPath.lineTo(0, y);
+            fillPath.lineTo(width, y);
+            fillPath.lineTo(width, chartHeight);
             fillPath.close();
-        }
-    }
 
-    canvas.drawPath(fillPath, fillPaint);
-    canvas.drawPath(linePath, linePaint);
+            canvas.drawPath(fillPath, fillPaint);
+            canvas.drawPath(linePath, linePaint);
+            canvas.drawCircle(width / 2f, y, 8f, pointPaint);
 
-    // Draw X-Axis Labels if provided
-    if (infoLabels != null && infoLabels.length == normalizedValues.length && normalizedValues.length <= 7) {
-        for (int i = 0; i < infoLabels.length; i++) {
-            float x = i * spacing;
-            canvas.drawText(infoLabels[i], x, height - 10f, labelPaint);
+            if (infoLabels != null && infoLabels.length > 0) {
+                canvas.drawText(infoLabels[0], width / 2f, height - 10f, labelPaint);
+            }
+        } else {
+            spacing = width / (normalizedValues.length - 1);
+
+            for (int i = 0; i < normalizedValues.length; i++) {
+                float x = i * spacing;
+                float y = chartHeight * (1f - normalizedValues[i]);
+
+                if (i == 0) {
+                    linePath.moveTo(x, y);
+                    fillPath.moveTo(x, chartHeight);
+                    fillPath.lineTo(x, y);
+                } else {
+                    // Use cubic Bezier for smoother lines if more than 2 points
+                    float prevX = (i - 1) * spacing;
+                    float prevY = chartHeight * (1f - normalizedValues[i - 1]);
+                    float cx = (prevX + x) / 2;
+                    linePath.cubicTo(cx, prevY, cx, y, x, y);
+                }
+
+                if (i == normalizedValues.length - 1) {
+                    fillPath.lineTo(x, y); // This line is slightly incorrect with Bezier, but let's keep it simple for now
+                    // To be more accurate, the fillPath should follow the same cubic curve.
+                }
+            }
+
+            // Correcting fillPath to follow Bezier
+            fillPath.reset();
+            fillPath.moveTo(0, chartHeight);
+            for (int i = 0; i < normalizedValues.length; i++) {
+                float x = i * spacing;
+                float y = chartHeight * (1f - normalizedValues[i]);
+                if (i == 0) {
+                    fillPath.lineTo(x, y);
+                } else {
+                    float prevX = (i - 1) * spacing;
+                    float prevY = chartHeight * (1f - normalizedValues[i - 1]);
+                    float cx = (prevX + x) / 2;
+                    fillPath.cubicTo(cx, prevY, cx, y, x, y);
+                }
+            }
+            fillPath.lineTo(width, chartHeight);
+            fillPath.close();
+
+            canvas.drawPath(fillPath, fillPaint);
+            canvas.drawPath(linePath, linePaint);
+
+            // Draw X-Axis Labels (Avoid crowding)
+            if (infoLabels != null && infoLabels.length == normalizedValues.length) {
+                int step = 1;
+                if (infoLabels.length > 5) step = infoLabels.length / 4; 
+                
+                for (int i = 0; i < infoLabels.length; i += step) {
+                    float x = i * spacing;
+                    // Draw KM label only (first part of label like "@ 0.5km")
+                    String label = infoLabels[i];
+                    if (label.contains("km")) {
+                        label = label.substring(0, label.indexOf("km") + 2);
+                    }
+                    canvas.drawText(label, x, height - 10f, labelPaint);
+                }
+            }
         }
-    }
 
         // Draw selection line and tooltip
         if (selectedIndex != -1) {

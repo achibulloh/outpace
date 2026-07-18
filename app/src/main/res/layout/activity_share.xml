@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="12dp"
-            android:text="Bagikan Aktivitas"
+            android:text="@string/btn_share_activity"
             android:textColor="@color/text_primary"
             android:textSize="19sp"
             android:textStyle="bold" />
@@ -94,7 +94,7 @@
                 android:id="@+id/tvTabPolosMode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Polos"
+                android:text="@string/mode_polos"
                 android:textColor="@color/lime"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -123,7 +123,7 @@
                 android:id="@+id/tvTabThemeLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="OUTPACE Theme"
+                android:text="@string/outpace_theme"
                 android:textColor="@color/muted_fg"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -266,7 +266,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Ganti Latar"
+                        android:text="@string/change_background"
                         android:textColor="@color/text_primary"
                         android:textStyle="bold"
                         android:textSize="14sp"/>
@@ -287,7 +287,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Pilih Warna Latar"
+                        android:text="@string/choose_bg_color"
                         android:textColor="@color/lime"
                         android:textSize="12sp"
                         android:textStyle="bold"
@@ -331,7 +331,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Pilih Gambar dari Galeri"
+                            android:text="@string/pick_gallery_image"
                             android:textColor="@color/text_primary"
                             android:textSize="13sp"
                             android:textStyle="bold"/>
@@ -374,7 +374,7 @@
                             <TextView
                                 android:layout_width="56dp"
                                 android:layout_height="wrap_content"
-                                android:text="Size"
+                                android:text="@string/element_size"
                                 android:textColor="@color/muted_fg"
                                 android:textSize="12sp"/>
                             <SeekBar android:id="@+id/sbSize"
@@ -396,7 +396,7 @@
                             <TextView
                                 android:layout_width="56dp"
                                 android:layout_height="wrap_content"
-                                android:text="Rotate"
+                                android:text="@string/element_rotate"
                                 android:textColor="@color/muted_fg"
                                 android:textSize="12sp"/>
                             <SeekBar android:id="@+id/sbRotation"
@@ -423,7 +423,7 @@
             android:layout_marginHorizontal="16dp"
             android:background="@drawable/btn_lime"
             android:gravity="center"
-            android:text="Simpan &amp; Bagikan"
+            android:text="@string/save_and_share"
             android:textColor="@color/bg"
             android:textStyle="bold"
             android:textSize="15sp"

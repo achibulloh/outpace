@@ -29,7 +29,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Memuat Peta..."
+            android:text="@string/loading_map"
             android:textColor="@color/muted_fg"
             android:layout_marginTop="12dp" />
     </LinearLayout>
@@ -64,7 +64,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:text="Back"
+                android:text="@string/btn_back"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold"
                 android:textSize="14sp" />
@@ -227,7 +227,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Rata2 split (/km)"
+                android:text="@string/stat_avg_split"
                 android:textColor="@color/muted_fg"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -261,7 +261,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Kalori"
+                    android:text="@string/stat_calories"
                     android:textColor="@color/muted_fg"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -302,7 +302,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Jarak (km)"
+                    android:text="@string/stat_distance_km"
                     android:textColor="@color/muted_fg"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -345,7 +345,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="Split (/km)"
+            android:text="@string/stat_split_km"
             android:textColor="@color/muted_fg"
             android:textSize="14sp"
             android:textStyle="bold"
@@ -367,7 +367,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_marginEnd="12dp"
-                android:text="⏸  JEDA"
+                android:text="@string/btn_pause_label"
                 android:textColor="@color/bg"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -378,7 +378,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="⏹  BERHENTI"
+                android:text="@string/btn_stop_label"
                 android:textColor="@color/bg"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -427,7 +427,7 @@
                 <TextView android:id="@+id/tvDuration" android:text="00:00"
                     android:textColor="@color/text_primary" android:textSize="32sp" android:textStyle="bold"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="DURASI" android:textColor="@color/muted_fg" android:textSize="11sp"
+                <TextView android:text="@string/stat_duration" android:textColor="@color/muted_fg" android:textSize="11sp"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
@@ -440,7 +440,7 @@
                 <TextView android:id="@+id/tvDistance" android:text="0.00"
                     android:textColor="@color/lime" android:textSize="32sp" android:textStyle="bold"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="KM" android:textColor="@color/muted_fg" android:textSize="11sp"
+                <TextView android:text="@string/stat_km" android:textColor="@color/muted_fg" android:textSize="11sp"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
@@ -453,7 +453,7 @@
                 <TextView android:id="@+id/tvPace" android:text="00:00"
                     android:textColor="@color/text_primary" android:textSize="32sp" android:textStyle="bold"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="PACE /KM" android:textColor="@color/muted_fg" android:textSize="11sp"
+                <TextView android:text="@string/stat_pace" android:textColor="@color/muted_fg" android:textSize="11sp"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
         </LinearLayout>
@@ -477,7 +477,7 @@
                 android:id="@+id/btnStart"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="▶  MULAI"
+                android:text="@string/btn_start_label"
                 android:textColor="@color/bg"
                 android:textSize="18sp"
                 android:textStyle="bold"
@@ -489,7 +489,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_marginEnd="12dp"
-                android:text="⏸  JEDA"
+                android:text="@string/btn_pause_label"
                 android:textColor="@color/text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold"
@@ -501,7 +501,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="⏹  BERHENTI"
+                android:text="@string/btn_stop_label"
                 android:textColor="@color/bg"
                 android:textSize="18sp"
                 android:textStyle="bold"

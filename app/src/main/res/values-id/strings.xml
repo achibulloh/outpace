@@ -1,0 +1,403 @@
+<resources>
+    <string name="app_name">OUTPACE</string>
+    <string name="welcome_back">Selamat Datang Kembali</string>
+    <string name="login_subtitle">Masuk untuk melanjutkan perjalananmu</string>
+    <string name="email">Email</string>
+    <string name="password">Kata Sandi</string>
+    <string name="login">Masuk</string>
+    <string name="or_login_with">Atau lanjutkan dengan</string>
+    <string name="sign_in_google">Masuk dengan Google</string>
+    <string name="sign_up_google">Daftar dengan Google</string>
+    <string name="google">Google</string>
+    <string name="dont_have_account">Belum punya akun? </string>
+    <string name="register">Daftar</string>
+
+    <string name="create_account">Buat Akun Baru</string>
+    <string name="register_subtitle">Mulai perjalanan sehatmu sekarang</string>
+    <string name="full_name">Nama Lengkap</string>
+    <string name="confirm_password">Konfirmasi Kata Sandi</string>
+    <string name="register_now">Daftar Sekarang</string>
+    <string name="already_have_account">Sudah punya akun? </string>
+
+    <string name="select_language">Bahasa</string>
+    <string name="lang_en">Inggris</string>
+    <string name="lang_id">Indonesia</string>
+
+    <string name="settings">Pengaturan</string>
+    <string name="edit_profile">Edit Profil</string>
+    <string name="gender">Jenis Kelamin</string>
+    <string name="date_of_birth">Tanggal Lahir</string>
+    <string name="weight">Berat Badan (kg)</string>
+    <string name="height">Tinggi Badan (cm)</string>
+    <string name="phone_number">Nomor Telepon</string>
+    <string name="save_changes">Simpan Perubahan</string>
+    <string name="profile_updated">Profil pelari diperbarui</string>
+    <string name="nav_home">Beranda</string>
+    <string name="nav_history">Riwayat</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_profile">Profil</string>
+    <string name="link_google">Kaitkan Akun Google</string>
+    <string name="unlink_google">Lepaskan Akun Google</string>
+    <string name="linked_with">Terkait dengan: %1$s</string>
+    <string name="action_link">KAITKAN</string>
+    <string name="action_unlink">LEPAS</string>
+    <string name="account_linked">Berhasil mengaitkan akun</string>
+    <string name="account_unlinked">Akun Google dilepaskan</string>
+    <string name="forgot_password">Lupa Kata Sandi?</string>
+    <string name="reset_password">Atur Ulang Kata Sandi</string>
+    <string name="reset_subtitle">Masukkan email Anda untuk menerima kode OTP</string>
+    <string name="send_otp">Kirim Kode OTP</string>
+    <string name="verify_otp">Verifikasi OTP</string>
+    <string name="otp_subtitle">Masukkan kode yang dikirim ke email Anda</string>
+    <string name="new_password">Kata Sandi Baru</string>
+    <string name="update_password">Perbarui Kata Sandi</string>
+    <string name="password_updated">Kata sandi berhasil diperbarui</string>
+
+    <!-- Notification Strings -->
+    <string name="notif_tracking_active">Lari Sedang Berlangsung</string>
+    <string name="notif_tracking_paused">Lari Dijeda</string>
+    <string name="notif_action_pause">Jeda</string>
+    <string name="notif_action_resume">Lanjut</string>
+    <string name="notif_action_stop">Selesai</string>
+    <string name="notif_stats_format">%.2f KM | %02d:%02d | %d kkal</string>
+    <string name="notif_finished_title">Lari Selesai! 🎉</string>
+    <string name="notif_finished_body">Anda berhasil menempuh %.2f KM dalam %02d:%02d</string>
+    <string name="app_notif_start_title">Aktivitas Dimulai</string>
+    <string name="app_notif_start_body">Anda baru saja mulai merekam lari. Tetap semangat!</string>
+    <string name="app_notif_end_title">Lari Selesai</string>
+    <string name="app_notif_end_body">Berhasil menempuh %.2f KM. Terus tingkatkan!</string>
+
+    <!-- Home & Dashboard -->
+    <string name="greeting_format">Hei, %1$s 👋</string>
+    <string name="birthday_greeting">🎂 Selamat Ulang Tahun, %1$s!</string>
+    <string name="birthday_sub">Rayakan dengan lari sehat! 🏃‍♂️</string>
+    <string name="holiday_greeting">🎉 Selamat %1$s!</string>
+    <string name="weather_run_motivation">Waktu yang tepat untuk lari!</string>
+    <string name="good_day_greeting">Selamat Beraktivitas!</string>
+    <string name="weekly_target">TARGET MINGGUAN</string>
+    <string name="streak">Beruntun</string>
+    <string name="avg_pace">Avg Pace</string>
+    <string name="calories">Kalori</string>
+    <string name="days_unit">hari</string>
+    <string name="last_activity">Aktivitas Terakhir</string>
+    <string name="view_all">Lihat semua</string>
+    <string name="no_activity_title">Belum ada aktivitas lari</string>
+    <string name="no_activity_desc">Mulai lari sekarang untuk merekam aktivitas Anda.</string>
+
+    <!-- History -->
+    <string name="activity_history">Riwayat Aktivitas</string>
+    <string name="tab_this_week">Minggu Ini</string>
+    <string name="tab_this_month">Bulan Ini</string>
+    <string name="tab_all">Semua</string>
+    <string name="tab_this_week_upper">MINGGU INI</string>
+    <string name="tab_this_month_upper">BULAN INI</string>
+    <string name="tab_all_upper">SEMUA</string>
+    <string name="total_distance">Total Jarak</string>
+    <string name="total_time">Total Waktu</string>
+    <string name="history_empty_title">Riwayat Masih Kosong</string>
+    <string name="history_empty_desc">Jalur lari Anda akan muncul di sini setelah Anda menyelesaikan aktivitas.</string>
+
+    <!-- Progress -->
+    <string name="progress_title">Progress</string>
+    <string name="leaderboard">Papan Skor</string>
+    <string name="monthly_target_title">Target Bulanan</string>
+    <string name="weekly_target_title">Target Mingguan</string>
+    <string name="target_achieved_format">%.1f km tercapai</string>
+    <string name="weekly_distance">Jarak Mingguan</string>
+    <string name="pace_trend">Tren Pace</string>
+    <string name="pace_improving">Membaik</string>
+    <string name="pace_declining">Menurun</string>
+    <string name="daily_consistency">Konsistensi Harian</string>
+    <string name="help_center">Pusat Bantuan</string>
+    <string name="faq_1_q">Bagaimana cara mulai merekam lari?</string>
+    <string name="faq_1_a">Tekan tombol logo pelari di tengah navigasi bawah, lalu klik tombol MULAI.</string>
+    <string name="faq_2_q">Mengapa GPS saya tidak akurat?</string>
+    <string name="faq_2_a">Pastikan Anda berada di luar ruangan dan memberikan izin lokasi \'Selalu\' pada pengaturan aplikasi.</string>
+    <string name="contact_us">Kontak Kami</string>
+
+    <!-- Run & Map -->
+    <string name="weather_title">Cuaca</string>
+    <string name="weather_temp_format">%1$.0f°C - %2$s</string>
+    <string name="btn_start">MULAI</string>
+    <string name="btn_pause">JEDA</string>
+    <string name="btn_resume">LANJUT</string>
+    <string name="btn_stop">SELESAI</string>
+    <string name="gps_good">GPS Bagus</string>
+    <string name="gps_weak">GPS Lemah</string>
+    <string name="gps_signal_format">Sinyal GPS %1$s</string>
+    <string name="auto_paused">AUTO-PAUSED</string>
+    <string name="stop_confirm_msg">Selesaikan lari dan simpan aktivitas?</string>
+    <string name="activity_saved">Aktivitas disimpan!</string>
+    <string name="stop_tracking_first">Selesaikan lari terlebih dahulu</string>
+    <string name="searching_gps">Mencari sinyal GPS...</string>
+    <string name="map_facing_north">Peta menghadap Utara</string>
+    <string name="unknown_location">Lokasi Tidak Diketahui</string>
+    <string name="weather_today">Cuaca Hari Ini</string>
+    <string name="humidity">Kelembapan</string>
+    <string name="wind">Angin</string>
+    <string name="hourly_forecast">Prakiraan Jam</string>
+    <string name="daily_forecast_7">Prakiraan 7 Hari</string>
+    <string name="settings_saved">Pengaturan berhasil diperbarui</string>
+    <string name="login_success">Login Berhasil!</string>
+    <string name="login_failed">Login Gagal: %1$s</string>
+    <string name="fill_email_password">Email dan Password harus diisi</string>
+    <string name="password_not_match">Kata sandi tidak cocok</string>
+    <string name="password_min_chars">Kata sandi minimal 6 karakter</string>
+    <string name="register_failed">Registrasi gagal: %1$s</string>
+    <string name="register_success">Registrasi Berhasil!</string>
+    <string name="login_failed_generic">Login gagal</string>
+    <string name="register_failed_generic">Registrasi gagal</string>
+    <string name="save_data_failed">Gagal menyimpan data: %1$s</string>
+    <string name="auth_failed">Autentikasi Firebase Gagal</string>
+    <string name="google_signin_failed">Google Sign-In Gagal: %1$d</string>
+    <string name="google_info_failed">Gagal mendapatkan informasi akun Google</string>
+    <string name="signin_cancelled">Pemilihan akun dibatalkan</string>
+    <string name="unlink_failed">Gagal memutus akun: %1$s</string>
+    <string name="link_exists">Akun Google ini sudah tertaut dengan pengguna lain</string>
+    <string name="logout_success">Logout Berhasil</string>
+    <string name="run_activity">Berlari</string>
+    <string name="morning_run">Berlari Pagi</string>
+    <string name="afternoon_run">Berlari Siang</string>
+    <string name="evening_run">Berlari Sore</string>
+    <string name="night_run">Berlari Malam</string>
+    <string name="name_empty_error">Nama tidak boleh kosong</string>
+    <string name="target_number_error">Target bulanan harus berupa angka</string>
+    <string name="profile_update_failed">Gagal memperbarui profil: %1$s</string>
+    <string name="all_fields_mandatory">Semua data wajib diisi</string>
+    <string name="profile_saved">Profil berhasil disimpan</string>
+    <string name="saving">Menyimpan...</string>
+    <string name="step_personal_info">Data Diri</string>
+    <string name="step_physical_target">Fisik &amp; Target</string>
+    <string name="step_personal_sub">Lengkapi informasi dasar Anda</string>
+    <string name="step_physical_sub">Data ini digunakan untuk kalori &amp; progress</string>
+    <string name="btn_next">Lanjut</string>
+    <string name="btn_back">Kembali</string>
+    <string name="btn_finish">Selesai</string>
+
+    <!-- Day Labels -->
+    <string name="day_mon">S</string>
+    <string name="day_tue">S</string>
+    <string name="day_wed">R</string>
+    <string name="day_thu">K</string>
+    <string name="day_fri">J</string>
+    <string name="day_sat">S</string>
+    <string name="day_sun">M</string>
+
+    <!-- Run Stats Labels -->
+    <string name="stat_duration">DURASI</string>
+    <string name="stat_km">KM</string>
+    <string name="stat_pace">PACE /KM</string>
+    <string name="stat_avg_split">Rata2 split (/km)</string>
+    <string name="stat_calories">Kalori</string>
+    <string name="stat_distance_km">Jarak (km)</string>
+    <string name="stat_split_km">Split (/km)</string>
+    <string name="stat_steps">Langkah</string>
+    <string name="stat_elevation_format">%1$.0fm Up</string>
+
+    <!-- Weather & Misc -->
+    <string name="loading_map">Memuat Peta...</string>
+    <string name="weather_jakarta">Jakarta</string>
+    <string name="weather_fail">Gagal mengambil data cuaca</string>
+
+    <!-- Settings Activity labels -->
+    <string name="settings_dark_mode">Mode Gelap</string>
+    <string name="settings_notifications">Notifikasi</string>
+    <string name="settings_save">Simpan Pengaturan</string>
+    <string name="settings_appearance">Tampilan</string>
+    <string name="settings_account">Akun</string>
+    <string name="settings_lang_display">Bahasa Indonesia</string>
+
+    <!-- Help & Privacy Activity labels -->
+    <string name="help_title">Bantuan &amp; Dukungan</string>
+    <string name="privacy_title">Privasi &amp; Keamanan</string>
+    <string name="help_desc">Temukan jawaban untuk pertanyaan umum di sini.</string>
+    <string name="privacy_desc">Bagaimana kami melindungi data Anda.</string>
+
+    <!-- Run Control Buttons -->
+    <string name="btn_resume_label">▶  LANJUT</string>
+    <string name="btn_pause_label">⏸  JEDA</string>
+    <string name="btn_stop_label">⏹  SELESAI</string>
+    <string name="btn_start_label">▶  MULAI</string>
+    <string name="privacy_policy_title">Kebijakan Privasi</string>
+    <string name="privacy_policy_desc">OUTPACE berkomitmen untuk melindungi data pribadi Anda. Kami mengumpulkan data lokasi hanya saat Anda menggunakan fitur pelacakan lari untuk memberikan rute dan statistik yang akurat.</string>
+    <string name="account_security_title">Keamanan Akun</string>
+    <string name="account_security_desc">Data Anda disimpan secara lokal dan aman di perangkat Anda. Kami tidak membagikan informasi pribadi Anda kepada pihak ketiga tanpa izin eksplisit dari Anda.</string>
+    <string name="app_permissions_title">Izin Aplikasi</string>
+    <string name="app_permissions_desc">• Lokasi: Digunakan untuk memetakan rute lari.\n• Aktivitas Fisik: Digunakan untuk menghitung langkah kaki secara real-time.\n• Penyimpanan: Digunakan untuk menyimpan hasil share ke galeri.</string>
+    <string name="stat_temp_val">%1$d°C</string>
+    <string name="temp_range_val">%1$d° / %2$d°</string>
+    <string name="temp_val">%1$d°</string>
+    <string name="humidity_val">%1$d%%</string>
+    <string name="wind_speed_val">%1$.1f km/j</string>
+    <string name="distance_km_val">%1$.2f km</string>
+    <string name="pace_val">%1$d:%2$02d /km</string>
+    <string name="pace_val_no_unit">%1$d:%2$02d</string>
+    <string name="pace_val_with_time">%1$d:%2$02d /km @ %3$s</string>
+    <string name="split_km_elev_format">KM %1$d: +%2$.0fm</string>
+    <string name="split_km_cad_format">KM %1$d: %2$d spm</string>
+    <string name="spm_val">%1$d spm</string>
+    <string name="meter_val">%1$.0f m</string>
+    <string name="kcal_val">%1$d kkal</string>
+    <string name="percent_val">%1$d%%</string>
+    <string name="duration_format_short">%1$dj %2$dm</string>
+    <string name="distance_km_val_short">%1$.0f km</string>
+    <string name="day_mon_short">Sen</string>
+    <string name="day_tue_short">Sel</string>
+    <string name="day_wed_short">Rab</string>
+    <string name="day_thu_short">Kam</string>
+    <string name="day_fri_short">Jum</string>
+    <string name="day_sat_short">Sab</string>
+    <string name="day_sun_short">Min</string>
+    <string name="logout">Keluar</string>
+    <string name="total_runs">Total Lari</string>
+    <string name="map_layers_title">Pilih Lapisan Peta</string>
+    <string name="map_layer_standard">Peta Standar (OSM)</string>
+    <string name="map_layer_cyclosm">CyclOSM (Outdoor/Rute)</string>
+    <string name="map_layer_satellite">Google Earth (Satelit)</string>
+    <string name="bg_location_title">Izin Lokasi Latar Belakang</string>
+    <string name="bg_location_desc">Agar rute tetap tercatat saat layar mati atau membuka aplikasi lain, silakan pilih \'Izinkan Sepanjang Waktu\' (Allow all the time) pada halaman pengaturan berikutnya.</string>
+    <string name="open_settings">Buka Pengaturan</string>
+    <string name="later">Nanti Saja</string>
+    <string name="physical_activity_permission_granted">Izin aktivitas fisik aktif!</string>
+    <string name="activity_recognition_title">Izin Pengenalan Aktivitas</string>
+    <string name="activity_recognition_desc">Aplikasi ini membutuhkan izin pengenalan aktivitas untuk menghitung langkah Anda dengan akurat saat berlari.</string>
+    <string name="grant_permission">Berikan Izin</string>
+    <string name="weather_data_failed">Gagal mengambil data cuaca</string>
+    <string name="no_internet_title">Tidak ada koneksi Internet</string>
+    <string name="no_internet_desc">Aplikasi memerlukan koneksi internet untuk dapat berjalan. Silakan aktifkan internet Anda.</string>
+    <string name="retry">Coba Lagi</string>
+    <string name="exit">Keluar</string>
+    <string name="profile_verify_failed">Gagal memverifikasi profil: %1$s</string>
+    <string name="google_sign_in_failed_val">Google Sign-In Gagal: %1$d</string>
+    <string name="firebase_auth_failed_val">Autentikasi Firebase Gagal.</string>
+    <string name="data_save_failed_val">Gagal menyimpan data: %1$s</string>
+    <string name="gender_male">Laki-laki</string>
+    <string name="gender_female">Perempuan</string>
+    <string name="tomorrow">Besok</string>
+    <string name="best_pace_format">Pace terbaik: %1$s</string>
+    <string name="me">Kamu</string>
+    <string name="selection_cancelled">Pemilihan dibatalkan</string>
+    <string name="google_account_unlinked">Akun Google berhasil diputus</string>
+    <string name="error_unknown">Kesalahan tidak diketahui</string>
+    <string name="google_info_failed_val">Gagal mendapatkan informasi akun Google</string>
+    <string name="sign_in_failed">Gagal masuk</string>
+    <string name="account_linking_success">Selamat! Akun Google berhasil dikaitkan</string>
+    <string name="login_first">Silakan login terlebih dahulu</string>
+    <string name="google_account_already_linked">Akun Google ini sudah tertaut dengan pengguna lain</string>
+    <string name="linking_failed_val">Gagal mengaitkan: %1$s</string>
+    <string name="unlinking_failed_val">Gagal memutus akun: %1$s</string>
+    <string name="share_activity">Bagikan Aktivitas</string>
+    <string name="tab_summary">Ringkasan</string>
+    <string name="tab_split">Split</string>
+    <string name="stat_calories_label">Kalori</string>
+    <string name="stat_steps_label">Langkah</string>
+    <string name="stat_elevation_gain">Kenaikan</string>
+    <string name="stat_max_elevation">Elev Maks</string>
+    <string name="stat_pace_avg">Pace Rata2</string>
+    <string name="stat_pace_total">Pace Total</string>
+    <string name="stat_fastest_split">Split Cepat</string>
+    <string name="stat_cadence_avg">Kadens Rata2</string>
+    <string name="stat_cadence_max">Kadens Maks</string>
+    <string name="btn_share_activity">Bagikan Aktivitas</string>
+    <string name="label_start">● Mulai</string>
+    <string name="label_finish">● Selesai</string>
+    <string name="change_background">Ganti Latar</string>
+    <string name="choose_bg_color">Pilih Warna Latar</string>
+    <string name="pick_gallery_image">Pilih Gambar dari Galeri</string>
+    <string name="element_size">Ukuran</string>
+    <string name="element_rotate">Putar</string>
+    <string name="save_and_share">Simpan &amp; Bagikan</string>
+    <string name="processing_hd_image">Memproses gambar HD...</string>
+    <string name="share_run_results">Bagikan Hasil Lari</string>
+    <string name="element_distance">Jarak</string>
+    <string name="element_elevation">Elevasi</string>
+    <string name="element_time">Waktu</string>
+    <string name="element_route">Rute</string>
+    <string name="element_watermark">Watermark</string>
+    <string name="mode_polos">Polos</string>
+    <string name="outpace_theme">OUTPACE Theme</string>
+    <string name="ritme_format">%1$d bpm</string>
+    <string name="steps_format">%,d</string>
+    <string name="location_format">📍 %1$s</string>
+    <string name="morning_run_upper">LARI PAGI</string>
+    <string name="afternoon_run_upper">LARI SIANG</string>
+    <string name="evening_run_upper">LARI SORE</string>
+    <string name="night_run_upper">LARI MALAM</string>
+    <string name="stat_km_upper">JARAK (KM)</string>
+    <string name="stat_avg_pace_upper">PACE RATA2</string>
+    <string name="stat_duration_upper">DURASI</string>
+    <string name="distance_target_format">/ %1$.1f km</string>
+    <string name="kcal">kkal</string>
+    <string name="pace_unit">/km</string>
+    <string name="gps_signal_weak">Sinyal GPS Lemah</string>
+    <string name="searching_gps_signal">Mencari sinyal GPS...</string>
+
+    <!-- Permission Activity -->
+    <string name="permission_title">Izin Diperlukan</string>
+    <string name="permission_desc">Pace Master memerlukan izin berikut agar dapat berfungsi dengan maksimal saat Anda berlari.</string>
+    <string name="perm_location_title">Akses Lokasi &amp; GPS</string>
+    <string name="perm_location_desc">Wajib untuk melacak rute. Caranya: Klik di sini, lalu pilih \'Izinkan sepanjang waktu\' dan aktifkan GPS.</string>
+    <string name="perm_activity_title">Aktivitas Fisik</string>
+    <string name="perm_activity_desc">Digunakan untuk menghitung langkah kaki Anda.</string>
+    <string name="perm_notification_title">Notifikasi</string>
+    <string name="perm_notification_desc">Untuk menampilkan status lari di panel notifikasi.</string>
+    <string name="btn_allow_all">Izinkan Semua</string>
+    <string name="btn_continue">Lanjutkan</string>
+    <string name="toast_perm_location_gps">Harap pastikan izin Lokasi \'Izinkan sepanjang waktu\' dan GPS aktif!</string>
+    <string name="gps_disabled_title">GPS Tidak Aktif</string>
+    <string name="gps_disabled_msg">Silakan aktifkan GPS untuk melanjutkan.</string>
+    <string name="cancel">Batal</string>
+    <string name="toast_perm_denied">Beberapa izin ditolak. Harap izinkan semua untuk melanjutkan.</string>
+    <!-- Leaderboard -->
+    <string name="leaderboard_title">Papan Skor</string>
+    <string name="tab_distance">Jarak</string>
+    <string name="tab_best_pace">Pace Terbaik</string>
+    <string name="tab_streak">Streak</string>
+    <string name="filter_today">Hari Ini</string>
+    <string name="filter_this_week">Minggu Ini</string>
+    <string name="filter_this_month">Bulan Ini</string>
+    <string name="label_consecutive_days">%1$d hari</string>
+    <string name="label_km_stat">%1$.1f km</string>
+    <string name="label_pace_stat">%1$d:%2$02d /km</string>
+    <string name="km_val_stat">%1$.1f km</string>
+    <string name="empty_leaderboard">Tidak ada data untuk periode ini</string>
+
+    <!-- Leaderboard Info -->
+    <string name="leaderboard_info_title">Aturan &amp; Info Papan Skor</string>
+
+    <!-- Category Distance -->
+    <string name="cat_distance_title">Peringkat Jarak</string>
+    <string name="title_dist_today">Upaya Hari Ini</string>
+    <string name="desc_dist_today">Bersainglah dengan mengumpulkan kilometer terbanyak dalam satu hari. Peringkat ini direset tepat pada jam 00:00 (Tengah Malam) setiap hari. Setiap langkah sangat berarti untuk memuncaki tangga harian!</string>
+    <string name="title_dist_week">Tantangan Mingguan</string>
+    <string name="desc_dist_week">Total jarak Anda dijumlahkan mulai dari hari Senin jam 00:00 hingga Minggu malam. Ini adalah cara sempurna untuk memantau kemajuan Anda dibandingkan pengguna lain sepanjang minggu. Reset setiap Senin pagi.</string>
+    <string name="title_dist_month">Maraton Bulanan</string>
+    <string name="desc_dist_month">Uji ketahanan jangka panjang. Papan skor ini melacak semua kilometer yang ditempuh dari hari pertama hingga hari terakhir setiap bulannya. Reset pada awal setiap bulan kalender baru.</string>
+
+    <!-- Category Best Pace -->
+    <string name="cat_pace_title">Kecepatan &amp; Performa</string>
+    <string name="title_pace_today">Tercepat Hari Ini</string>
+    <string name="desc_pace_today">Peringkat berdasarkan rata-rata pace tertinggi yang tercatat dalam satu sesi lari hari ini. **Agar memenuhi syarat, lari harus berjarak minimal 3,0 km** untuk menjamin pengukuran kecepatan yang adil dan akurat.</string>
+    <string name="title_pace_week">Pelari Mingguan Tercepat</string>
+    <string name="desc_pace_week">Siapa pelari tercepat minggu ini? Daftar ini menunjukkan rekor pace terbaik yang dicapai sejak hari Senin. Hanya aktivitas yang menempuh jarak **3,0 km atau lebih** yang berhak masuk dalam daftar bergengsi ini.</string>
+    <string name="title_pace_month">Elite Bulanan</string>
+    <string name="desc_pace_month">Daftar definitif pelari tercepat bulan ini. Rekor pace sesi tunggal terbaik Anda dibandingkan dengan komunitas. Memerlukan jarak minimum **3,0 km** per aktivitas.</string>
+
+    <!-- Category Streak -->
+    <string name="cat_streak_title">Konsistensi (Streak)</string>
+    <string name="title_streak_today">Streak Aktif</string>
+    <string name="desc_streak_today">Peringkat berdasarkan jumlah hari aktif berturut-turut Anda saat ini. Untuk mempertahankan streak, Anda harus mencatat setidaknya satu aktivitas setiap hari. Jika melewatkan satu hari, streak Anda akan kembali ke nol!</string>
+    <string name="title_streak_week">Dedikasi Mingguan</string>
+    <string name="desc_streak_week">Menunjukkan jumlah streak tertinggi yang dipertahankan pengguna selama minggu berjalan. Ini memberikan penghargaan bagi mereka yang hadir setiap hari tanpa absen dari Senin hingga Minggu.</string>
+    <string name="title_streak_month">Komitmen Bulanan</string>
+    <string name="desc_streak_month">Ujian akhir dari sebuah kebiasaan. Peringkat ini menonjolkan pelari yang tetap konsisten sepanjang bulan. Semakin lama streak Anda, semakin tinggi peringkat yang akan Anda capai!</string>
+
+    <!-- AI coach -->
+    <string name="ai_coach_title">Pelatih Lari AI</string>
+    <string name="ai_generating">Sedang membuat saran cerdas untuk lari Anda...</string>
+    <string name="ai_failed">Gagal memuat AI Insights.</string>
+    <string name="btn_ai_chat">Chat dengan Pelatih AI</string>
+    <string name="ai_chat_hint">Tanya tentang makanan, kesehatan, atau lari...</string>
+    <string name="ai_analyzing_food">Menganalisis makanan Anda...</string>
+    <string name="ai_coach_thinking">Pelatih AI sedang berpikir...</string>
+</resources>

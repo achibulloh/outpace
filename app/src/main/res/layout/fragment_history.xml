@@ -18,7 +18,7 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:text="Riwayat Aktivitas"
+            android:text="@string/activity_history"
             android:textColor="@color/text_primary"
             android:textSize="26sp"
             android:textStyle="bold"
@@ -33,7 +33,7 @@
             android:layout_height="54dp"
             android:background="@drawable/card_glass"
             android:padding="5dp"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="12dp">
 
             <TextView
                 android:id="@+id/tabWeek"
@@ -41,32 +41,82 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/btn_lime"
-                android:text="Minggu ini"
+                android:text="@string/tab_this_week_upper"
                 android:textColor="@color/bg"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:textSize="14sp"/>
+                android:textSize="12sp"
+                android:clickable="true"
+                android:focusable="true"/>
 
             <TextView
                 android:id="@+id/tabMonth"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="Bulan ini"
+                android:text="@string/tab_this_month_upper"
                 android:textColor="@color/muted_fg"
                 android:gravity="center"
-                android:textSize="14sp"/>
+                android:textSize="12sp"
+                android:clickable="true"
+                android:focusable="true"/>
 
             <TextView
                 android:id="@+id/tabAll"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="Semua"
+                android:text="@string/tab_all_upper"
                 android:textColor="@color/muted_fg"
                 android:gravity="center"
-                android:textSize="14sp"/>
+                android:textSize="12sp"
+                android:clickable="true"
+                android:focusable="true"/>
         </LinearLayout>
+
+        <!-- RANGE INFO & FILTER -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tvHistoryRange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Range Info"
+                android:textColor="@color/muted_fg"
+                android:textSize="13sp"
+                android:layout_centerVertical="true"/>
+
+            <LinearLayout
+                android:id="@+id/btnCustomFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/rounded_card"
+                android:backgroundTint="#1AFFFFFF"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone">
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_history"
+                    app:tint="@color/lime"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Custom"
+                    android:textColor="@color/text_primary"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="6dp"/>
+            </LinearLayout>
+        </RelativeLayout>
     </LinearLayout>
 
     <!-- SCROLLABLE CONTENT -->
@@ -100,14 +150,14 @@
                     android:layout_marginEnd="10dp">
                     <TextView
                         android:id="@+id/tvTotalDistance"
-                        android:text="0.0 km"
+                        tools:text="0.0 km"
                         android:textColor="@color/text_primary"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
                     <TextView
-                        android:text="Total Jarak"
+                        android:text="@string/total_distance"
                         android:textColor="@color/muted_fg"
                         android:textSize="11sp"
                         android:layout_width="wrap_content"
@@ -125,14 +175,14 @@
                     android:layout_marginEnd="10dp">
                     <TextView
                         android:id="@+id/tvTotalTime"
-                        android:text="0j 0m"
+                        tools:text="0h 0m"
                         android:textColor="@color/text_primary"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
                     <TextView
-                        android:text="Total Waktu"
+                        android:text="@string/total_time"
                         android:textColor="@color/muted_fg"
                         android:textSize="11sp"
                         android:layout_width="wrap_content"
@@ -149,14 +199,14 @@
                     android:gravity="center">
                     <TextView
                         android:id="@+id/tvAvgPace"
-                        android:text="0:00"
+                        tools:text="0:00"
                         android:textColor="@color/text_primary"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
                     <TextView
-                        android:text="Avg Pace"
+                        android:text="@string/avg_pace"
                         android:textColor="@color/muted_fg"
                         android:textSize="11sp"
                         android:layout_width="wrap_content"
@@ -182,7 +232,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Riwayat Masih Kosong"
+                    android:text="@string/history_empty_title"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold"
                     android:textSize="18sp"
@@ -190,7 +240,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Jalur lari Anda akan muncul di sini setelah Anda menyelesaikan aktivitas."
+                    android:text="@string/history_empty_desc"
                     android:textColor="@color/muted_fg"
                     android:textSize="14sp"
                     android:gravity="center"

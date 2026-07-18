@@ -28,12 +28,13 @@
         android:layout_toEndOf="@id/iconContainer"
         android:layout_marginStart="16dp"
         android:layout_centerVertical="true"
+        xmlns:tools="http://schemas.android.com/tools"
         android:orientation="vertical">
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Morning Run"
+            tools:text="Morning Run"
             android:textColor="@color/text_primary"
             android:textStyle="bold"
             android:textSize="16sp" />
@@ -41,7 +42,7 @@
             android:id="@+id/tvDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hari ini · 06:30"
+            tools:text="Hari ini · 06:30"
             android:textColor="@color/muted_fg"
             android:textSize="12sp"
             android:layout_marginTop="2dp" />
@@ -52,13 +53,14 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
+        xmlns:tools="http://schemas.android.com/tools"
         android:gravity="end"
         android:orientation="vertical">
         <TextView
             android:id="@+id/tvDistance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="5.2 km"
+            tools:text="5.2 km"
             android:textColor="@color/text_primary"
             android:textStyle="bold"
             android:textSize="16sp" />
@@ -66,7 +68,7 @@
             android:id="@+id/tvPace"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="5:14/km"
+            tools:text="5:14/km"
             android:textColor="@color/muted_fg"
             android:textSize="12sp"
             android:layout_marginTop="2dp" />

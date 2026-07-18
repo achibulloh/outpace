@@ -15,7 +15,12 @@ import androidx.core.content.ContextCompat;
 import com.example.pace.R;
 import com.example.pace.database.AppDatabase;
 import com.example.pace.model.RunRecord;
+import com.example.pace.model.User;
+import com.example.pace.utils.GeminiAssistant;
+import com.example.pace.utils.LocaleHelper;
 import com.example.pace.views.LineChartView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -38,6 +43,11 @@ import java.util.Locale;
 public class ActivityDetailActivity extends AppCompatActivity {
 
     private MapView map;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
+    }
     private View btnRingkasan, btnSplit;
     private View layoutRingkasan, layoutSplit;
     private LinearLayout llSplitContainer;
@@ -45,6 +55,8 @@ public class ActivityDetailActivity extends AppCompatActivity {
     private TextView tvDistanceTop, tvTitle, tvDateTime, tvLocation, tvDistance, tvAvgPace, tvDuration;
     private TextView tvCalories, tvSteps, tvElevation, tvMaxElev;
     private TextView tvPaceAvg, tvPaceTotal, tvPaceFast, tvCadenceAvg, tvCadenceMax, tvElevGain, tvElevMax;
+    private TextView tvAIInsights;
+    private ProgressBar pbAI;
     
     private LineChartView chartPace, chartCadence, chartElevation;
 
@@ -115,6 +127,8 @@ public class ActivityDetailActivity extends AppCompatActivity {
         tvCadenceMax = findViewById(R.id.tvDetailCadenceMax);
         tvElevGain = findViewById(R.id.tvDetailElevGain);
         tvElevMax = findViewById(R.id.tvDetailElevMax);
+        tvAIInsights = findViewById(R.id.tvAIInsights);
+        pbAI = findViewById(R.id.pbAI);
         
         chartPace = findViewById(R.id.chartPace);
         chartCadence = findViewById(R.id.chartKadens);
@@ -131,7 +145,7 @@ public class ActivityDetailActivity extends AppCompatActivity {
     }
 
     private void populateData(RunRecord run) {
-        tvDistanceTop.setText(String.format(Locale.getDefault(), "%.2f km", run.getDistance()));
+        tvDistanceTop.setText(getString(R.string.distance_km_val, run.getDistance()));
         tvDistance.setText(String.format(Locale.getDefault(), "%.2f", run.getDistance()));
 
         long time = run.getDuration();
@@ -143,7 +157,7 @@ public class ActivityDetailActivity extends AppCompatActivity {
         if (run.getDate() != null && run.getStartTime() != null && run.getEndTime() != null) {
             tvDateTime.setText(String.format("%s · %s - %s", run.getDate(), run.getStartTime(), run.getEndTime()));
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMM · HH:mm", new Locale("id", "ID"));
+            SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMM · HH:mm", Locale.getDefault());
             tvDateTime.setText(sdf.format(new Date(run.getTimestamp())));
         }
         
@@ -161,25 +175,128 @@ public class ActivityDetailActivity extends AppCompatActivity {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(run.getTimestamp());
         int hour = cal.get(Calendar.HOUR_OF_DAY);
-        String title = "Berlari";
-        if (hour >= 5 && hour < 11) title = "Berlari Pagi";
-        else if (hour >= 11 && hour < 15) title = "Berlari Siang";
-        else if (hour >= 15 && hour < 19) title = "Berlari Sore";
-        else title = "Berlari Malam";
+        String title;
+        if (hour >= 5 && hour < 11) title = getString(R.string.morning_run);
+        else if (hour >= 11 && hour < 15) title = getString(R.string.afternoon_run);
+        else if (hour >= 15 && hour < 19) title = getString(R.string.evening_run);
+        else title = getString(R.string.night_run);
         tvTitle.setText(title);
 
         tvCalories.setText(String.valueOf(run.getCalories()));
         tvSteps.setText(String.valueOf((int)(run.getDistance() * 1350))); 
-        tvElevation.setText(String.format(Locale.getDefault(), "%.0f m", run.getElevationGain()));
-        tvMaxElev.setText(String.format(Locale.getDefault(), "%.0f m", run.getElevationGain() + 3));
+        tvElevation.setText(getString(R.string.meter_val, run.getElevationGain()));
+        tvMaxElev.setText(getString(R.string.meter_val, run.getElevationGain() + 3));
 
         drawRoute(run.getPathJson());
         setupDetailedCharts(run);
         setupSplits(run);
+        fetchAIInsights(run);
+    }
+
+    private void fetchAIInsights(RunRecord run) {
+        if (run == null) return;
+        
+        // STEP 1: CHECK LOCAL CACHE
+        if (run.getAiInsights() != null && !run.getAiInsights().isEmpty()) {
+            tvAIInsights.setText(run.getAiInsights());
+            pbAI.setVisibility(View.GONE);
+            return;
+        }
+
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid == null) return;
+
+        pbAI.setVisibility(View.VISIBLE);
+
+        // STEP 2: CHECK CLOUD CACHE (Firestore)
+        FirebaseFirestore.getInstance().collection("users").document(uid)
+                .collection("runs").document(run.getFirebaseId()).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    
+                    if (documentSnapshot.exists() && documentSnapshot.contains("aiInsights")) {
+                        String cloudInsights = documentSnapshot.getString("aiInsights");
+                        if (cloudInsights != null && !cloudInsights.isEmpty()) {
+                            runOnUiThread(() -> {
+                                pbAI.setVisibility(View.GONE);
+                                tvAIInsights.setText(cloudInsights);
+                                // Sync back to local db
+                                run.setAiInsights(cloudInsights);
+                                new Thread(() -> {
+                                    try {
+                                        AppDatabase.getInstance(ActivityDetailActivity.this).runDao().insert(run);
+                                    } catch (Exception ignored) {}
+                                }).start();
+                            });
+                            return;
+                        }
+                    }
+                    
+                    // STEP 3: IF NO CLOUD DATA, GENERATE NEW
+                    generateNewAIInsights(run, uid);
+                })
+                .addOnFailureListener(e -> {
+                    if (!isFinishing() && !isDestroyed()) generateNewAIInsights(run, uid);
+                });
+    }
+
+    private void generateNewAIInsights(RunRecord run, String uid) {
+        FirebaseFirestore.getInstance().collection("users").document(uid).get()
+                .addOnSuccessListener(doc -> {
+                    User user = doc.toObject(User.class);
+                    if (user == null) { pbAI.setVisibility(View.GONE); return; }
+
+                    GeminiAssistant ai = new GeminiAssistant();
+                    ai.generateRunInsights(user, run, new GeminiAssistant.AIResponseCallback() {
+                        @Override
+                        public void onSuccess(String response) {
+                            runOnUiThread(() -> {
+                                pbAI.setVisibility(View.GONE);
+                                
+                                // BLOCK JSON
+                                if (response.contains("{") || response.contains("Unexpected")) {
+                                    tvAIInsights.setText("Coach is temporarily busy. Please try again.");
+                                    return;
+                                }
+
+                                tvAIInsights.setText(response);
+                                
+                                // SAVE TO DB: Save locally and Cloud
+                                run.setAiInsights(response);
+                                new Thread(() -> AppDatabase.getInstance(ActivityDetailActivity.this).runDao().insert(run)).start();
+                                
+                                FirebaseFirestore.getInstance().collection("users").document(uid)
+                                        .collection("runs").document(run.getFirebaseId())
+                                        .update("aiInsights", response);
+                            });
+                        }
+
+                        @Override
+                        public void onError(String errorMsg) {
+                            runOnUiThread(() -> {
+                                pbAI.setVisibility(View.GONE);
+                                tvAIInsights.setText(errorMsg);
+                            });
+                        }
+                    });
+                });
     }
 
     private void setupDetailedCharts(RunRecord run) {
-        if (run.getSplitsJson() == null || run.getSplitsJson().equals("null")) return;
+        if (run.getSplitsJson() == null || run.getSplitsJson().equals("null") || run.getSplitsJson().equals("[]")) {
+            // Fallback for runs without split data (e.g., very short runs)
+            if (run.getDistance() > 0.001) {
+                double p = run.getPace();
+                chartPace.setDetailedData(new float[]{(float) p}, new String[]{getString(R.string.pace_val, (int) p, (int) ((p - (int) p) * 60))});
+                chartElevation.setDetailedData(new float[]{(float) run.getElevationGain()}, new String[]{getString(R.string.meter_val, run.getElevationGain())});
+                tvPaceAvg.setText(getString(R.string.pace_val, (int)p, (int)((p - (int)p) * 60)));
+                tvPaceTotal.setText(getString(R.string.pace_val, (int)p, (int)((p - (int)p) * 60)));
+                tvPaceFast.setText(getString(R.string.pace_val, (int)p, (int)((p - (int)p) * 60)));
+                tvElevGain.setText(getString(R.string.meter_val, run.getElevationGain()));
+                tvElevMax.setText(getString(R.string.meter_val, run.getElevationGain()));
+            }
+            return;
+        }
         Gson gson = new Gson();
         try {
             double[] paceSplits = gson.fromJson(run.getSplitsJson(), double[].class);
@@ -205,19 +322,19 @@ public class ActivityDetailActivity extends AppCompatActivity {
                     
                     int mins = (int) p;
                     int secs = (int) ((p - mins) * 60);
-                    paceInfo[i] = String.format(Locale.getDefault(), "%d:%02d /km @ %s", mins, secs, timeAtKm);
+                    paceInfo[i] = getString(R.string.pace_val_with_time, mins, secs, timeAtKm);
                 }
                 chartPace.setDetailedData(paceData, paceInfo);
 
                 // Update Pace Summary
                 double avgPace = (totalPaceSecs / paceSplits.length) / 60.0;
-                tvPaceAvg.setText(String.format(Locale.getDefault(), "%d:%02d /km", (int)avgPace, (int)((avgPace - (int)avgPace) * 60)));
+                tvPaceAvg.setText(getString(R.string.pace_val, (int)avgPace, (int)((avgPace - (int)avgPace) * 60)));
                 
                 double totPace = run.getPace();
-                tvPaceTotal.setText(String.format(Locale.getDefault(), "%d:%02d /km", (int)totPace, (int)((totPace - (int)totPace) * 60)));
+                tvPaceTotal.setText(getString(R.string.pace_val, (int)totPace, (int)((totPace - (int)totPace) * 60)));
                 
                 double fastPace = minPaceSecs / 60.0;
-                tvPaceFast.setText(String.format(Locale.getDefault(), "%d:%02d /km", (int)fastPace, (int)((fastPace - (int)fastPace) * 60)));
+                tvPaceFast.setText(getString(R.string.pace_val, (int)fastPace, (int)((fastPace - (int)fastPace) * 60)));
             }
 
             if (elevSplits != null && elevSplits.length > 0) {
@@ -226,12 +343,12 @@ public class ActivityDetailActivity extends AppCompatActivity {
                 double maxElev = -9999;
                 for (int i = 0; i < elevSplits.length; i++) {
                     elevData[i] = (float) elevSplits[i];
-                    elevInfo[i] = String.format(Locale.getDefault(), "KM %d: +%.0fm", i+1, elevSplits[i]);
+                    elevInfo[i] = getString(R.string.split_km_elev_format, i + 1, elevSplits[i]);
                     if (elevSplits[i] > maxElev) maxElev = elevSplits[i];
                 }
                 chartElevation.setDetailedData(elevData, elevInfo);
-                tvElevGain.setText(String.format(Locale.getDefault(), "%.0f m", run.getElevationGain()));
-                tvElevMax.setText(String.format(Locale.getDefault(), "%.0f m", Math.max(maxElev, run.getElevationGain())));
+                tvElevGain.setText(getString(R.string.meter_val, run.getElevationGain()));
+                tvElevMax.setText(getString(R.string.meter_val, Math.max(maxElev, run.getElevationGain())));
             }
 
             if (cadSplits != null && cadSplits.length > 0) {
@@ -241,13 +358,13 @@ public class ActivityDetailActivity extends AppCompatActivity {
                 int maxCad = 0;
                 for (int i = 0; i < cadSplits.length; i++) {
                     cadData[i] = (float) cadSplits[i];
-                    cadInfo[i] = String.format(Locale.getDefault(), "KM %d: %d spm", i+1, cadSplits[i]);
+                    cadInfo[i] = getString(R.string.split_km_cad_format, i + 1, cadSplits[i]);
                     totalCad += cadSplits[i];
                     if (cadSplits[i] > maxCad) maxCad = cadSplits[i];
                 }
                 chartCadence.setDetailedData(cadData, cadInfo);
-                tvCadenceAvg.setText(String.format(Locale.getDefault(), "%d spm", totalCad / cadSplits.length));
-                tvCadenceMax.setText(String.format(Locale.getDefault(), "%d spm", maxCad));
+                tvCadenceAvg.setText(getString(R.string.spm_val, totalCad / cadSplits.length));
+                tvCadenceMax.setText(getString(R.string.spm_val, maxCad));
             }
         } catch (Exception e) { e.printStackTrace(); }
     }

@@ -31,7 +31,7 @@
                     android:id="@+id/tvGreetingHoliday"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Selamat Beraktivitas!"
+                    tools:text="@string/holiday_greeting"
                     android:textColor="@color/lime"
                     android:textSize="12sp"
                     android:textStyle="bold"
@@ -42,7 +42,7 @@
                     android:id="@+id/tvCurrentDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SENIN, 30 JUN 2026"
+                    tools:text="SENIN, 30 JUN 2026"
                     android:textColor="@color/muted_fg"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -51,7 +51,7 @@
                     android:id="@+id/tvGreeting"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hei, Adi 👋"
+                    tools:text="Hey Runner 👋"
                     android:textColor="@color/text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
@@ -77,7 +77,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_notification"
-                        android:contentDescription="Notifications" />
+                        android:contentDescription="@null" />
 
                     <!-- Notification Badge -->
                     <View
@@ -111,7 +111,7 @@
                     android:id="@+id/tvTargetTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="TARGET MINGGUAN"
+                    tools:text="@string/weekly_target"
                     android:textColor="@color/muted_fg"
                     android:textSize="12sp"
                     android:textStyle="bold"
@@ -132,7 +132,7 @@
                         android:id="@+id/tvWeeklyProgress"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0.0"
+                        tools:text="0.0"
                         android:textColor="@color/text_primary"
                         android:textSize="32sp"
                         android:textStyle="bold" />
@@ -143,7 +143,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="4dp"
                         android:layout_marginStart="4dp"
-                        android:text="/ 0.0 km"
+                        tools:text="/ 0.0 km"
                         android:textColor="@color/muted_fg"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -172,7 +172,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
-                        android:text="0%"
+                        tools:text="0%"
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -190,19 +190,19 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent">
 
-                    <TextView android:id="@+id/tvDayMon" style="@style/DayLabelStyle" android:text="S" />
+                    <TextView android:id="@+id/tvDayMon" style="@style/DayLabelStyle" tools:text="S" />
                     <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
-                    <TextView android:id="@+id/tvDayTue" style="@style/DayLabelStyle" android:text="S" />
+                    <TextView android:id="@+id/tvDayTue" style="@style/DayLabelStyle" tools:text="S" />
                     <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
-                    <TextView android:id="@+id/tvDayWed" style="@style/DayLabelStyle" android:text="R" />
+                    <TextView android:id="@+id/tvDayWed" style="@style/DayLabelStyle" tools:text="R" />
                     <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
-                    <TextView android:id="@+id/tvDayThu" style="@style/DayLabelStyle" android:text="K" />
+                    <TextView android:id="@+id/tvDayThu" style="@style/DayLabelStyle" tools:text="K" />
                     <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
-                    <TextView android:id="@+id/tvDayFri" style="@style/DayLabelStyle" android:text="J" />
+                    <TextView android:id="@+id/tvDayFri" style="@style/DayLabelStyle" tools:text="J" />
                     <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
-                    <TextView android:id="@+id/tvDaySat" style="@style/DayLabelStyle" android:text="S" />
+                    <TextView android:id="@+id/tvDaySat" style="@style/DayLabelStyle" tools:text="S" />
                     <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
-                    <TextView android:id="@+id/tvDaySun" style="@style/DayLabelStyle" android:text="M" />
+                    <TextView android:id="@+id/tvDaySun" style="@style/DayLabelStyle" tools:text="M" />
                 </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -217,31 +217,110 @@
 
             <com.google.android.material.card.MaterialCardView style="@style/StatsCardStyle">
                 <LinearLayout style="@style/StatsContainerStyle">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥" android:textSize="20sp" />
-                    <TextView android:id="@+id/tvStreak" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="hari" android:textColor="@color/muted_fg" android:textSize="12sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Streak" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥" android:textSize="20sp" android:contentDescription="@null" />
+                    <TextView android:id="@+id/tvStreak" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="0" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvStreakUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="@string/days_unit" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                    <TextView android:id="@+id/tvStreakLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="@string/streak" android:textColor="@color/muted_fg" android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView style="@style/StatsCardStyle">
                 <LinearLayout style="@style/StatsContainerStyle">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚡" android:textSize="20sp" />
-                    <TextView android:id="@+id/tvAvgPace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0:00" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="/km" android:textColor="@color/muted_fg" android:textSize="12sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Avg Pace" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚡" android:textSize="20sp" android:contentDescription="@null" />
+                    <TextView android:id="@+id/tvAvgPace" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="0:00" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvAvgPaceUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="/km" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                    <TextView android:id="@+id/tvAvgPaceLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="@string/avg_pace" android:textColor="@color/muted_fg" android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView style="@style/StatsCardStyle">
                 <LinearLayout style="@style/StatsContainerStyle">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🫀" android:textSize="20sp" />
-                    <TextView android:id="@+id/tvTotalCalories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="kkal" android:textColor="@color/muted_fg" android:textSize="12sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kalori" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🫀" android:textSize="20sp" android:contentDescription="@null" />
+                    <TextView android:id="@+id/tvTotalCalories" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="0" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvCaloriesUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="kcal" android:textColor="@color/muted_fg" android:textSize="12sp" />
+                    <TextView android:id="@+id/tvCaloriesLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="@string/calories" android:textColor="@color/muted_fg" android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
+
+        <!-- AI Coach Button -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btnAICoach"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#22C8F43A"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/lime"
+            app:strokeWidth="1dp"
+            android:clickable="true"
+            android:focusable="true">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_logo"
+                        app:tint="@color/lime" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/btn_ai_chat"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/ai_chat_hint"
+                            android:textColor="@color/muted_fg"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_arrow_down"
+                        android:rotation="-90"
+                        app:tint="@color/lime" />
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/aiTipDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#1AC8F43A"
+                    android:layout_marginVertical="12dp"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:id="@+id/tvAIDailyTip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-light"
+                    android:alpha="0.8"
+                    android:fontStyle="italic"
+                    android:visibility="gone"
+                    tools:text="Tip: Stretching after a run helps in faster recovery and muscle flexibility."/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Weather Info -->
         <com.google.android.material.card.MaterialCardView
@@ -251,29 +330,30 @@
             android:layout_marginBottom="24dp"
             app:cardBackgroundColor="@color/card"
             app:cardCornerRadius="24dp"
-            app:cardElevation="0dp">
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="16dp">
-                <TextView android:id="@+id/tvWeatherIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⛅" android:textSize="32sp" />
+                <TextView android:id="@+id/tvWeatherIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="⛅" android:textSize="32sp" />
                 <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_weight="1" android:orientation="vertical">
-                    <TextView android:id="@+id/tvWeatherTemp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="28°C - Cerah Berawan" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu yang tepat untuk lari!" android:textColor="@color/muted_fg" android:textSize="13sp" />
+                    <TextView android:id="@+id/tvWeatherTemp" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="--°C" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvWeatherMotivation" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="@string/weather_run_motivation" android:textColor="@color/muted_fg" android:textSize="13sp" />
                 </LinearLayout>
-                <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_arrow_down" android:rotation="-90" app:tint="@color/muted_fg" android:contentDescription="Weather Detail" />
+                <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_arrow_down" android:rotation="-90" app:tint="@color/muted_fg" android:contentDescription="@null" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Activity Section Title -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Aktivitas Terakhir" android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" />
-            <TextView android:id="@+id/btnViewAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text="Lihat semua" android:textColor="@color/lime" android:textSize="14sp" android:textStyle="bold" android:clickable="true" android:focusable="true" />
+            <TextView android:id="@+id/tvLastActivityTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="@string/last_activity" android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" />
+            <TextView android:id="@+id/btnViewAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" tools:text="@string/view_all" android:textColor="@color/lime" android:textSize="14sp" android:textStyle="bold" android:clickable="true" android:focusable="true" />
         </RelativeLayout>
 
         <!-- Empty State Home -->
@@ -289,19 +369,22 @@
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:src="@drawable/ic_empty_run"
-                android:alpha="0.5" />
+                android:alpha="0.5"
+                android:contentDescription="@null" />
             <TextView
+                android:id="@+id/tvEmptyTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Belum ada aktivitas lari"
+                tools:text="@string/no_activity_title"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:layout_marginTop="16dp" />
             <TextView
+                android:id="@+id/tvEmptyDesc"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mulai lari sekarang untuk merekam aktivitas Anda."
+                tools:text="@string/no_activity_desc"
                 android:textColor="@color/muted_fg"
                 android:textSize="13sp"
                 android:gravity="center"

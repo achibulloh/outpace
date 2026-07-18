@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase;
 import com.example.pace.model.RunRecord;
 import com.example.pace.model.Notification;
 
-@Database(entities = {RunRecord.class, Notification.class}, version = 9)
+@Database(entities = {RunRecord.class, Notification.class}, version = 10)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
 

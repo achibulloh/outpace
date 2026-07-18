@@ -1,6 +1,7 @@
 package com.example.pace.activities;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -32,6 +33,7 @@ import androidx.core.content.FileProvider;
 import com.example.pace.R;
 import com.example.pace.database.AppDatabase;
 import com.example.pace.model.RunRecord;
+import com.example.pace.utils.LocaleHelper;
 import com.example.pace.views.PathDrawingView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -50,6 +52,11 @@ import java.util.Locale;
 public class ShareActivity extends AppCompatActivity {
 
     private static final int THEME_COUNT = 15;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
+    }
 
     private FrameLayout shareFrame;
     private View tabPaceTheme, tabDefault, paceStyleSelector, defaultControls;
@@ -278,9 +285,27 @@ public class ShareActivity extends AppCompatActivity {
         updateTextView(themeView, R.id.tvShareWaktu, waktu);
         updateTextView(themeView, R.id.tvShareElev, elev);
         updateTextView(themeView, R.id.tvSharePace, pace);
-        updateTextView(themeView, R.id.tvShareRitme, "165 lpm");
-        updateTextView(themeView, R.id.tvShareSteps, "6,933");
-        updateTextView(themeView, R.id.tvLocation, "📍 Bandung");
+        updateTextView(themeView, R.id.tvShareRitme, getString(R.string.ritme_format, 165));
+        updateTextView(themeView, R.id.tvShareSteps, getString(R.string.steps_format, (int)(runData != null ? runData.getDistance() * 1350 : 6933)));
+        
+        String loc = runData != null ? runData.getLocationName() : "Bandung, Indonesia";
+        updateTextView(themeView, R.id.tvLocation, getString(R.string.location_format, loc.replace(" - ", ", ")));
+
+        // Set dynamic title based on timestamp for preview
+        TextView tvTitle = themeView.findViewById(R.id.tvShareTitle);
+        if (tvTitle != null && runData != null) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(runData.getTimestamp());
+            int hour = cal.get(Calendar.HOUR_OF_DAY);
+            String title;
+            if (hour >= 5 && hour < 11) title = getString(R.string.morning_run_upper);
+            else if (hour >= 11 && hour < 15) title = getString(R.string.afternoon_run_upper);
+            else if (hour >= 15 && hour < 19) title = getString(R.string.evening_run_upper);
+            else title = getString(R.string.night_run_upper);
+            tvTitle.setText(title);
+        } else if (tvTitle != null) {
+            tvTitle.setText(getString(R.string.morning_run_upper));
+        }
         
         PathDrawingView pv = themeView.findViewById(R.id.ivSharePath);
         if (pv != null) pv.setPathPoints(pathPoints);
@@ -403,12 +428,12 @@ public class ShareActivity extends AppCompatActivity {
     private void setupDefaultMode() {
         shareFrame.removeAllViews();
         View defaultView = LayoutInflater.from(this).inflate(R.layout.layout_share_activity, shareFrame, false);
-        setupElement(defaultView.findViewById(R.id.tvShareJarak), "Jarak");
-        setupElement(defaultView.findViewById(R.id.tvShareElev), "Elevasi");
-        setupElement(defaultView.findViewById(R.id.tvShareWaktu), "Waktu");
-        setupElement(defaultView.findViewById(R.id.ivSharePath), "Rute");
-        setupElement(defaultView.findViewById(R.id.tvPaceWatermark), "Watermark");
-        updateTextView(defaultView, R.id.tvShareJarak, jarak + " km");
+        setupElement(defaultView.findViewById(R.id.tvShareJarak), getString(R.string.element_distance));
+        setupElement(defaultView.findViewById(R.id.tvShareElev), getString(R.string.element_elevation));
+        setupElement(defaultView.findViewById(R.id.tvShareWaktu), getString(R.string.element_time));
+        setupElement(defaultView.findViewById(R.id.ivSharePath), getString(R.string.element_route));
+        setupElement(defaultView.findViewById(R.id.tvPaceWatermark), getString(R.string.element_watermark));
+        updateTextView(defaultView, R.id.tvShareJarak, getString(R.string.distance_km_val, Double.parseDouble(jarak)));
         updateTextView(defaultView, R.id.tvShareWaktu, waktu);
         updateTextView(defaultView, R.id.tvShareElev, elev);
         PathDrawingView pv = defaultView.findViewById(R.id.ivSharePath);
@@ -474,7 +499,7 @@ public class ShareActivity extends AppCompatActivity {
     }
 
     private void saveAndShare() {
-        Toast.makeText(this, "Memproses gambar HD...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.processing_hd_image, Toast.LENGTH_SHORT).show();
         
         shareFrame.post(() -> {
             try {
@@ -517,7 +542,7 @@ public class ShareActivity extends AppCompatActivity {
                 si.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 si.putExtra(Intent.EXTRA_STREAM, uri); 
                 si.setType("image/png");
-                startActivity(Intent.createChooser(si, "Bagikan Hasil Lari"));
+                startActivity(Intent.createChooser(si, getString(R.string.share_run_results)));
                 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -527,18 +552,18 @@ public class ShareActivity extends AppCompatActivity {
     }
 
     private void populateViewWithData(View view) {
-        updateTextView(view, R.id.tvShareJarak, isDefaultMode ? jarak + " km" : jarak);
+        updateTextView(view, R.id.tvShareJarak, isDefaultMode ? getString(R.string.distance_km_val, Double.parseDouble(jarak)) : jarak);
         updateTextView(view, R.id.tvShareWaktu, waktu);
         updateTextView(view, R.id.tvShareElev, elev);
         updateTextView(view, R.id.tvSharePace, pace + (isDefaultMode ? " /km" : ""));
-        updateTextView(view, R.id.tvShareRitme, "135 bpm");
-        updateTextView(view, R.id.tvShareSteps, runData != null ? String.format(Locale.getDefault(), "%,d", (int)(runData.getDistance() * 1350)) : "0");
+        updateTextView(view, R.id.tvShareRitme, getString(R.string.ritme_format, 135));
+        updateTextView(view, R.id.tvShareSteps, runData != null ? getString(R.string.steps_format, (int)(runData.getDistance() * 1350)) : "0");
         
         String loc = runData != null ? runData.getLocationName() : null;
         if (loc != null) {
-            updateTextView(view, R.id.tvLocation, "📍 " + loc.replace(" - ", ", "));
+            updateTextView(view, R.id.tvLocation, getString(R.string.location_format, loc.replace(" - ", ", ")));
         } else {
-            updateTextView(view, R.id.tvLocation, "📍 Bandung, Indonesia");
+            updateTextView(view, R.id.tvLocation, getString(R.string.location_format, "Bandung, Indonesia"));
         }
 
         // Set dynamic title based on timestamp
@@ -548,10 +573,10 @@ public class ShareActivity extends AppCompatActivity {
             cal.setTimeInMillis(runData.getTimestamp());
             int hour = cal.get(Calendar.HOUR_OF_DAY);
             String title;
-            if (hour >= 5 && hour < 11) title = "MORNING RUN";
-            else if (hour >= 11 && hour < 15) title = "AFTERNOON RUN";
-            else if (hour >= 15 && hour < 19) title = "EVENING RUN";
-            else title = "NIGHT RUN";
+            if (hour >= 5 && hour < 11) title = getString(R.string.morning_run_upper);
+            else if (hour >= 11 && hour < 15) title = getString(R.string.afternoon_run_upper);
+            else if (hour >= 15 && hour < 19) title = getString(R.string.evening_run_upper);
+            else title = getString(R.string.night_run_upper);
             tvTitle.setText(title);
         }
 

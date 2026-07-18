@@ -44,12 +44,23 @@
         android:textColor="@color/muted_fg"
         android:textSize="32px"/>
 
+    <TextView
+        android:id="@+id/tvShareTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/llHeader"
+        android:layout_marginTop="20px"
+        android:text="MORNING RUN"
+        android:textColor="@color/lime"
+        android:textStyle="bold"
+        android:textSize="32px"/>
+
     <com.example.pace.views.PathDrawingView
         android:id="@+id/ivSharePath"
         android:layout_width="match_parent"
         android:layout_height="600px"
-        android:layout_below="@id/llHeader"
-        android:layout_marginTop="100px"
+        android:layout_below="@id/tvShareTitle"
+        android:layout_marginTop="60px"
         android:layout_centerHorizontal="true"/>
 
     <View

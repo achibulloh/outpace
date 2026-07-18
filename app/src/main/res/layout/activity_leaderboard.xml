@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg"
     android:orientation="vertical"
     android:paddingTop="16dp">
 
-    <!-- Header -->
-    <LinearLayout
+    <!-- Header (Fixed) -->
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:paddingHorizontal="20dp"
-        android:layout_marginBottom="24dp">
+        android:layout_marginBottom="16dp">
 
         <ImageButton
             android:id="@+id/btnBack"
@@ -26,104 +26,306 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="Leaderboard"
+            android:layout_centerInParent="true"
+            android:text="@string/leaderboard_title"
             android:textColor="@color/text_primary"
-            android:textSize="24sp"
+            android:textSize="22sp"
             android:textStyle="bold" />
-    </LinearLayout>
+    </RelativeLayout>
 
-    <!-- Tabs -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginBottom="32dp"
-        android:background="@drawable/rounded_card"
-        android:padding="4dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/tab_selected"
-            android:gravity="center"
-            android:text="Mingguan"
-            android:textColor="@color/bg"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Bulanan"
-            android:textColor="@color/muted_fg" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="All Time"
-            android:textColor="@color/muted_fg" />
-    </LinearLayout>
-
-    <!-- Podiums -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:layout_marginHorizontal="40dp"
-        android:gravity="bottom"
-        android:orientation="horizontal">
-
-        <!-- Rank 2 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_trophy" app:tint="#C0C0C0"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ari W." android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="12sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="48.1 km" android:textColor="@color/muted_fg" android:textSize="10sp"/>
-            <View android:layout_width="match_parent" android:layout_height="70dp" android:layout_marginTop="8dp" android:background="@drawable/podium_23" />
-        </LinearLayout>
-
-        <!-- Rank 1 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.2"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_trophy" app:tint="#FFD700"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Budi S." android:textColor="@color/lime" android:textStyle="bold" android:textSize="14sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="52.4 km" android:textColor="@color/muted_fg" android:textSize="11sp"/>
-            <View android:layout_width="match_parent" android:layout_height="100dp" android:layout_marginTop="8dp" android:background="@drawable/podium_1" />
-        </LinearLayout>
-
-        <!-- Rank 3 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_trophy" app:tint="#CD7F32"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Citra M." android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="12sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="45.7 km" android:textColor="@color/muted_fg" android:textSize="10sp"/>
-            <View android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="8dp" android:background="@drawable/podium_23" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Rankings List -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvRankings"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingHorizontal="20dp"
-        android:paddingTop="24dp"
-        android:clipToPadding="false"/>
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Main Categories (Tabs) -->
+            <LinearLayout
+                android:id="@+id/layoutCategories"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/rounded_card"
+                android:padding="3dp">
+
+                <TextView
+                    android:id="@+id/tabDistance"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/tab_selected"
+                    android:gravity="center"
+                    android:text="@string/tab_distance"
+                    android:textColor="@color/bg"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tabPace"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/tab_best_pace"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tabStreak"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/tab_streak"
+                    android:textColor="@color/muted_fg"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Time Filters -->
+            <LinearLayout
+                android:id="@+id/layoutTimeFilters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:id="@+id/filterToday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_today"
+                    android:textColor="@color/lime"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="6dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/btn_outline_lime"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:id="@+id/filterWeek"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_this_week"
+                    android:textColor="@color/muted_fg"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="6dp"
+                    android:textSize="12sp"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:id="@+id/filterMonth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_this_month"
+                    android:textColor="@color/muted_fg"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="6dp"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+
+            <!-- Podiums -->
+            <LinearLayout
+                android:id="@+id/layoutPodium"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:layout_marginHorizontal="40dp"
+                android:gravity="bottom"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/containerRank2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <ImageView android:layout_width="28dp" android:layout_height="28dp" android:src="@drawable/ic_trophy" app:tint="#C0C0C0"/>
+                    <TextView android:id="@+id/tvNameRank2" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="User 2" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp" android:layout_marginTop="8dp"/>
+                    <TextView android:id="@+id/tvStatRank2" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="0.0 km" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/podium_23">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2"
+                            android:textColor="@color/text_primary"
+                            android:textSize="32sp"
+                            android:textStyle="bold"
+                            android:layout_gravity="center"/>
+                    </FrameLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/containerRank1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.2"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:layout_marginHorizontal="8dp">
+                    <ImageView android:layout_width="38dp" android:layout_height="38dp" android:src="@drawable/ic_trophy" app:tint="#FFD700"/>
+                    <TextView android:id="@+id/tvNameRank1" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="User 1" android:textColor="@color/lime" android:textStyle="bold" android:textSize="16sp" android:layout_marginTop="8dp"/>
+                    <TextView android:id="@+id/tvStatRank1" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="0.0 km" android:textColor="@color/muted_fg" android:textSize="12sp"/>
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="110dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/podium_1">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:textColor="@color/lime"
+                            android:textSize="40sp"
+                            android:textStyle="bold"
+                            android:layout_gravity="center"/>
+                    </FrameLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/containerRank3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <ImageView android:layout_width="28dp" android:layout_height="28dp" android:src="@drawable/ic_trophy" app:tint="#CD7F32"/>
+                    <TextView android:id="@+id/tvNameRank3" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="User 3" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="14sp" android:layout_marginTop="8dp"/>
+                    <TextView android:id="@+id/tvStatRank3" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="0.0 km" android:textColor="@color/muted_fg" android:textSize="11sp"/>
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/podium_3">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="3"
+                            android:textColor="@color/text_primary"
+                            android:textSize="32sp"
+                            android:textStyle="bold"
+                            android:layout_gravity="center"/>
+                    </FrameLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:minHeight="200dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRankings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="20dp"
+                    android:nestedScrollingEnabled="false"
+                    android:clipToPadding="false"/>
+
+                <TextView
+                    android:id="@+id/tvEmpty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/empty_leaderboard"
+                    android:textColor="@color/muted_fg"
+                    android:visibility="gone"/>
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone"/>
+            </FrameLayout>
+
+            <!-- Rules / Description Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="40dp"
+                android:background="@drawable/card_glass"
+                android:layout_marginHorizontal="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/leaderboard_info_title"
+                    android:textColor="@color/lime"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="24dp"/>
+
+                <!-- Category Distance Section -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cat_distance_title"
+                    android:textColor="@color/lime"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/title_dist_today" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="13sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/desc_dist_today" android:textColor="@color/muted_fg" android:textSize="12sp" android:layout_marginBottom="12dp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/title_dist_week" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="13sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/desc_dist_week" android:textColor="@color/muted_fg" android:textSize="12sp" android:layout_marginBottom="12dp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/title_dist_month" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="13sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/desc_dist_month" android:textColor="@color/muted_fg" android:textSize="12sp" android:layout_marginBottom="20dp" />
+
+                <!-- Category Best Pace Section -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cat_pace_title"
+                    android:textColor="@color/lime"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/title_pace_today" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="13sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/desc_pace_today" android:textColor="@color/muted_fg" android:textSize="12sp" android:layout_marginBottom="12dp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/title_pace_week" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="13sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/desc_pace_week" android:textColor="@color/muted_fg" android:textSize="12sp" android:layout_marginBottom="12dp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/title_pace_month" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="13sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/desc_pace_month" android:textColor="@color/muted_fg" android:textSize="12sp" android:layout_marginBottom="20dp" />
+
+                <!-- Category Streak Section -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cat_streak_title"
+                    android:textColor="@color/lime"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/title_streak_week" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="13sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/desc_streak_week" android:textColor="@color/muted_fg" android:textSize="12sp" android:layout_marginBottom="12dp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/title_streak_month" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="13sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/desc_streak_month" android:textColor="@color/muted_fg" android:textSize="12sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
 </LinearLayout>

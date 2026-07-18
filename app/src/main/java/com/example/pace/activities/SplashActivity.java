@@ -58,11 +58,11 @@ public class SplashActivity extends AppCompatActivity {
     private void showNoInternetDialog() {
         if (isFinishing()) return;
         new AlertDialog.Builder(this)
-                .setTitle("Tidak ada koneksi Internet")
-                .setMessage("Aplikasi memerlukan koneksi internet untuk dapat berjalan. Silakan aktifkan internet Anda.")
+                .setTitle(R.string.no_internet_title)
+                .setMessage(R.string.no_internet_desc)
                 .setCancelable(false)
-                .setPositiveButton("Coba Lagi", (dialog, which) -> checkInternetAndProceed())
-                .setNegativeButton("Keluar", (dialog, which) -> finish())
+                .setPositiveButton(R.string.retry, (dialog, which) -> checkInternetAndProceed())
+                .setNegativeButton(R.string.exit, (dialog, which) -> finish())
                 .show();
     }
 
@@ -143,6 +143,16 @@ public class SplashActivity extends AppCompatActivity {
                     if (isFinishing() || isRouting) return;
                     
                     if (documentSnapshot.exists()) {
+                        // SAVE USER INFO TO PREFS FOR OFFLINE ACCESS & AI PERSONALIZATION
+                        String name = documentSnapshot.getString("name");
+                        String goal = documentSnapshot.getString("goal");
+                        if (name != null) {
+                            getSharedPreferences("user_prefs", MODE_PRIVATE).edit()
+                                    .putString("full_name", name)
+                                    .putString("goal", goal != null ? goal : "General Fitness")
+                                    .apply();
+                        }
+
                         if (ProfileUtils.isProfileComplete(documentSnapshot)) {
                             isRouting = true;
                             startActivity(new Intent(SplashActivity.this, MainActivity.class));
@@ -160,7 +170,7 @@ public class SplashActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     if (isFinishing()) return;
-                    Toast.makeText(this, "Gagal memverifikasi profil: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.profile_verify_failed, e.getMessage()), Toast.LENGTH_SHORT).show();
                 });
     }
 }

@@ -69,7 +69,7 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btnSave).setOnClickListener(v -> {
-            Toast.makeText(this, "Pengaturan berhasil diperbarui", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.settings_saved, Toast.LENGTH_SHORT).show();
             finish();
         });
     }
@@ -100,10 +100,10 @@ public class SettingsActivity extends AppCompatActivity {
                         Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                         handleSignInResult(task);
                     } else if (result.getResultCode() == RESULT_CANCELED) {
-                        Toast.makeText(this, "Pemilihan akun dibatalkan", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.selection_cancelled, Toast.LENGTH_SHORT).show();
                         setLoading(false);
                     } else {
-                        Toast.makeText(this, "Gagal memilih akun (Code: " + result.getResultCode() + ")", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.sign_in_failed) + " (Code: " + result.getResultCode() + ")", Toast.LENGTH_SHORT).show();
                         setLoading(false);
                     }
                 }
@@ -118,12 +118,12 @@ public class SettingsActivity extends AppCompatActivity {
 
         // Load Language UI
         String currentLang = LocaleHelper.getLanguage(this);
-        if (currentLang.equals("in")) {
+        if (currentLang.equals("id") || currentLang.equals("in")) {
             ivSettingsFlag.setImageResource(R.drawable.ic_flag_id);
-            tvSettingsLanguageName.setText("Indonesia");
+            tvSettingsLanguageName.setText(R.string.lang_id);
         } else {
             ivSettingsFlag.setImageResource(R.drawable.ic_flag_en);
-            tvSettingsLanguageName.setText("English");
+            tvSettingsLanguageName.setText(R.string.lang_en);
         }
 
         // Load Google Link Status from Firebase
@@ -153,7 +153,7 @@ public class SettingsActivity extends AppCompatActivity {
         Log.d(TAG, "linkGoogleAccount clicked");
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
-            Toast.makeText(this, "Silakan login terlebih dahulu", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.login_first, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -176,11 +176,11 @@ public class SettingsActivity extends AppCompatActivity {
                             Log.d(TAG, "Unlink successful");
                             mGoogleSignInClient.signOut();
                             loadSettings();
-                            Toast.makeText(this, "Akun Google berhasil diputus", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.google_account_unlinked, Toast.LENGTH_SHORT).show();
                         } else {
                             Log.e(TAG, "Unlink failed", task.getException());
-                            String error = task.getException() != null ? task.getException().getMessage() : "Error tidak diketahui";
-                            Toast.makeText(this, "Gagal memutus akun: " + error, Toast.LENGTH_LONG).show();
+                            String error = task.getException() != null ? task.getException().getMessage() : getString(R.string.error_unknown);
+                            Toast.makeText(this, getString(R.string.unlinking_failed_val, error), Toast.LENGTH_LONG).show();
                         }
                     });
         } else {
@@ -200,7 +200,7 @@ public class SettingsActivity extends AppCompatActivity {
             } else {
                 Log.e(TAG, "Google Account is null");
                 setLoading(false);
-                Toast.makeText(this, "Gagal mendapatkan informasi akun Google", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.google_info_failed_val, Toast.LENGTH_SHORT).show();
             }
         } catch (ApiException e) {
             Log.e(TAG, "Google Sign In failed. Status code: " + e.getStatusCode() + ", Message: " + e.getMessage());
@@ -235,14 +235,16 @@ public class SettingsActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "Firebase linking successful");
                         loadSettings();
-                        Toast.makeText(this, "Selamat! Akun Google berhasil dikaitkan", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, R.string.account_linking_success, Toast.LENGTH_LONG).show();
                     } else {
                         Log.e(TAG, "Firebase linking failed", task.getException());
-                        String error = task.getException() != null ? task.getException().getMessage() : "Error tidak diketahui";
-                        if (error.contains("credential-already-in-use")) {
-                            error = "Akun Google ini sudah tertaut dengan pengguna lain";
+                        String error = task.getException() != null ? task.getException().getMessage() : getString(R.string.error_unknown);
+                        if (error != null && error.contains("credential-already-in-use")) {
+                            error = getString(R.string.google_account_already_linked);
+                            Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(this, getString(R.string.linking_failed_val, error), Toast.LENGTH_LONG).show();
                         }
-                        Toast.makeText(this, "Gagal mengaitkan: " + error, Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -261,16 +263,21 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void showLanguageMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
-        popup.getMenu().add(0, 1, 0, "English");
-        popup.getMenu().add(0, 2, 1, "Indonesia");
+        popup.getMenu().add(0, 1, 0, R.string.lang_en);
+        popup.getMenu().add(0, 2, 1, R.string.lang_id);
 
         popup.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == 1) {
-                LocaleHelper.setLocale(this, "en");
-            } else {
-                LocaleHelper.setLocale(this, "in");
-            }
-            recreate();
+            String lang = (item.getItemId() == 1) ? "en" : "id";
+            LocaleHelper.setLocale(this, lang);
+            
+            // Explicitly update application context as well
+            LocaleHelper.onAttach(getApplicationContext());
+            
+            // Restart the app to apply language changes everywhere
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
             return true;
         });
         popup.show();

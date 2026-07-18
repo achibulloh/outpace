@@ -6,4 +6,8 @@
     <color name="muted">#1C1C1F</color>
     <color name="muted_fg">#76767F</color>
     <color name="text_primary">#F0F0F5</color>
+    <color name="dot_red_color">#FF4B4B</color>
+    <color name="chat_user_bg">#C8F43A</color>
+    <color name="chat_ai_bg">#1C1C1F</color>
+    <color name="white">#FFFFFF</color>
 </resources>

@@ -15,6 +15,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.util.Log;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -31,6 +32,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.example.pace.R;
 import com.example.pace.activities.MainActivity;
 import com.example.pace.database.AppDatabase;
+import com.example.pace.utils.LocaleHelper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -44,6 +46,11 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 public class TrackingService extends Service implements SensorEventListener {
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(LocaleHelper.onAttach(base));
+    }
 
     public static final String ACTION_START = "ACTION_START";
     public static final String ACTION_PAUSE = "ACTION_PAUSE";
@@ -81,7 +88,7 @@ public class TrackingService extends Service implements SensorEventListener {
     private int startSteps = -1;
     private int currentSteps = 0;
     private Location lastLocation;
-    private boolean isLocationUpdatesRunning = false;
+    private volatile boolean isLocationUpdatesRunning = false;
     
     // Auto Pause Logic
     private long lowSpeedStartTime = 0;
@@ -132,9 +139,9 @@ public class TrackingService extends Service implements SensorEventListener {
     private void startTracking() {
         // Satisfaction for Android 8.0+ requirements: call startForeground immediately
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NOTIFICATION_ID, getNotification("Lari Sedang Berlangsung"), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+            startForeground(NOTIFICATION_ID, getNotification(getString(R.string.notif_tracking_active)), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
         } else {
-            startForeground(NOTIFICATION_ID, getNotification("Lari Sedang Berlangsung"));
+            startForeground(NOTIFICATION_ID, getNotification(getString(R.string.notif_tracking_active)));
         }
 
         if (isTracking && !isAutoPaused) return;
@@ -156,7 +163,7 @@ public class TrackingService extends Service implements SensorEventListener {
             }
             
             // App-internal Notification
-            insertAppNotification("Aktivitas Dimulai", "Anda baru saja mulai merekam lari. Tetap semangat!");
+            insertAppNotification(getString(R.string.app_notif_start_title), getString(R.string.app_notif_start_body));
         }
         
         startLocationUpdates();
@@ -195,7 +202,7 @@ public class TrackingService extends Service implements SensorEventListener {
         // Show summary notification
         showSummaryNotification();
         
-        insertAppNotification("Lari Selesai", String.format(Locale.getDefault(), "Berhasil menempuh %.2f KM. Terus tingkatkan!", totalDistance));
+        insertAppNotification(getString(R.string.app_notif_end_title), String.format(getString(R.string.app_notif_end_body), totalDistance));
 
         stopForeground(true);
         stopSelf();
@@ -204,8 +211,8 @@ public class TrackingService extends Service implements SensorEventListener {
     private void showSummaryNotification() {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         Notification summary = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Lari Selesai! 🎉")
-                .setContentText(String.format(Locale.getDefault(), "Anda berhasil menempuh %.2f KM dalam %02d:%02d", 
+                .setContentTitle(getString(R.string.notif_finished_title))
+                .setContentText(String.format(getString(R.string.notif_finished_body), 
                         totalDistance, (timeInSeconds / 60), (timeInSeconds % 60)))
                 .setSmallIcon(R.drawable.ic_logo)
                 .setAutoCancel(true)
@@ -248,6 +255,9 @@ public class TrackingService extends Service implements SensorEventListener {
                                 // Cadence = steps / minutes
                                 double mins = currentSplitTime / 60.0;
                                 int cadence = (mins > 0) ? (int)(currentSplitSteps / mins) : 0;
+                                
+                                // Filter impossible cadence (max 240 spm for humans)
+                                if (cadence > 240) cadence = 180;
                                 cadenceSplits.add(cadence);
 
                                 lastSplitTime = timeInSeconds;
@@ -298,16 +308,23 @@ public class TrackingService extends Service implements SensorEventListener {
             locationHandlerThread.start();
         }
 
-        LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
-                .setMinUpdateIntervalMillis(500)
-                .setMaxUpdateDelayMillis(2000)
-                .setWaitForAccurateLocation(false)
-                .build();
+        final Looper looper = locationHandlerThread.getLooper();
+        new Handler(looper).post(() -> {
+            LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+                    .setMinUpdateIntervalMillis(500)
+                    .setMaxUpdateDelayMillis(2000)
+                    .setWaitForAccurateLocation(false)
+                    .build();
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, locationHandlerThread.getLooper());
-            isLocationUpdatesRunning = true;
-        }
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, looper)
+                        .addOnSuccessListener(aVoid -> isLocationUpdatesRunning = true)
+                        .addOnFailureListener(e -> {
+                            isLocationUpdatesRunning = false;
+                            Log.e("TrackingService", "Failed to request location updates", e);
+                        });
+            }
+        });
     }
 
     private void stopLocationUpdates() {
@@ -329,17 +346,40 @@ public class TrackingService extends Service implements SensorEventListener {
         intent.putExtra("distance", totalDistance);
         intent.putExtra("elevation", totalElevationGain);
         intent.putExtra("steps", currentSteps);
-        
-        double[] splitArray = new double[splits.size()];
-        for(int i=0; i<splits.size(); i++) splitArray[i] = splits.get(i);
+
+        // Include partial split data in the broadcast for smoother charts
+        double partialDistance = totalDistance - (nextSplitKm - 1);
+        long partialTime = timeInSeconds - lastSplitTime;
+        double partialElev = totalElevationGain - lastSplitElevation;
+        int partialSteps = currentSteps - lastSplitSteps;
+
+        int size = splits.size();
+        boolean hasPartial = partialDistance > 0.005; // at least 5 meters
+        int totalSize = hasPartial ? size + 1 : size;
+
+        double[] splitArray = new double[totalSize];
+        double[] elevSplitArray = new double[totalSize];
+        int[] cadSplitArray = new int[totalSize];
+
+        for(int i=0; i<size; i++) {
+            splitArray[i] = splits.get(i);
+            elevSplitArray[i] = elevationSplits.get(i);
+            cadSplitArray[i] = cadenceSplits.get(i);
+        }
+
+        if (hasPartial) {
+            // Predict full km pace/cadence for partial split
+            splitArray[size] = (partialTime / Math.max(0.001, partialDistance));
+            elevSplitArray[size] = partialElev; // Elevation is usually kept as is or scaled
+            
+            double mins = partialTime / 60.0;
+            int predCadence = (mins > 0.1) ? (int)(partialSteps / mins) : 0;
+            if (predCadence > 240) predCadence = 180;
+            cadSplitArray[size] = predCadence;
+        }
+
         intent.putExtra("splits", splitArray);
-
-        double[] elevSplitArray = new double[elevationSplits.size()];
-        for(int i=0; i<elevationSplits.size(); i++) elevSplitArray[i] = elevationSplits.get(i);
         intent.putExtra("elevSplits", elevSplitArray);
-
-        int[] cadSplitArray = new int[cadenceSplits.size()];
-        for(int i=0; i<cadenceSplits.size(); i++) cadSplitArray[i] = cadenceSplits.get(i);
         intent.putExtra("cadSplits", cadSplitArray);
         intent.putParcelableArrayListExtra("fullPath", fullPathPoints);
 
@@ -376,26 +416,26 @@ public class TrackingService extends Service implements SensorEventListener {
         stopIntent.setAction(ACTION_STOP);
         PendingIntent pStopIntent = PendingIntent.getService(this, 2, stopIntent, PendingIntent.FLAG_IMMUTABLE);
 
-        String status = isAutoPaused ? "[AUTO-PAUSED] " : "";
-        String stats = String.format(Locale.getDefault(), "%.2f KM | %02d:%02d | %d kkal", 
+        String status = isAutoPaused ? "[" + getString(R.string.notif_tracking_paused).toUpperCase() + "] " : "";
+        String stats = String.format(Locale.getDefault(), getString(R.string.notif_stats_format),
                 totalDistance, (timeInSeconds / 60), (timeInSeconds % 60), (int)(totalDistance * 65));
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(status + "Lari Sedang Berlangsung")
+                .setContentTitle(status + getString(R.string.notif_tracking_active))
                 .setContentText(stats)
                 .setSmallIcon(R.drawable.ic_logo)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true);
 
         if (isTracking && !isAutoPaused) {
-            builder.addAction(R.drawable.ic_play, "Jeda", pPauseIntent);
+            builder.addAction(R.drawable.ic_play, getString(R.string.notif_action_pause), pPauseIntent);
         } else {
             Intent startIntent = new Intent(this, TrackingService.class);
             startIntent.setAction(ACTION_START);
             PendingIntent pStartIntent = PendingIntent.getService(this, 3, startIntent, PendingIntent.FLAG_IMMUTABLE);
-            builder.addAction(R.drawable.ic_play, "Lanjut", pStartIntent);
+            builder.addAction(R.drawable.ic_play, getString(R.string.notif_action_resume), pStartIntent);
         }
-        builder.addAction(R.drawable.ic_logo, "Berhenti", pStopIntent);
+        builder.addAction(R.drawable.ic_logo, getString(R.string.notif_action_stop), pStopIntent);
 
         return builder.build();
     }

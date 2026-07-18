@@ -14,9 +14,16 @@ import java.util.List;
 
 public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.ViewHolder> {
     private List<LeaderboardUser> users;
+    private int startDelay = 0;
+    private boolean isSequentialEnabled = false;
 
     public LeaderboardAdapter(List<LeaderboardUser> users) {
         this.users = users;
+    }
+
+    public void enableSequentialAnimation(int delay) {
+        this.isSequentialEnabled = true;
+        this.startDelay = delay;
     }
 
     @NonNull
@@ -43,6 +50,17 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
             holder.itemView.setBackgroundResource(R.drawable.rounded_card);
             holder.tvName.setTextColor(Color.WHITE);
             holder.tvDistance.setTextColor(Color.WHITE);
+        }
+
+        if (isSequentialEnabled) {
+            holder.itemView.setAlpha(0f);
+            holder.itemView.setTranslationX(-50f);
+            holder.itemView.animate()
+                    .alpha(1f)
+                    .translationX(0f)
+                    .setDuration(400)
+                    .setStartDelay(startDelay + (position * 100))
+                    .start();
         }
     }
 

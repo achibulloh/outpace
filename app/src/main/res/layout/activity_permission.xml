@@ -18,7 +18,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Izin Diperlukan"
+        android:text="@string/permission_title"
         android:textColor="@color/text_primary"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -28,7 +28,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Pace Master memerlukan izin berikut agar dapat berfungsi dengan maksimal saat Anda berlari."
+        android:text="@string/permission_desc"
         android:textColor="@color/muted_fg"
         android:textSize="14sp"
         android:gravity="center"
@@ -68,23 +68,24 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Akses Lokasi &amp; GPS"
+                    android:text="@string/perm_location_title"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold"
                     android:textSize="16sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Wajib untuk melacak rute. Caranya: Klik di sini, lalu pilih 'Izinkan sepanjang waktu' dan aktifkan GPS."
+                    android:text="@string/perm_location_desc"
                     android:textColor="@color/muted_fg"
                     android:textSize="12sp"/>
             </LinearLayout>
+
             <ImageView
                 android:id="@+id/ivCheckLocation"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/ic_edit"
-                app:tint="@color/muted"/>
+                app:tint="@color/muted" />
         </LinearLayout>
 
         <!-- Physical Activity -->
@@ -108,14 +109,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Aktivitas Fisik"
+                    android:text="@string/perm_activity_title"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold"
                     android:textSize="16sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Digunakan untuk menghitung langkah kaki Anda."
+                    android:text="@string/perm_activity_desc"
                     android:textColor="@color/muted_fg"
                     android:textSize="12sp"/>
             </LinearLayout>
@@ -148,14 +149,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Notifikasi"
+                    android:text="@string/perm_notification_title"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold"
                     android:textSize="16sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Untuk menampilkan status lari di panel notifikasi."
+                    android:text="@string/perm_notification_desc"
                     android:textColor="@color/muted_fg"
                     android:textSize="12sp"/>
             </LinearLayout>
@@ -173,7 +174,7 @@
         android:id="@+id/btnGrantAll"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="Izinkan Semua"
+        android:text="@string/btn_allow_all"
         android:textColor="@color/bg"
         android:textStyle="bold"
         android:textAllCaps="false"

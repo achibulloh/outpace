@@ -33,25 +33,25 @@ public class RecentActivityAdapter extends RecyclerView.Adapter<RecentActivityAd
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         RunRecord run = runList.get(position);
         
-        holder.tvDistance.setText(String.format(Locale.getDefault(), "%.1f km", run.getDistance()));
+        holder.tvDistance.setText(holder.itemView.getContext().getString(R.string.distance_km_val, run.getDistance()));
         
         int paceMins = (int) run.getPace();
         int paceSecs = (int) ((run.getPace() - paceMins) * 60);
-        holder.tvPace.setText(String.format(Locale.getDefault(), "%d:%02d/km", paceMins, paceSecs));
+        holder.tvPace.setText(holder.itemView.getContext().getString(R.string.pace_val, paceMins, paceSecs));
         
         if (run.getDate() != null && run.getStartTime() != null && run.getEndTime() != null) {
             holder.tvDate.setText(String.format("%s · %s", run.getDate(), run.getStartTime()));
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat("EEEE · HH:mm", new Locale("id", "ID"));
+            SimpleDateFormat sdf = new SimpleDateFormat("EEEE · HH:mm", Locale.getDefault());
             holder.tvDate.setText(sdf.format(new Date(run.getTimestamp())));
         }
         
         int hour = Integer.parseInt(new SimpleDateFormat("H", Locale.getDefault()).format(new Date(run.getTimestamp())));
-        String title = "Run";
-        if (hour >= 5 && hour < 11) title = "Morning Run";
-        else if (hour >= 11 && hour < 15) title = "Afternoon Run";
-        else if (hour >= 15 && hour < 19) title = "Evening Run";
-        else title = "Night Run";
+        String title;
+        if (hour >= 5 && hour < 11) title = holder.itemView.getContext().getString(R.string.morning_run);
+        else if (hour >= 11 && hour < 15) title = holder.itemView.getContext().getString(R.string.afternoon_run);
+        else if (hour >= 15 && hour < 19) title = holder.itemView.getContext().getString(R.string.evening_run);
+        else title = holder.itemView.getContext().getString(R.string.night_run);
         
         holder.tvTitle.setText(title);
 

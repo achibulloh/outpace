@@ -41,14 +41,25 @@
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
+            android:id="@+id/tvShareTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="AKTIVITAS SELESAI"
+            android:text="MORNING RUN"
             android:textColor="@color/lime"
             android:textSize="42px"
             android:textStyle="bold"
             android:letterSpacing="0.1"
             android:layout_marginTop="60px"/>
+
+        <TextView
+            android:id="@+id/tvLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bandung, Indonesia"
+            android:textColor="@color/text_primary"
+            android:textSize="28px"
+            android:alpha="0.6"
+            android:layout_marginTop="10px"/>
 
         <TextView
             android:id="@+id/tvShareJarak"

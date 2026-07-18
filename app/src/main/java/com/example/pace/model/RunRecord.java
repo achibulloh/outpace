@@ -25,6 +25,9 @@ public class RunRecord {
     private String startTime; // Jam mulai lari
     private String endTime; // Jam selesai lari
     private boolean isSynced; // Status sinkronisasi ke Firebase
+    private String mood; // Great, Good, Neutral, Tired
+    private int fatigueLevel; // 1-10
+    private String aiInsights; // Store Gemini response
 
     public RunRecord() {
         // Dibutuhkan untuk Firestore
@@ -48,6 +51,15 @@ public class RunRecord {
     public String getDate() { return date; }
     public String getStartTime() { return startTime; }
     public String getEndTime() { return endTime; }
+
+    public String getMood() { return mood; }
+    public void setMood(String mood) { this.mood = mood; }
+
+    public int getFatigueLevel() { return fatigueLevel; }
+    public void setFatigueLevel(int fatigueLevel) { this.fatigueLevel = fatigueLevel; }
+
+    public String getAiInsights() { return aiInsights; }
+    public void setAiInsights(String aiInsights) { this.aiInsights = aiInsights; }
 
     // Setters for new fields
     public void setSplitsJson(String splitsJson) { this.splitsJson = splitsJson; }

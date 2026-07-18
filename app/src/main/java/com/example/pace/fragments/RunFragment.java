@@ -65,10 +65,12 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import com.example.pace.model.User;
 import com.example.pace.views.BarChartView;
 
 public class RunFragment extends Fragment implements android.hardware.SensorEventListener {
@@ -157,7 +159,14 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     private void checkActivityRecognitionPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, ACTIVITY_RECOGNITION_REQUEST_CODE);
+                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.activity_recognition_title)
+                        .setMessage(R.string.activity_recognition_desc)
+                        .setPositiveButton(R.string.grant_permission, (dialog, which) -> {
+                            requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, ACTIVITY_RECOGNITION_REQUEST_CODE);
+                        })
+                        .setNegativeButton(R.string.later, null)
+                        .show();
             }
         }
     }
@@ -238,9 +247,13 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
 
         View.OnClickListener stopAction = v -> {
             if (!isSaving) {
-                isSaving = true;
-                saveRunBeforeStop();
-                sendAction(TrackingService.ACTION_STOP);
+                if (lastDistance >= 0.005) {
+                    showPostRunDialog();
+                } else {
+                    isSaving = true;
+                    saveRunBeforeStop(null, 0);
+                    sendAction(TrackingService.ACTION_STOP);
+                }
             }
         };
         btnStop.setOnClickListener(stopAction);
@@ -248,7 +261,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
 
         btnBack.setOnClickListener(v -> {
             if (isTracking) {
-                Toast.makeText(getContext(), "Berhentikan lari terlebih dahulu", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), R.string.stop_tracking_first, Toast.LENGTH_SHORT).show();
             } else {
                 goBack();
             }
@@ -260,12 +273,12 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
                 map.getController().animateTo(myLocationOverlay.getMyLocation());
                 map.getController().setZoom(18.0);
             } else {
-                Toast.makeText(requireContext(), "Mencari sinyal GPS...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), R.string.searching_gps, Toast.LENGTH_SHORT).show();
             }
         });
         btnCompass.setOnClickListener(v -> {
             map.setMapOrientation(0);
-            Toast.makeText(requireContext(), "Peta menghadap Utara", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), R.string.map_facing_north, Toast.LENGTH_SHORT).show();
         });
         if (btnMinimize != null) btnMinimize.setOnClickListener(v -> toggleStatsOverlay());
         panelStatsBottom.setOnClickListener(v -> toggleStatsOverlay());
@@ -326,7 +339,10 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         map.getOverlays().add(rotationGestureOverlay);
 
         // My Location Overlay
-        myLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(requireContext()), map);
+        GpsMyLocationProvider provider = new GpsMyLocationProvider(requireContext());
+        provider.setLocationUpdateMinTime(3000); // 3 seconds
+        provider.setLocationUpdateMinDistance(2); // 2 meters
+        myLocationOverlay = new MyLocationNewOverlay(provider, map);
         myLocationOverlay.enableMyLocation();
         map.getOverlays().add(myLocationOverlay);
 
@@ -358,8 +374,11 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     }
 
     private void startStatusLocationUpdates() {
+        if (isTracking) return;
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
-        LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 2000).build();
+        LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
+                .setMinUpdateIntervalMillis(2000)
+                .build();
         fusedLocationClient.requestLocationUpdates(request, statusLocationCallback, android.os.Looper.getMainLooper());
     }
 
@@ -378,13 +397,13 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     }
 
     private void updateGpsStatus(float accuracy) {
-        String statusText = (accuracy > 0 && accuracy < 20) ? "GPS Bagus" : "GPS Lemah";
+        String statusText = (accuracy > 0 && accuracy < 20) ? getString(R.string.gps_good) : getString(R.string.gps_signal_weak);
         int resId = (accuracy > 0 && accuracy < 20) ? R.drawable.progress_fill : R.drawable.dot_red;
         int color = (accuracy > 0 && accuracy < 20) ? Color.parseColor("#C8F43A") : Color.RED;
 
         if (tvGpsStatus != null) { tvGpsStatus.setText(statusText); viewGpsIndicator.setBackgroundResource(resId); }
         if (tvOverlayGpsStatus != null) {
-            String text = isAutoPaused ? "AUTO-PAUSED" : "Sinyal GPS " + statusText.split(" ")[1].toLowerCase();
+            String text = isAutoPaused ? getString(R.string.auto_paused) : getString(R.string.gps_signal_format, statusText.split(" ")[statusText.split(" ").length - 1].toLowerCase());
             tvOverlayGpsStatus.setText(text);
             tvOverlayGpsStatus.setTextColor(isAutoPaused ? Color.YELLOW : color);
         }
@@ -393,10 +412,14 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     private void showLayerSelectionDialog() {
         if (getContext() == null) return;
         
-        String[] layers = {"Peta Standar (OSM)", "CyclOSM (Outdoor/Rute)", "Google Earth (Satelit)"};
+        String[] layers = {
+                getString(R.string.map_layer_standard),
+                getString(R.string.map_layer_cyclosm),
+                getString(R.string.map_layer_satellite)
+        };
         
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
-        builder.setTitle("Pilih Lapisan Peta");
+        builder.setTitle(R.string.map_layers_title);
         builder.setItems(layers, (dialog, which) -> {
             if (map == null) return;
             
@@ -536,11 +559,18 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     private void updateButtons(boolean tracking) {
         if (isTracking) {
             btnStart.setVisibility(View.GONE); btnPause.setVisibility(View.VISIBLE); btnPauseOverlay.setVisibility(View.VISIBLE);
-            if (isAutoPaused) { btnPause.setText("▶ LANJUT"); btnPauseOverlay.setText("▶ LANJUT"); btnStop.setVisibility(View.GONE); btnStopOverlay.setVisibility(View.GONE); }
-            else { btnPause.setText("⏸ JEDA"); btnPauseOverlay.setText("⏸ JEDA"); btnStop.setVisibility(View.VISIBLE); btnStopOverlay.setVisibility(View.VISIBLE); }
+            if (isAutoPaused) { 
+                btnPause.setText(R.string.btn_resume); btnPauseOverlay.setText(R.string.btn_resume); 
+                btnStop.setVisibility(View.GONE); btnStopOverlay.setVisibility(View.GONE); 
+            }
+            else { 
+                btnPause.setText(R.string.btn_pause); btnPauseOverlay.setText(R.string.btn_pause); 
+                btnStop.setVisibility(View.VISIBLE); btnStopOverlay.setVisibility(View.VISIBLE); 
+            }
         } else if (lastTime > 0) {
             btnStart.setVisibility(View.GONE); btnPause.setVisibility(View.VISIBLE); btnPauseOverlay.setVisibility(View.VISIBLE);
-            btnPause.setText("▶ LANJUT"); btnPauseOverlay.setText("▶ LANJUT"); btnStop.setVisibility(View.GONE); btnStopOverlay.setVisibility(View.GONE);
+            btnPause.setText(R.string.btn_resume); btnPauseOverlay.setText(R.string.btn_resume); 
+            btnStop.setVisibility(View.GONE); btnStopOverlay.setVisibility(View.GONE);
         } else {
             btnStart.setVisibility(View.VISIBLE); btnPause.setVisibility(View.GONE); btnPauseOverlay.setVisibility(View.GONE);
             btnStop.setVisibility(View.GONE); btnStopOverlay.setVisibility(View.GONE);
@@ -548,21 +578,62 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     }
 
     private void startRunning() {
+        stopStatusLocationUpdates();
         sendAction(TrackingService.ACTION_START);
         if (!isStatsExpanded) toggleStatsOverlay();
     }
 
     private void showBackgroundLocationDialog() {
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Izin Lokasi Latar Belakang")
-                .setMessage("Agar rute tetap tercatat saat layar mati atau membuka aplikasi lain, silakan pilih 'Izinkan Sepanjang Waktu' (Allow all the time) pada halaman pengaturan berikutnya.")
-                .setPositiveButton("Buka Pengaturan", (dialog, which) -> {
+                .setTitle(R.string.bg_location_title)
+                .setMessage(R.string.bg_location_desc)
+                .setPositiveButton(R.string.open_settings, (dialog, which) -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 999);
                 })
-                .setNegativeButton("Nanti Saja", (dialog, which) -> startRunning()).show();
+                .setNegativeButton(R.string.later, (dialog, which) -> startRunning()).show();
     }
 
-    private void saveRunBeforeStop() {
+    private String selectedMood = "Neutral";
+    private void showPostRunDialog() {
+        android.view.View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_post_run, null);
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog).setView(dialogView).create();
+        
+        TextView btnGreat = dialogView.findViewById(R.id.btnMoodGreat);
+        TextView btnGood = dialogView.findViewById(R.id.btnMoodGood);
+        TextView btnNeutral = dialogView.findViewById(R.id.btnMoodNeutral);
+        TextView btnTired = dialogView.findViewById(R.id.btnMoodTired);
+        android.widget.SeekBar sbFatigue = dialogView.findViewById(R.id.sbFatigue);
+        android.widget.Button btnSubmit = dialogView.findViewById(R.id.btnSubmitPostRun);
+
+        selectedMood = "Neutral";
+        View.OnClickListener moodClick = v -> {
+            btnGreat.setBackgroundResource(R.drawable.tab_unselected);
+            btnGood.setBackgroundResource(R.drawable.tab_unselected);
+            btnNeutral.setBackgroundResource(R.drawable.tab_unselected);
+            btnTired.setBackgroundResource(R.drawable.tab_unselected);
+            v.setBackgroundResource(R.drawable.btn_outline_lime);
+            if (v.getId() == R.id.btnMoodGreat) selectedMood = "Great";
+            else if (v.getId() == R.id.btnMoodGood) selectedMood = "Good";
+            else if (v.getId() == R.id.btnMoodNeutral) selectedMood = "Neutral";
+            else if (v.getId() == R.id.btnMoodTired) selectedMood = "Tired";
+        };
+
+        btnGreat.setOnClickListener(moodClick);
+        btnGood.setOnClickListener(moodClick);
+        btnNeutral.setOnClickListener(moodClick);
+        btnTired.setOnClickListener(moodClick);
+
+        btnSubmit.setOnClickListener(v -> {
+            isSaving = true;
+            saveRunBeforeStop(selectedMood, sbFatigue.getProgress() + 1);
+            sendAction(TrackingService.ACTION_STOP);
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    private void saveRunBeforeStop(String mood, int fatigue) {
         if (lastDistance < 0.005) { 
             isSaving = false;
             sendAction(TrackingService.ACTION_STOP);
@@ -590,10 +661,10 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         String cJson = new Gson().toJson(currentCadSplits);
 
         new Thread(() -> {
-            String ln = "Lokasi Tidak Diketahui";
+            String ln = getString(R.string.unknown_location);
             if (!pathPoints.isEmpty()) {
                 try {
-                    Geocoder geo = new Geocoder(requireContext(), new Locale("id", "ID"));
+                    Geocoder geo = new Geocoder(requireContext(), Locale.getDefault());
                     List<Address> ads = geo.getFromLocation(pathPoints.get(0).getLatitude(), pathPoints.get(0).getLongitude(), 1);
                     if (ads != null && !ads.isEmpty()) {
                         Address a = ads.get(0);
@@ -612,6 +683,8 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
             r.setDate(dateStr);
             r.setStartTime(startTimeStr);
             r.setEndTime(endTimeStr);
+            r.setMood(mood);
+            r.setFatigueLevel(fatigue);
             r.setSynced(false); // Awalnya belum sinkron
 
             AppDatabase.getInstance(requireContext()).runDao().insert(r);
@@ -619,26 +692,103 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
             // Sync to Firebase if user is logged in
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user != null) {
-                FirebaseFirestore.getInstance()
-                        .collection("users").document(user.getUid())
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                db.collection("users").document(user.getUid())
                         .collection("runs").document(r.getFirebaseId())
                         .set(r)
                         .addOnSuccessListener(aVoid -> {
                             Log.d("RunFragment", "Run synced to Firebase");
                             new Thread(() -> {
                                 r.setSynced(true);
-                                AppDatabase.getInstance(requireContext()).runDao().insert(r); // Update status di Room
+                                Context context = getContext();
+                                if (context != null) {
+                                    AppDatabase.getInstance(context).runDao().insert(r); // Update status di Room
+                                }
                             }).start();
+                            updateUserLeaderboardStats(r);
                         })
                         .addOnFailureListener(error -> Log.e("RunFragment", "Firebase sync failed", error));
             }
 
             if (getActivity() != null) getActivity().runOnUiThread(() -> {
-                Toast.makeText(getContext(), "Aktivitas disimpan!", Toast.LENGTH_SHORT).show();
+                Context context = getContext();
+                if (context != null) {
+                    Toast.makeText(context, R.string.activity_saved, Toast.LENGTH_SHORT).show();
+                }
                 isSaving = false;
                 goBack();
             });
         }).start();
+    }
+
+    private void updateUserLeaderboardStats(RunRecord run) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                .get().addOnSuccessListener(doc -> {
+                    User u = doc.toObject(User.class);
+                    if (u == null) return;
+
+                    Calendar cal = Calendar.getInstance();
+                    String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.getTime());
+                    int thisWeek = cal.get(Calendar.WEEK_OF_YEAR);
+                    int thisMonth = cal.get(Calendar.MONTH);
+
+                    // Reset logic
+                    if (!today.equals(u.getLastRunDate())) {
+                        u.setTotalDistanceToday(0);
+                        u.setBestPaceToday(999);
+                    }
+                    if (thisWeek != u.getLastRunWeek()) {
+                        u.setTotalDistanceWeek(0);
+                        u.setBestPaceWeek(999);
+                        u.setStreakWeek(0);
+                    }
+                    if (thisMonth != u.getLastRunMonth()) {
+                        u.setTotalDistanceMonth(0);
+                        u.setBestPaceMonth(999);
+                        u.setStreakMonth(0);
+                    }
+
+                    // Update Distances
+                    u.setTotalDistanceToday(u.getTotalDistanceToday() + run.getDistance());
+                    u.setTotalDistanceWeek(u.getTotalDistanceWeek() + run.getDistance());
+                    u.setTotalDistanceMonth(u.getTotalDistanceMonth() + run.getDistance());
+
+                    // Update Best Pace (only if distance >= 3km)
+                    if (run.getDistance() >= 3.0) {
+                        double p = run.getPace();
+                        if (p < u.getBestPace() || u.getBestPace() == 999) u.setBestPace(p);
+                        if (p < u.getBestPaceToday() || u.getBestPaceToday() == 999) u.setBestPaceToday(p);
+                        if (p < u.getBestPaceWeek() || u.getBestPaceWeek() == 999) u.setBestPaceWeek(p);
+                        if (p < u.getBestPaceMonth() || u.getBestPaceMonth() == 999) u.setBestPaceMonth(p);
+                    }
+
+                    // Update Longest Run
+                    if (run.getDistance() > u.getLongestRun()) {
+                        u.setLongestRun(run.getDistance());
+                    }
+
+                    // Update Streak
+                    cal.add(Calendar.DATE, -1);
+                    String yesterday = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.getTime());
+                    if (yesterday.equals(u.getLastRunDate())) {
+                        u.setCurrentStreak(u.getCurrentStreak() + 1);
+                        u.setStreakWeek(u.getStreakWeek() + 1);
+                        u.setStreakMonth(u.getStreakMonth() + 1);
+                    } else if (!today.equals(u.getLastRunDate())) {
+                        u.setCurrentStreak(1);
+                        u.setStreakWeek(1);
+                        u.setStreakMonth(1);
+                    }
+
+                    u.setLastRunDate(today);
+                    u.setLastRunWeek(thisWeek);
+                    u.setLastRunMonth(thisMonth);
+
+                    FirebaseFirestore.getInstance().collection("users").document(user.getUid()).set(u);
+                });
     }
 
     private void sendAction(String a) {
@@ -699,7 +849,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         if (rc == LOCATION_PERMISSION_REQUEST_CODE) {
             if (gr.length > 0 && gr[0] == PackageManager.PERMISSION_GRANTED) enableInitialLocation();
         } else if (rc == ACTIVITY_RECOGNITION_REQUEST_CODE) {
-            if (gr.length > 0 && gr[0] == PackageManager.PERMISSION_GRANTED) Toast.makeText(getContext(), "Izin aktivitas fisik aktif!", Toast.LENGTH_SHORT).show();
+            if (gr.length > 0 && gr[0] == PackageManager.PERMISSION_GRANTED) Toast.makeText(getContext(), R.string.physical_activity_permission_granted, Toast.LENGTH_SHORT).show();
         } else if (rc == NOTIFICATION_PERMISSION_REQUEST_CODE) {
             if (gr.length > 0 && gr[0] == PackageManager.PERMISSION_GRANTED) startRunning();
         } else if (rc == 999) {

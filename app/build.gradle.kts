@@ -53,6 +53,11 @@ dependencies {
     implementation("org.osmdroid:osmdroid-android:6.1.20")
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
+    // Google Gemini AI
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    // For handling asynchronous tasks with Gemini (Guava for ListenableFuture)
+    implementation("com.google.guava:guava:31.1-android")
+
     // Room Database
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")

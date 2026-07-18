@@ -43,13 +43,33 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/llTop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:layout_alignParentTop="true"
         android:padding="80px">
-        <TextView android:id="@+id/tvShareJarak" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5.20 km" android:textColor="@color/text_primary" android:textSize="72px" android:textStyle="bold" android:layout_weight="1"/>
-        <TextView android:id="@+id/tvSharePace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14/km" android:textColor="@color/lime" android:textSize="72px" android:textStyle="bold"/>
+        <TextView
+            android:id="@+id/tvShareTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MORNING RUN"
+            android:textColor="@color/lime"
+            android:textStyle="bold"
+            android:textSize="36px"
+            android:layout_marginBottom="10px"/>
+        <TextView
+            android:id="@+id/tvLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bandung, Indonesia"
+            android:textColor="@color/muted_fg"
+            android:textSize="28px"
+            android:layout_marginBottom="30px"/>
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <TextView android:id="@+id/tvShareJarak" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5.20 km" android:textColor="@color/text_primary" android:textSize="72px" android:textStyle="bold" android:layout_weight="1"/>
+            <TextView android:id="@+id/tvSharePace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5:14/km" android:textColor="@color/lime" android:textSize="72px" android:textStyle="bold"/>
+        </LinearLayout>
     </LinearLayout>
 
 </RelativeLayout>
