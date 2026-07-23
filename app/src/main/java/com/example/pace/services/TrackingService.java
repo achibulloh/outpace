@@ -69,6 +69,7 @@ public class TrackingService extends Service implements SensorEventListener {
     private Sensor stepDetectorSensor;
 
     private boolean isTracking = false;
+    private boolean isManualPaused = false;
     private boolean isAutoPaused = false;
     private long timeInSeconds = 0L;
     private double totalDistance = 0.0;
@@ -99,7 +100,7 @@ public class TrackingService extends Service implements SensorEventListener {
     private Runnable timerRunnable = new Runnable() {
         @Override
         public void run() {
-            if (isTracking && !isAutoPaused) {
+            if (isTracking && !isAutoPaused && !isManualPaused) {
                 timeInSeconds++;
                 updateNotification();
                 broadcastUpdate();
@@ -144,9 +145,11 @@ public class TrackingService extends Service implements SensorEventListener {
             startForeground(NOTIFICATION_ID, getNotification(getString(R.string.notif_tracking_active)));
         }
 
-        if (isTracking && !isAutoPaused) return;
+        if (isTracking && !isAutoPaused && !isManualPaused) return;
         
-        if (isAutoPaused) {
+        if (isManualPaused) {
+            isManualPaused = false;
+        } else if (isAutoPaused) {
             isAutoPaused = false;
         } else {
             isTracking = true;
@@ -168,6 +171,7 @@ public class TrackingService extends Service implements SensorEventListener {
         
         startLocationUpdates();
         broadcastUpdate();
+        updateNotification();
     }
 
     private void registerSensors() {
@@ -180,7 +184,7 @@ public class TrackingService extends Service implements SensorEventListener {
     }
 
     private void pauseTracking() {
-        isAutoPaused = true;
+        isManualPaused = true;
         updateNotification();
         broadcastUpdate();
     }
@@ -230,7 +234,7 @@ public class TrackingService extends Service implements SensorEventListener {
                     float speedKmh = location.getSpeed() * 3.6f;
                     handleAutoPauseLogic(speedKmh);
 
-                    if (!isAutoPaused) {
+                    if (!isAutoPaused && !isManualPaused) {
                         if (lastLocation != null) {
                             totalDistance += lastLocation.distanceTo(location) / 1000.0;
                             
@@ -341,7 +345,7 @@ public class TrackingService extends Service implements SensorEventListener {
     private void broadcastUpdate() {
         Intent intent = new Intent(TRACKING_UPDATE);
         intent.putExtra("isTracking", isTracking);
-        intent.putExtra("isAutoPaused", isAutoPaused);
+        intent.putExtra("isAutoPaused", isAutoPaused || isManualPaused);
         intent.putExtra("time", timeInSeconds);
         intent.putExtra("distance", totalDistance);
         intent.putExtra("elevation", totalElevationGain);
@@ -393,7 +397,7 @@ public class TrackingService extends Service implements SensorEventListener {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Pace Tracking", NotificationManager.IMPORTANCE_HIGH);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, getString(R.string.notif_channel_name), NotificationManager.IMPORTANCE_HIGH);
             channel.setSound(null, null); // Keep it high priority but silent
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel);
@@ -403,20 +407,25 @@ public class TrackingService extends Service implements SensorEventListener {
     private Notification getNotification(String contentText) {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         notificationIntent.putExtra("NAVIGATE_TO", "RUN_FRAGMENT");
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        // Pause/Resume via Service
         Intent pauseIntent = new Intent(this, TrackingService.class);
         pauseIntent.setAction(ACTION_PAUSE);
         PendingIntent pPauseIntent = PendingIntent.getService(this, 1, pauseIntent, PendingIntent.FLAG_IMMUTABLE);
 
-        Intent stopIntent = new Intent(this, TrackingService.class);
-        stopIntent.setAction(ACTION_STOP);
-        PendingIntent pStopIntent = PendingIntent.getService(this, 2, stopIntent, PendingIntent.FLAG_IMMUTABLE);
+        // Stop/Save - Redirect to Apps
+        Intent stopAppIntent = new Intent(this, MainActivity.class);
+        stopAppIntent.putExtra("NAVIGATE_TO", "RUN_FRAGMENT");
+        stopAppIntent.putExtra("SHOW_POST_RUN", true);
+        stopAppIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pStopIntent = PendingIntent.getActivity(this, 2, stopAppIntent, 
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        String status = isAutoPaused ? "[" + getString(R.string.notif_tracking_paused).toUpperCase() + "] " : "";
+        String status = (isAutoPaused || isManualPaused) ? "[" + getString(R.string.notif_tracking_paused).toUpperCase() + "] " : "";
         String stats = String.format(Locale.getDefault(), getString(R.string.notif_stats_format),
                 totalDistance, (timeInSeconds / 60), (timeInSeconds % 60), (int)(totalDistance * 65));
 
@@ -427,7 +436,7 @@ public class TrackingService extends Service implements SensorEventListener {
                 .setContentIntent(pendingIntent)
                 .setOngoing(true);
 
-        if (isTracking && !isAutoPaused) {
+        if (isTracking && !isAutoPaused && !isManualPaused) {
             builder.addAction(R.drawable.ic_play, getString(R.string.notif_action_pause), pPauseIntent);
         } else {
             Intent startIntent = new Intent(this, TrackingService.class);
@@ -454,7 +463,7 @@ public class TrackingService extends Service implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (!isTracking || isAutoPaused) return;
+        if (!isTracking || isAutoPaused || isManualPaused) return;
 
         if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
             int totalSteps = (int) event.values[0];

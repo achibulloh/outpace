@@ -20,6 +20,7 @@ import com.example.pace.activities.WeatherActivity;
 import com.example.pace.adapter.RecentActivityAdapter;
 import com.example.pace.database.AppDatabase;
 import com.example.pace.model.RunRecord;
+import com.example.pace.utils.GeminiAssistant;
 import com.example.pace.utils.LocaleHelper;
 import com.example.pace.utils.VolleySingleton;
 
@@ -149,12 +150,13 @@ public class HomeFragment extends Fragment {
         
         SharedPreferences prefs = context.getSharedPreferences("ai_cache", Context.MODE_PRIVATE);
         String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
-        String cachedTip = prefs.getString("daily_tip_" + today, null);
+        String lang = LocaleHelper.getLanguage(context);
+        String cachedTip = prefs.getString("daily_tip_" + today + "_" + lang, null);
 
         if (cachedTip != null) {
             aiTipDivider.setVisibility(View.VISIBLE);
             tvAIDailyTip.setVisibility(View.VISIBLE);
-            tvAIDailyTip.setText("Coach Tip: " + cachedTip);
+            tvAIDailyTip.setText(getString(R.string.coach_tip_prefix, cachedTip));
             return;
         }
 
@@ -169,7 +171,7 @@ public class HomeFragment extends Fragment {
 
                     String prompt = "Give me one short, unique running tip for today. My goal is " + u.getGoal() + ". Max 10 words.";
                     String firstName = u.getName() != null ? u.getName().split(" ")[0] : "Runner";
-                    new com.example.pace.utils.GeminiAssistant().chat(prompt, firstName, true, new com.example.pace.utils.GeminiAssistant.AIResponseCallback() {
+                    GeminiAssistant.getInstance().chat(context, prompt, firstName, true, lang, new GeminiAssistant.AIResponseCallback() {
                         @Override
                         public void onSuccess(String response) {
                             if (isAdded() && getActivity() != null) getActivity().runOnUiThread(() -> {
@@ -179,10 +181,10 @@ public class HomeFragment extends Fragment {
                                     tvAIDailyTip.setVisibility(View.GONE);
                                     aiTipDivider.setVisibility(View.GONE);
                                 } else {
-                                    prefs.edit().putString("daily_tip_" + today, response).apply();
+                                    prefs.edit().putString("daily_tip_" + today + "_" + lang, response).apply();
                                     aiTipDivider.setVisibility(View.VISIBLE);
                                     tvAIDailyTip.setVisibility(View.VISIBLE);
-                                    tvAIDailyTip.setText("Coach Tip: " + response);
+                                    tvAIDailyTip.setText(getString(R.string.coach_tip_prefix, response));
                                 }
                             });
                         }
@@ -398,7 +400,10 @@ public class HomeFragment extends Fragment {
         if (context == null) return;
         
         new Thread(() -> {
-            List<RunRecord> allRecords = AppDatabase.getInstance(context).runDao().getAllRuns();
+            AppDatabase db = AppDatabase.getInstance(context);
+            List<RunRecord> allRecords = db.runDao().getAllRuns();
+            long latestLocal = db.runDao().getLatestTimestamp();
+
             if (getActivity() != null && isAdded()) {
                 getActivity().runOnUiThread(() -> {
                     if (!isAdded()) return;
@@ -417,22 +422,23 @@ public class HomeFragment extends Fragment {
                         updateDashboard(allRecords);
                     }
                     adapter.notifyDataSetChanged();
-                    syncHomeFromFirebase();
+                    syncHomeFromFirebase(latestLocal);
                 });
             }
         }).start();
     }
 
-    private void syncHomeFromFirebase() {
+    private void syncHomeFromFirebase(long sinceTimestamp) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null || !isAdded()) return;
 
         FirebaseFirestore.getInstance()
                 .collection("users").document(user.getUid())
                 .collection("runs")
+                .whereGreaterThan("timestamp", sinceTimestamp)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!isAdded()) return;
+                    if (!isAdded() || queryDocumentSnapshots.isEmpty()) return;
                     
                     List<RunRecord> cloudRecords = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
@@ -444,8 +450,9 @@ public class HomeFragment extends Fragment {
                             Context context = getContext();
                             if (context == null || !isAdded()) return;
                             
-                            AppDatabase.getInstance(context).runDao().insertAll(cloudRecords);
-                            List<RunRecord> updatedRecords = AppDatabase.getInstance(context).runDao().getAllRuns();
+                            AppDatabase db = AppDatabase.getInstance(context);
+                            db.runDao().insertAll(cloudRecords);
+                            List<RunRecord> updatedRecords = db.runDao().getAllRuns();
                             if (getActivity() != null && isAdded()) {
                                 getActivity().runOnUiThread(() -> {
                                     if (!isAdded()) return;

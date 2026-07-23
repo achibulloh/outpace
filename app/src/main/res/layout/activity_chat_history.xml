@@ -51,7 +51,7 @@
         android:layout_height="56dp"
         android:layout_alignParentBottom="true"
         android:layout_margin="20dp"
-        android:text="+ Start New Chat"
+        android:text="@string/new_chat_button"
         android:textColor="@color/bg"
         android:textSize="16sp"
         android:textStyle="bold"

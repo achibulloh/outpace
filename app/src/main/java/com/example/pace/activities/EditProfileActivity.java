@@ -111,7 +111,13 @@ public class EditProfileActivity extends AppCompatActivity {
         data.put("phone", etPhone.getText().toString());
         data.put("weight", etWeight.getText().toString());
         data.put("height", etHeight.getText().toString());
-        data.put("monthly_target", etMonthlyTarget.getText().toString());
+        String mTargetStr = etMonthlyTarget.getText().toString();
+        try {
+            data.put("monthly_target", Integer.parseInt(mTargetStr));
+        } catch (Exception e) {
+            data.put("monthly_target", mTargetStr);
+        }
+        data.put("monthlyTarget", null); // Remove the old inconsistent field
         data.put("targetWeight", etTargetWeight.getText().toString());
         data.put("dob", etDOB.getText().toString());
         data.put("gender", spinnerGender.getText().toString());

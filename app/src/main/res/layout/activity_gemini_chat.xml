@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="OUTPACE AI Coach"
+            android:text="@string/ai_coach_title"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -70,7 +70,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:gravity="center"
-            android:text="Where should we start?"
+            android:text="@string/where_start"
             android:textColor="@color/text_primary"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:text="Ask me about your runs, health, or nutrition tips."
+            android:text="@string/ai_intro_desc"
             android:textColor="@color/muted_fg"
             android:textSize="14sp" />
 
@@ -199,18 +199,18 @@
                     android:layout_marginStart="4dp"/>
 
                 <EditText
-                    android:id="@+id/etMessage"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:hint="Ask OUTPACE AI..."
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/muted_fg"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="12dp"
-                    android:textSize="15sp"
-                    android:maxLines="5"/>
+                android:id="@+id/etMessage"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="@string/ask_ai_hint"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/muted_fg"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="12dp"
+                android:textSize="15sp"
+                android:maxLines="5"/>
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/btnSend"

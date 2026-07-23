@@ -22,4 +22,7 @@ public interface RunDao {
 
     @Query("SELECT * FROM run_records WHERE id = :id")
     RunRecord getRunById(int id);
+
+    @Query("SELECT MAX(timestamp) FROM run_records")
+    long getLatestTimestamp();
 }

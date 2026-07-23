@@ -46,6 +46,7 @@ public class HistoryFragment extends Fragment {
     private TextView tabWeek, tabMonth, tabAll;
     
     private long customStart = -1, customEnd = -1;
+    private String currentFilter = "WEEK";
 
     @Nullable
     @Override
@@ -80,9 +81,9 @@ public class HistoryFragment extends Fragment {
     }
 
     private void setupTabs() {
-        tabWeek.setOnClickListener(v -> applyFilter("WEEK"));
-        tabMonth.setOnClickListener(v -> applyFilter("MONTH"));
-        tabAll.setOnClickListener(v -> applyFilter("ALL"));
+        tabWeek.setOnClickListener(v -> { currentFilter = "WEEK"; applyFilter("WEEK"); });
+        tabMonth.setOnClickListener(v -> { currentFilter = "MONTH"; applyFilter("MONTH"); });
+        tabAll.setOnClickListener(v -> { currentFilter = "ALL"; applyFilter("ALL"); });
     }
 
     private void showDateRangePicker() {
@@ -212,14 +213,17 @@ public class HistoryFragment extends Fragment {
 
         new Thread(() -> {
             try {
-                List<RunRecord> localRecords = AppDatabase.getInstance(context).runDao().getAllRuns();
+                AppDatabase db = AppDatabase.getInstance(context);
+                List<RunRecord> localRecords = db.runDao().getAllRuns();
+                long latestLocal = db.runDao().getLatestTimestamp();
+
                 if (getActivity() != null && isAdded()) {
                     getActivity().runOnUiThread(() -> {
                         if (!isAdded()) return;
                         allRecords.clear();
                         if (localRecords != null) allRecords.addAll(localRecords);
-                        applyFilter("WEEK"); 
-                        syncFromFirebase(); // Start sync from cloud
+                        applyFilter(currentFilter); 
+                        syncFromFirebase(latestLocal); 
                     });
                 }
             } catch (Exception e) {
@@ -228,16 +232,17 @@ public class HistoryFragment extends Fragment {
         }).start();
     }
 
-    private void syncFromFirebase() {
+    private void syncFromFirebase(long sinceTimestamp) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null || !isAdded()) return;
 
         FirebaseFirestore.getInstance()
                 .collection("users").document(user.getUid())
                 .collection("runs")
+                .whereGreaterThan("timestamp", sinceTimestamp)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!isAdded()) return;
+                    if (!isAdded() || queryDocumentSnapshots.isEmpty()) return;
                     
                     List<RunRecord> cloudRecords = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
@@ -256,15 +261,16 @@ public class HistoryFragment extends Fragment {
                             if (context == null || !isAdded()) return;
                             
                             try {
-                                AppDatabase.getInstance(context).runDao().insertAll(cloudRecords);
-                                List<RunRecord> updatedRecords = AppDatabase.getInstance(context).runDao().getAllRuns();
+                                AppDatabase db = AppDatabase.getInstance(context);
+                                db.runDao().insertAll(cloudRecords);
+                                List<RunRecord> updatedRecords = db.runDao().getAllRuns();
+                                
                                 if (getActivity() != null && isAdded()) {
                                     getActivity().runOnUiThread(() -> {
                                         if (!isAdded()) return;
                                         allRecords.clear();
                                         allRecords.addAll(updatedRecords);
-                                        // Keep current filter
-                                        // applyFilter(currentActiveType); 
+                                        applyFilter(currentFilter);
                                     });
                                 }
                             } catch (Exception e) {

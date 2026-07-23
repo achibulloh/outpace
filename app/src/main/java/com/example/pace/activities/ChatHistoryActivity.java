@@ -83,19 +83,19 @@ public class ChatHistoryActivity extends AppCompatActivity {
         ChatSession session = sessions.get(position);
         
         new AlertDialog.Builder(this)
-                .setTitle("Delete Chat?")
-                .setMessage("This will permanently remove this conversation.")
-                .setPositiveButton("Delete", (dialog, which) -> {
+                .setTitle(R.string.delete_chat_title)
+                .setMessage(R.string.delete_chat_msg)
+                .setPositiveButton(R.string.delete_chat_btn, (dialog, which) -> {
                     FirebaseFirestore.getInstance().collection("users").document(uid)
                             .collection("chat_sessions").document(session.getId())
                             .delete()
                             .addOnSuccessListener(aVoid -> {
                                 sessions.remove(position);
                                 adapter.notifyItemRemoved(position);
-                                Toast.makeText(this, "Chat deleted", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, R.string.chat_deleted_toast, Toast.LENGTH_SHORT).show();
                             });
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 

@@ -17,6 +17,8 @@ import com.example.pace.R;
 import com.example.pace.activities.LeaderboardActivity;
 import com.example.pace.database.AppDatabase;
 import com.example.pace.model.RunRecord;
+import com.example.pace.utils.GeminiAssistant;
+import com.example.pace.utils.LocaleHelper;
 import com.example.pace.views.BarChartView;
 import com.example.pace.views.CalendarDotsView;
 import com.example.pace.views.LineChartView;
@@ -274,7 +276,8 @@ public class ProgressFragment extends Fragment {
         // SMART CACHE (LOCAL + CLOUD)
         SharedPreferences prefs = getContext().getSharedPreferences("ai_cache", Context.MODE_PRIVATE);
         String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
-        String progressKey = "progress_" + allRuns.size() + "_" + today;
+        String lang = LocaleHelper.getLanguage(getContext());
+        String progressKey = "progress_" + allRuns.size() + "_" + today + "_" + lang;
         String cachedProgress = prefs.getString(progressKey, null);
 
         if (cachedProgress != null) {
@@ -322,7 +325,8 @@ public class ProgressFragment extends Fragment {
                         history.toString(), userModel.getGoal());
 
                     String firstName = userModel.getName() != null ? userModel.getName().split(" ")[0] : "Runner";
-                    new com.example.pace.utils.GeminiAssistant().chat(prompt, firstName, true, new com.example.pace.utils.GeminiAssistant.AIResponseCallback() {
+                    String lang = LocaleHelper.getLanguage(getContext());
+                    GeminiAssistant.getInstance().chat(getContext(), prompt, firstName, true, lang, new GeminiAssistant.AIResponseCallback() {
                         @Override
                         public void onSuccess(String response) {
                             if (isAdded() && getActivity() != null) getActivity().runOnUiThread(() -> {

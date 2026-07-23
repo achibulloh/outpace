@@ -68,8 +68,10 @@ public class PathDrawingView extends View {
         super.onDraw(canvas);
         if (points == null || points.size() < 2) return;
 
-        float width = getWidth();
-        float height = getHeight();
+        float width = getWidth() - getPaddingLeft() - getPaddingRight();
+        float height = getHeight() - getPaddingTop() - getPaddingBottom();
+        
+        if (width <= 0 || height <= 0) return;
 
         // 1. Find Min/Max coordinates
         double minLat = Double.POSITIVE_INFINITY, maxLat = Double.NEGATIVE_INFINITY;
@@ -94,17 +96,15 @@ public class PathDrawingView extends View {
         
         float scale = (float) Math.min(usableWidth / deltaLng, usableHeight / deltaLat);
 
-        // Center calculation
+        // Center calculation within the padded area
         double centerLng = (minLng + maxLng) / 2;
         double centerLat = (minLat + maxLat) / 2;
-        float viewCenterX = width / 2;
-        float viewCenterY = height / 2;
+        float viewCenterX = getPaddingLeft() + width / 2;
+        float viewCenterY = getPaddingTop() + height / 2;
 
         path.reset();
         for (int i = 0; i < points.size(); i++) {
             GeoPoint p = points.get(i);
-            // Conversion logic: (Lng - centerLng) * scale
-            // Note: Latitude is inverted on screen Y axis
             float x = viewCenterX + (float)((p.getLongitude() - centerLng) * scale);
             float y = viewCenterY - (float)((p.getLatitude() - centerLat) * scale);
 

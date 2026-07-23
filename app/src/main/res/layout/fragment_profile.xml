@@ -190,7 +190,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Body Mass Index (BMI)"
+                        android:text="@string/bmi_label"
                         android:textColor="@color/muted_fg"
                         android:textSize="12sp"
                         android:textStyle="bold"/>

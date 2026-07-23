@@ -54,7 +54,6 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.tileprovider.tilesource.XYTileSource;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polyline;
 import org.osmdroid.views.overlay.TilesOverlay;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
@@ -137,8 +136,13 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Context ctx = requireActivity().getApplicationContext();
-        Configuration.getInstance().setUserAgentValue(requireContext().getPackageName());
+        
+        // 1. Initialize configuration
         Configuration.getInstance().load(ctx, requireActivity().getSharedPreferences("osmdroid", Context.MODE_PRIVATE));
+        
+        // 2. Set specific User-Agent to prevent 403 Access Blocked
+        String userAgent = "OutpaceTracker/1.0 (" + ctx.getPackageName() + "; contact@outpace.app)";
+        Configuration.getInstance().setUserAgentValue(userAgent);
 
         View view = inflater.inflate(R.layout.fragment_run, container, false);
         
@@ -154,6 +158,16 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         checkActivityRecognitionPermission();
 
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // Handle Auto-Open Post Run Dialog from Notification
+        if (getArguments() != null && getArguments().getBoolean("SHOW_POST_RUN", false)) {
+            // We need to wait a bit until Fragment is fully interactive
+            view.postDelayed(this::showPostRunDialog, 600);
+        }
     }
 
     private void checkActivityRecognitionPermission() {
@@ -251,7 +265,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
                     showPostRunDialog();
                 } else {
                     isSaving = true;
-                    saveRunBeforeStop(null, 0);
+                    saveRunBeforeStop(null, 0, null);
                     sendAction(TrackingService.ACTION_STOP);
                 }
             }
@@ -323,10 +337,27 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
 
     private void setupMap(View view) {
         map = view.findViewById(R.id.map);
-        map.setTileSource(TileSourceFactory.MAPNIK);
+        
+        // Use OSM HOT instead of MAPNIK to prevent 403
+        map.setTileSource(new org.osmdroid.tileprovider.tilesource.XYTileSource("OSMHot", 0, 19, 256, ".png", 
+                new String[] {
+                    "https://a.tile.openstreetmap.fr/hot/",
+                    "https://b.tile.openstreetmap.fr/hot/",
+                    "https://c.tile.openstreetmap.fr/hot/" 
+                }));
+        
         map.setMultiTouchControls(true);
         map.setBackgroundColor(Color.parseColor("#121212"));
-        map.getOverlayManager().getTilesOverlay().setColorFilter(TilesOverlay.INVERT_COLORS);
+        
+        // Apply Dark Mode Filter to the map tiles using negative color matrix
+        float[] negative = {
+                -1.0f, 0, 0, 0, 255, // red
+                0, -1.0f, 0, 0, 255, // green
+                0, 0, -1.0f, 0, 255, // blue
+                0, 0, 0, 1.0f, 0     // alpha
+        };
+        map.getOverlayManager().getTilesOverlay().setColorFilter(new android.graphics.ColorMatrixColorFilter(negative));
+
         map.getController().setZoom(18.0);
         
         polyline = new Polyline();
@@ -425,9 +456,15 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
             
             switch (which) {
                 case 0:
-                    map.setTileSource(TileSourceFactory.MAPNIK);
+                    // Use OSM HOT instead of MAPNIK to prevent 403
+                    map.setTileSource(new org.osmdroid.tileprovider.tilesource.XYTileSource("OSMHot", 0, 19, 256, ".png", 
+                        new String[] {
+                            "https://a.tile.openstreetmap.fr/hot/",
+                            "https://b.tile.openstreetmap.fr/hot/",
+                            "https://c.tile.openstreetmap.fr/hot/" 
+                        }));
                     if (map.getOverlayManager().getTilesOverlay() != null) {
-                        map.getOverlayManager().getTilesOverlay().setColorFilter(TilesOverlay.INVERT_COLORS);
+                        map.getOverlayManager().getTilesOverlay().setColorFilter(null);
                     }
                     break;
                 case 1:
@@ -460,6 +497,8 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     }
 
     private void updateUIFromService(Intent intent) {
+        if (isSaving) return; // Ignore updates while saving/closing
+        
         isTracking = intent.getBooleanExtra("isTracking", false);
         isAutoPaused = intent.getBooleanExtra("isAutoPaused", false);
 
@@ -531,30 +570,10 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
 
     private void updateWaypoints(List<GeoPoint> points) {
         if (points == null || points.isEmpty()) return;
-
-        // Clear existing markers except user marker
-        map.getOverlays().removeIf(overlay -> {
-            if (overlay instanceof Marker) {
-                Marker m = (Marker) overlay;
-                return "start".equals(m.getTitle()) || "finish".equals(m.getTitle());
-            }
-            return false;
-        });
-
-        // Hapus penanda bendera agar hanya ada satu ikon (panah lokasi)
-
+        // No markers added here as per user request to only show them in DetailActivity
         map.invalidate();
     }
 
-    private void pasangWaypoint(GeoPoint lokasi, String id, String judul, int iconRes) {
-        Marker marker = new Marker(map);
-        marker.setPosition(lokasi);
-        marker.setTitle(id);
-        marker.setSubDescription(judul);
-        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        marker.setIcon(ContextCompat.getDrawable(requireContext(), iconRes));
-        map.getOverlays().add(marker);
-    }
 
     private void updateButtons(boolean tracking) {
         if (isTracking) {
@@ -605,12 +624,13 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         android.widget.SeekBar sbFatigue = dialogView.findViewById(R.id.sbFatigue);
         android.widget.Button btnSubmit = dialogView.findViewById(R.id.btnSubmitPostRun);
 
-        selectedMood = "Neutral";
+        selectedMood = ""; // Reset mood agar wajib dipilih
         View.OnClickListener moodClick = v -> {
             btnGreat.setBackgroundResource(R.drawable.tab_unselected);
             btnGood.setBackgroundResource(R.drawable.tab_unselected);
             btnNeutral.setBackgroundResource(R.drawable.tab_unselected);
             btnTired.setBackgroundResource(R.drawable.tab_unselected);
+            
             v.setBackgroundResource(R.drawable.btn_outline_lime);
             if (v.getId() == R.id.btnMoodGreat) selectedMood = "Great";
             else if (v.getId() == R.id.btnMoodGood) selectedMood = "Good";
@@ -624,8 +644,22 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         btnTired.setOnClickListener(moodClick);
 
         btnSubmit.setOnClickListener(v -> {
+            if (selectedMood.isEmpty()) {
+                Toast.makeText(requireContext(), "Silakan pilih mood lari Anda!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // Prevent double click
+            btnSubmit.setEnabled(false);
+
+            // Show Loading to prevent ANR feeling
+            android.app.ProgressDialog pd = new android.app.ProgressDialog(requireContext());
+            pd.setMessage("Saving your activity...");
+            pd.setCancelable(false);
+            pd.show();
+
             isSaving = true;
-            saveRunBeforeStop(selectedMood, sbFatigue.getProgress() + 1);
+            saveRunBeforeStop(selectedMood, sbFatigue.getProgress() + 1, pd);
             sendAction(TrackingService.ACTION_STOP);
             dialog.dismiss();
         });
@@ -633,91 +667,115 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         dialog.show();
     }
 
-    private void saveRunBeforeStop(String mood, int fatigue) {
+    private void saveRunBeforeStop(String mood, int fatigue, android.app.ProgressDialog pd) {
         if (lastDistance < 0.005) { 
             isSaving = false;
             sendAction(TrackingService.ACTION_STOP);
+            if (pd != null) pd.dismiss();
             goBack(); 
             return; 
         }
+        
         btnStop.setEnabled(false);
         if (btnStopOverlay != null) btnStopOverlay.setEnabled(false);
 
-        long ts = System.currentTimeMillis(); double d = lastDistance; long dur = lastTime;
-        double p = (d > 0) ? (dur / 60.0) / d : 0; int c = (int) (d * userWeight * 1.036);
-        double e = lastElevation; String pj = new Gson().toJson(pathPoints);
+        // Capture data safely
+        final long ts = System.currentTimeMillis(); 
+        final double d = lastDistance; 
+        final long dur = lastTime;
+        final double p = (d > 0) ? (dur / 60.0) / d : 0; 
+        final int c = (int) (d * userWeight * 1.036);
+        final double e = lastElevation; 
+        final ArrayList<GeoPoint> pathCopy = new ArrayList<>(pathPoints);
+        final double[] sCopy = currentSplits != null ? currentSplits.clone() : new double[0];
+        final double[] eCopy = currentElevSplits != null ? currentElevSplits.clone() : new double[0];
+        final int[] cCopy = currentCadSplits != null ? currentCadSplits.clone() : new int[0];
 
-        // Format tanggal dan waktu
-        long startTs = ts - (dur * 1000);
-        SimpleDateFormat sdfDate = new SimpleDateFormat("EEEE, dd MMM yyyy", new Locale("id", "ID"));
-        SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm", new Locale("id", "ID"));
-        String dateStr = sdfDate.format(new Date(startTs));
-        String startTimeStr = sdfTime.format(new Date(startTs));
-        String endTimeStr = sdfTime.format(new Date(ts));
-
-        // Capture split data
-        String sJson = new Gson().toJson(currentSplits);
-        String eJson = new Gson().toJson(currentElevSplits);
-        String cJson = new Gson().toJson(currentCadSplits);
+        // Context check
+        final Context context = getContext() != null ? getContext().getApplicationContext() : null;
+        if (context == null) {
+            if (pd != null) pd.dismiss();
+            return;
+        }
 
         new Thread(() -> {
-            String ln = getString(R.string.unknown_location);
-            if (!pathPoints.isEmpty()) {
-                try {
-                    Geocoder geo = new Geocoder(requireContext(), Locale.getDefault());
-                    List<Address> ads = geo.getFromLocation(pathPoints.get(0).getLatitude(), pathPoints.get(0).getLongitude(), 1);
-                    if (ads != null && !ads.isEmpty()) {
-                        Address a = ads.get(0);
-                        String city = a.getSubAdminArea() != null ? a.getSubAdminArea() : a.getLocality();
-                        String area = a.getSubLocality() != null ? a.getSubLocality() : a.getLocality();
-                        if (city != null && area != null && !city.equals(area)) ln = city + " - " + area;
-                        else if (city != null) ln = city; else if (area != null) ln = area;
-                    }
-                } catch (Exception ex) {}
-            }
-            RunRecord r = new RunRecord(ts, d, dur, p, c, e, pj);
-            r.setLocationName(ln);
-            r.setSplitsJson(sJson);
-            r.setElevationSplitsJson(eJson);
-            r.setCadenceSplitsJson(cJson);
-            r.setDate(dateStr);
-            r.setStartTime(startTimeStr);
-            r.setEndTime(endTimeStr);
-            r.setMood(mood);
-            r.setFatigueLevel(fatigue);
-            r.setSynced(false); // Awalnya belum sinkron
+            try {
+                // Heavy work in background
+                String pj = new Gson().toJson(pathCopy);
+                String sJson = new Gson().toJson(sCopy);
+                String eJson = new Gson().toJson(eCopy);
+                String cJson = new Gson().toJson(cCopy);
 
-            AppDatabase.getInstance(requireContext()).runDao().insert(r);
-            
-            // Sync to Firebase if user is logged in
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user != null) {
-                FirebaseFirestore db = FirebaseFirestore.getInstance();
-                db.collection("users").document(user.getUid())
-                        .collection("runs").document(r.getFirebaseId())
-                        .set(r)
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d("RunFragment", "Run synced to Firebase");
-                            new Thread(() -> {
-                                r.setSynced(true);
-                                Context context = getContext();
-                                if (context != null) {
-                                    AppDatabase.getInstance(context).runDao().insert(r); // Update status di Room
-                                }
-                            }).start();
-                            updateUserLeaderboardStats(r);
-                        })
-                        .addOnFailureListener(error -> Log.e("RunFragment", "Firebase sync failed", error));
-            }
-
-            if (getActivity() != null) getActivity().runOnUiThread(() -> {
-                Context context = getContext();
-                if (context != null) {
-                    Toast.makeText(context, R.string.activity_saved, Toast.LENGTH_SHORT).show();
+                // Geocoding
+                String ln = "Unknown Location";
+                if (!pathCopy.isEmpty()) {
+                    try {
+                        Geocoder geo = new Geocoder(context, Locale.getDefault());
+                        List<Address> ads = geo.getFromLocation(pathCopy.get(0).getLatitude(), pathCopy.get(0).getLongitude(), 1);
+                        if (ads != null && !ads.isEmpty()) {
+                            Address a = ads.get(0);
+                            String city = a.getSubAdminArea() != null ? a.getSubAdminArea() : a.getLocality();
+                            String area = a.getSubLocality() != null ? a.getSubLocality() : a.getLocality();
+                            if (city != null && area != null && !city.equals(area)) ln = city + " - " + area;
+                            else if (city != null) ln = city; else if (area != null) ln = area;
+                        }
+                    } catch (Exception ignored) {}
                 }
-                isSaving = false;
-                goBack();
-            });
+
+                // Date Formatting
+                long startTs = ts - (dur * 1000);
+                SimpleDateFormat sdfDate = new SimpleDateFormat("EEEE, dd MMM yyyy", new Locale("id", "ID"));
+                SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm", new Locale("id", "ID"));
+                String dateStr = sdfDate.format(new Date(startTs));
+                String startTimeStr = sdfTime.format(new Date(startTs));
+                String endTimeStr = sdfTime.format(new Date(ts));
+
+                RunRecord r = new RunRecord(ts, d, dur, p, c, e, pj);
+                r.setLocationName(ln);
+                r.setSplitsJson(sJson);
+                r.setElevationSplitsJson(eJson);
+                r.setCadenceSplitsJson(cJson);
+                r.setDate(dateStr);
+                r.setStartTime(startTimeStr);
+                r.setEndTime(endTimeStr);
+                r.setMood(mood);
+                r.setFatigueLevel(fatigue);
+                r.setSynced(false);
+
+                // Save to Room
+                AppDatabase.getInstance(context).runDao().insert(r);
+                
+                // Sync to Firebase
+                FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (fUser != null) {
+                    FirebaseFirestore.getInstance().collection("users").document(fUser.getUid())
+                            .collection("runs").document(r.getFirebaseId())
+                            .set(r)
+                            .addOnSuccessListener(aVoid -> {
+                                new Thread(() -> {
+                                    r.setSynced(true);
+                                    AppDatabase.getInstance(context).runDao().insert(r);
+                                }).start();
+                                updateUserLeaderboardStats(r);
+                            });
+                }
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (pd != null && pd.isShowing()) pd.dismiss();
+                        Toast.makeText(context, R.string.activity_saved, Toast.LENGTH_SHORT).show();
+                        isSaving = false;
+                        goBack();
+                    });
+                }
+            } catch (Exception ex) {
+                Log.e("RunFragment", "Error saving run", ex);
+                if (getActivity() != null) getActivity().runOnUiThread(() -> {
+                    if (pd != null && pd.isShowing()) pd.dismiss();
+                    Toast.makeText(context, "Error saving activity", Toast.LENGTH_SHORT).show();
+                    isSaving = false;
+                });
+            }
         }).start();
     }
 
@@ -798,8 +856,20 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     }
 
     private void goBack() {
-        if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).setNavigationVisibility(true);
-        getParentFragmentManager().beginTransaction().replace(R.id.fragmentContainer, new HomeFragment()).commit();
+        if (!isAdded()) return;
+        
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setNavigationVisibility(true);
+        }
+        
+        try {
+            getParentFragmentManager().beginTransaction()
+                .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+                .replace(R.id.fragmentContainer, new HomeFragment(), "HomeFragment")
+                .commitAllowingStateLoss();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

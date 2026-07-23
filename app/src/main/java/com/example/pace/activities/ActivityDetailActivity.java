@@ -43,11 +43,6 @@ import java.util.Locale;
 public class ActivityDetailActivity extends AppCompatActivity {
 
     private MapView map;
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LocaleHelper.onAttach(newBase));
-    }
     private View btnRingkasan, btnSplit;
     private View layoutRingkasan, layoutSplit;
     private LinearLayout llSplitContainer;
@@ -61,12 +56,18 @@ public class ActivityDetailActivity extends AppCompatActivity {
     private LineChartView chartPace, chartCadence, chartElevation;
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        Configuration.getInstance().setUserAgentValue(getPackageName());
-        Configuration.getInstance().load(this, getSharedPreferences("osmdroid", Context.MODE_PRIVATE));
-        
+        // RE-CONFIRM User-Agent before layout inflation to prevent 403 Access Blocked
+        String userAgent = "OutpaceTracker/1.0 (" + getPackageName() + "; contact@outpace.app)";
+        org.osmdroid.config.Configuration.getInstance().setUserAgentValue(userAgent);
+
         setContentView(R.layout.activity_detail);
 
         initViews();
@@ -97,11 +98,28 @@ public class ActivityDetailActivity extends AppCompatActivity {
 
     private void initViews() {
         map = findViewById(R.id.mapDetail);
-        map.setTileSource(TileSourceFactory.MAPNIK);
+        
+        // Use the same server as RunFragment for consistency and to avoid 403 errors
+        map.setTileSource(new org.osmdroid.tileprovider.tilesource.XYTileSource("OSMHot", 0, 19, 256, ".png", 
+                new String[] {
+                    "https://a.tile.openstreetmap.fr/hot/",
+                    "https://b.tile.openstreetmap.fr/hot/",
+                    "https://c.tile.openstreetmap.fr/hot/" 
+                }));
+                
         map.setMultiTouchControls(true);
-        map.getOverlayManager().getTilesOverlay().setColorFilter(TilesOverlay.INVERT_COLORS);
         map.getController().setZoom(16.0);
+        map.setBackgroundColor(Color.parseColor("#121212"));
 
+        // Apply Dark Mode Filter to the map tiles using negative color matrix
+        float[] negative = {
+                -1.0f, 0, 0, 0, 255, // red
+                0, -1.0f, 0, 0, 255, // green
+                0, 0, -1.0f, 0, 255, // blue
+                0, 0, 0, 1.0f, 0     // alpha
+        };
+        map.getOverlayManager().getTilesOverlay().setColorFilter(new android.graphics.ColorMatrixColorFilter(negative));
+        
         btnRingkasan = findViewById(R.id.btnTabRingkasan);
         btnSplit = findViewById(R.id.btnTabSplit);
         layoutRingkasan = findViewById(R.id.layoutRingkasan);
@@ -139,12 +157,36 @@ public class ActivityDetailActivity extends AppCompatActivity {
         new Thread(() -> {
             RunRecord run = AppDatabase.getInstance(this).runDao().getRunById(id);
             if (run != null) {
-                runOnUiThread(() -> populateData(run));
+                // PARSE HEAVY DATA IN BACKGROUND
+                Gson gson = new Gson();
+                List<GeoPoint> path = new ArrayList<>();
+                try {
+                    path = gson.fromJson(run.getPathJson(), new TypeToken<List<GeoPoint>>(){}.getType());
+                } catch (Exception ignored) {}
+                
+                double[] paceSplits = null;
+                double[] elevSplits = null;
+                int[] cadSplits = null;
+                try {
+                    paceSplits = gson.fromJson(run.getSplitsJson(), double[].class);
+                    elevSplits = gson.fromJson(run.getElevationSplitsJson(), double[].class);
+                    cadSplits = gson.fromJson(run.getCadenceSplitsJson(), int[].class);
+                } catch (Exception ignored) {}
+
+                final List<GeoPoint> finalPath = path;
+                final double[] finalPaceSplits = paceSplits;
+                final double[] finalElevSplits = elevSplits;
+                final int[] finalCadSplits = cadSplits;
+
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    populateData(run, finalPath, finalPaceSplits, finalElevSplits, finalCadSplits);
+                });
             }
         }).start();
     }
 
-    private void populateData(RunRecord run) {
+    private void populateData(RunRecord run, List<GeoPoint> path, double[] paceSplits, double[] elevSplits, int[] cadSplits) {
         tvDistanceTop.setText(getString(R.string.distance_km_val, run.getDistance()));
         tvDistance.setText(String.format(Locale.getDefault(), "%.2f", run.getDistance()));
 
@@ -163,9 +205,7 @@ public class ActivityDetailActivity extends AppCompatActivity {
         
         String loc = run.getLocationName();
         if (loc != null) {
-            if (loc.contains(" - ")) {
-                loc = loc.replace(" - ", "\n");
-            }
+            if (loc.contains(" - ")) { loc = loc.replace(" - ", "\n"); }
             tvLocation.setText(loc);
             tvLocation.setVisibility(View.VISIBLE);
         } else {
@@ -183,224 +223,136 @@ public class ActivityDetailActivity extends AppCompatActivity {
         tvTitle.setText(title);
 
         tvCalories.setText(String.valueOf(run.getCalories()));
-        tvSteps.setText(String.valueOf((int)(run.getDistance() * 1350))); 
-        tvElevation.setText(getString(R.string.meter_val, run.getElevationGain()));
-        tvMaxElev.setText(getString(R.string.meter_val, run.getElevationGain() + 3));
+        int steps = (int)(run.getDistance() * 1350);
+        tvSteps.setText(steps > 1000 ? String.format(Locale.getDefault(), "%.1fk", steps/1000.0) : String.valueOf(steps));
+        tvElevation.setText(String.format(Locale.getDefault(), "%.0fm", run.getElevationGain()));
+        tvMaxElev.setText(String.format(Locale.getDefault(), "%.0fm", run.getElevationGain() + 1));
 
-        drawRoute(run.getPathJson());
-        setupDetailedCharts(run);
-        setupSplits(run);
+        drawRoute(path);
+        setupCharts(run, paceSplits, elevSplits, cadSplits);
+        setupSplits(paceSplits, elevSplits);
         fetchAIInsights(run);
     }
 
-    private void fetchAIInsights(RunRecord run) {
-        if (run == null) return;
+    private void drawRoute(List<GeoPoint> path) {
+        if (path == null || path.isEmpty()) return;
+
+        Polyline polyline = new Polyline();
+        polyline.setPoints(path);
+        // Use a color that stands out in inverted dark mode
+        polyline.getOutlinePaint().setColor(Color.parseColor("#C8F43A"));
+        polyline.getOutlinePaint().setStrokeWidth(12f);
         
-        // STEP 1: CHECK LOCAL CACHE
-        if (run.getAiInsights() != null && !run.getAiInsights().isEmpty()) {
-            tvAIInsights.setText(run.getAiInsights());
-            pbAI.setVisibility(View.GONE);
-            return;
+        map.getOverlayManager().add(polyline);
+
+        // Add Start Marker (White)
+        Marker startMarker = new Marker(map);
+        startMarker.setPosition(path.get(0));
+        startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        startMarker.setIcon(ContextCompat.getDrawable(this, R.drawable.marker_start));
+        startMarker.setTitle("Start");
+        // Ensure marker is not inverted by the map filter if possible, 
+        // but since it's an overlay it might be. Let's keep it simple first.
+        map.getOverlays().add(startMarker);
+
+        // Add Finish Marker (Lime)
+        Marker endMarker = new Marker(map);
+        endMarker.setPosition(path.get(path.size() - 1));
+        endMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        endMarker.setIcon(ContextCompat.getDrawable(this, R.drawable.marker_finish));
+        endMarker.setTitle("Finish");
+        map.getOverlays().add(endMarker);
+
+        map.addOnFirstLayoutListener((v, left, top, right, bottom) -> {
+            try {
+                BoundingBox box = BoundingBox.fromGeoPoints(path);
+                map.zoomToBoundingBox(box, false, 150);
+            } catch (Exception ignored) {}
+        });
+        
+        // If map is already laid out, zoom immediately
+        if (map.isLayoutOccurred()) {
+            try {
+                BoundingBox box = BoundingBox.fromGeoPoints(path);
+                map.zoomToBoundingBox(box, false, 150);
+            } catch (Exception ignored) {}
         }
 
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid == null) return;
-
-        pbAI.setVisibility(View.VISIBLE);
-
-        // STEP 2: CHECK CLOUD CACHE (Firestore)
-        FirebaseFirestore.getInstance().collection("users").document(uid)
-                .collection("runs").document(run.getFirebaseId()).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (isFinishing() || isDestroyed()) return;
-                    
-                    if (documentSnapshot.exists() && documentSnapshot.contains("aiInsights")) {
-                        String cloudInsights = documentSnapshot.getString("aiInsights");
-                        if (cloudInsights != null && !cloudInsights.isEmpty()) {
-                            runOnUiThread(() -> {
-                                pbAI.setVisibility(View.GONE);
-                                tvAIInsights.setText(cloudInsights);
-                                // Sync back to local db
-                                run.setAiInsights(cloudInsights);
-                                new Thread(() -> {
-                                    try {
-                                        AppDatabase.getInstance(ActivityDetailActivity.this).runDao().insert(run);
-                                    } catch (Exception ignored) {}
-                                }).start();
-                            });
-                            return;
-                        }
-                    }
-                    
-                    // STEP 3: IF NO CLOUD DATA, GENERATE NEW
-                    generateNewAIInsights(run, uid);
-                })
-                .addOnFailureListener(e -> {
-                    if (!isFinishing() && !isDestroyed()) generateNewAIInsights(run, uid);
-                });
+        map.invalidate();
     }
 
-    private void generateNewAIInsights(RunRecord run, String uid) {
-        FirebaseFirestore.getInstance().collection("users").document(uid).get()
-                .addOnSuccessListener(doc -> {
-                    User user = doc.toObject(User.class);
-                    if (user == null) { pbAI.setVisibility(View.GONE); return; }
-
-                    GeminiAssistant ai = new GeminiAssistant();
-                    ai.generateRunInsights(user, run, new GeminiAssistant.AIResponseCallback() {
-                        @Override
-                        public void onSuccess(String response) {
-                            runOnUiThread(() -> {
-                                pbAI.setVisibility(View.GONE);
-                                
-                                // BLOCK JSON
-                                if (response.contains("{") || response.contains("Unexpected")) {
-                                    tvAIInsights.setText("Coach is temporarily busy. Please try again.");
-                                    return;
-                                }
-
-                                tvAIInsights.setText(response);
-                                
-                                // SAVE TO DB: Save locally and Cloud
-                                run.setAiInsights(response);
-                                new Thread(() -> AppDatabase.getInstance(ActivityDetailActivity.this).runDao().insert(run)).start();
-                                
-                                FirebaseFirestore.getInstance().collection("users").document(uid)
-                                        .collection("runs").document(run.getFirebaseId())
-                                        .update("aiInsights", response);
-                            });
-                        }
-
-                        @Override
-                        public void onError(String errorMsg) {
-                            runOnUiThread(() -> {
-                                pbAI.setVisibility(View.GONE);
-                                tvAIInsights.setText(errorMsg);
-                            });
-                        }
-                    });
-                });
-    }
-
-    private void setupDetailedCharts(RunRecord run) {
-        if (run.getSplitsJson() == null || run.getSplitsJson().equals("null") || run.getSplitsJson().equals("[]")) {
-            // Fallback for runs without split data (e.g., very short runs)
+    private void setupCharts(RunRecord run, double[] paceSplits, double[] elevSplits, int[] cadSplits) {
+        if (paceSplits == null || paceSplits.length == 0) {
             if (run.getDistance() > 0.001) {
                 double p = run.getPace();
-                chartPace.setDetailedData(new float[]{(float) p}, new String[]{getString(R.string.pace_val, (int) p, (int) ((p - (int) p) * 60))});
-                chartElevation.setDetailedData(new float[]{(float) run.getElevationGain()}, new String[]{getString(R.string.meter_val, run.getElevationGain())});
-                tvPaceAvg.setText(getString(R.string.pace_val, (int)p, (int)((p - (int)p) * 60)));
-                tvPaceTotal.setText(getString(R.string.pace_val, (int)p, (int)((p - (int)p) * 60)));
-                tvPaceFast.setText(getString(R.string.pace_val, (int)p, (int)((p - (int)p) * 60)));
-                tvElevGain.setText(getString(R.string.meter_val, run.getElevationGain()));
-                tvElevMax.setText(getString(R.string.meter_val, run.getElevationGain()));
+                chartPace.setDetailedData(new float[]{(float) p}, new String[]{String.format(Locale.getDefault(), "%d:%02d", (int)p, (int)((p-(int)p)*60))});
+                chartElevation.setDetailedData(new float[]{(float)run.getElevationGain()}, new String[]{String.format(Locale.getDefault(), "%.0fm", run.getElevationGain())});
+                chartCadence.setDetailedData(new float[]{160f}, new String[]{"160 spm"});
+                tvPaceAvg.setText(String.format(Locale.getDefault(), "%d:%02d", (int)p, (int)((p-(int)p)*60)));
+                tvPaceTotal.setText(String.format(Locale.getDefault(), "%d:%02d", (int)p, (int)((p-(int)p)*60)));
+                tvPaceFast.setText(String.format(Locale.getDefault(), "%d:%02d", (int)p, (int)((p-(int)p)*60)));
+                tvCadenceAvg.setText("160 spm");
+                tvCadenceMax.setText("160 spm");
+                tvElevGain.setText(String.format(Locale.getDefault(), "%.0fm", run.getElevationGain()));
+                tvElevMax.setText(String.format(Locale.getDefault(), "%.0fm", run.getElevationGain()));
             }
             return;
         }
-        Gson gson = new Gson();
-        try {
-            double[] paceSplits = gson.fromJson(run.getSplitsJson(), double[].class);
-            double[] elevSplits = gson.fromJson(run.getElevationSplitsJson(), double[].class);
-            int[] cadSplits = gson.fromJson(run.getCadenceSplitsJson(), int[].class);
 
-            if (paceSplits != null && paceSplits.length > 0) {
-                float[] paceData = new float[paceSplits.length];
-                String[] paceInfo = new String[paceSplits.length];
-                long accumulatedTime = 0;
-                double totalPaceSecs = 0;
-                double minPaceSecs = 999999;
-                SimpleDateFormat timeSdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-                
-                for (int i = 0; i < paceSplits.length; i++) {
-                    double p = paceSplits[i] / 60.0; // split duration in mins
-                    paceData[i] = (float) p;
-                    totalPaceSecs += paceSplits[i];
-                    if (paceSplits[i] < minPaceSecs) minPaceSecs = paceSplits[i];
-                    
-                    accumulatedTime += (long)paceSplits[i];
-                    String timeAtKm = timeSdf.format(new Date(run.getTimestamp() + accumulatedTime * 1000));
-                    
-                    int mins = (int) p;
-                    int secs = (int) ((p - mins) * 60);
-                    paceInfo[i] = getString(R.string.pace_val_with_time, mins, secs, timeAtKm);
-                }
-                chartPace.setDetailedData(paceData, paceInfo);
+        // Charts data processing already happened or uses passed splits
+        float[] paceData = new float[paceSplits.length];
+        String[] paceInfo = new String[paceSplits.length];
+        double totalPaceSecs = 0, minPaceSecs = 999999;
+        
+        for (int i = 0; i < paceSplits.length; i++) {
+            double p = paceSplits[i] / 60.0;
+            paceData[i] = (float) p;
+            totalPaceSecs += paceSplits[i];
+            if (paceSplits[i] < minPaceSecs) minPaceSecs = paceSplits[i];
+            int mins = (int) p;
+            int secs = (int) ((p - mins) * 60);
+            paceInfo[i] = String.format(Locale.getDefault(), "KM %d: %d:%02d", i + 1, mins, secs);
+        }
+        chartPace.setDetailedData(paceData, paceInfo);
 
-                // Update Pace Summary
-                double avgPace = (totalPaceSecs / paceSplits.length) / 60.0;
-                tvPaceAvg.setText(getString(R.string.pace_val, (int)avgPace, (int)((avgPace - (int)avgPace) * 60)));
-                
-                double totPace = run.getPace();
-                tvPaceTotal.setText(getString(R.string.pace_val, (int)totPace, (int)((totPace - (int)totPace) * 60)));
-                
-                double fastPace = minPaceSecs / 60.0;
-                tvPaceFast.setText(getString(R.string.pace_val, (int)fastPace, (int)((fastPace - (int)fastPace) * 60)));
+        double avgPace = (totalPaceSecs / paceSplits.length) / 60.0;
+        tvPaceAvg.setText(String.format(Locale.getDefault(), "%d:%02d", (int)avgPace, (int)((avgPace - (int)avgPace) * 60)));
+        tvPaceTotal.setText(String.format(Locale.getDefault(), "%d:%02d", (int)run.getPace(), (int)((run.getPace() - (int)run.getPace()) * 60)));
+        double fastPace = minPaceSecs / 60.0;
+        tvPaceFast.setText(String.format(Locale.getDefault(), "%d:%02d", (int)fastPace, (int)((fastPace - (int)fastPace) * 60)));
+
+        if (elevSplits != null && elevSplits.length > 0) {
+            float[] elevData = new float[elevSplits.length];
+            String[] elevInfo = new String[elevSplits.length];
+            double maxElev = -9999;
+            for (int i = 0; i < elevSplits.length; i++) {
+                elevData[i] = (float) elevSplits[i];
+                elevInfo[i] = String.format(Locale.getDefault(), "KM %d: +%.0fm", i + 1, elevSplits[i]);
+                if (elevSplits[i] > maxElev) maxElev = elevSplits[i];
             }
+            chartElevation.setDetailedData(elevData, elevInfo);
+            tvElevGain.setText(String.format(Locale.getDefault(), "%.0fm", run.getElevationGain()));
+            tvElevMax.setText(String.format(Locale.getDefault(), "%.0fm", Math.max(maxElev, run.getElevationGain())));
+        }
 
-            if (elevSplits != null && elevSplits.length > 0) {
-                float[] elevData = new float[elevSplits.length];
-                String[] elevInfo = new String[elevSplits.length];
-                double maxElev = -9999;
-                for (int i = 0; i < elevSplits.length; i++) {
-                    elevData[i] = (float) elevSplits[i];
-                    elevInfo[i] = getString(R.string.split_km_elev_format, i + 1, elevSplits[i]);
-                    if (elevSplits[i] > maxElev) maxElev = elevSplits[i];
-                }
-                chartElevation.setDetailedData(elevData, elevInfo);
-                tvElevGain.setText(getString(R.string.meter_val, run.getElevationGain()));
-                tvElevMax.setText(getString(R.string.meter_val, Math.max(maxElev, run.getElevationGain())));
+        if (cadSplits != null && cadSplits.length > 0) {
+            float[] cadData = new float[cadSplits.length];
+            String[] cadInfo = new String[cadSplits.length];
+            long totalCad = 0; int maxCad = 0;
+            for (int i = 0; i < cadSplits.length; i++) {
+                cadData[i] = (float) cadSplits[i];
+                cadInfo[i] = String.format(Locale.getDefault(), "KM %d: %d spm", i + 1, cadSplits[i]);
+                totalCad += cadSplits[i];
+                if (cadSplits[i] > maxCad) maxCad = cadSplits[i];
             }
-
-            if (cadSplits != null && cadSplits.length > 0) {
-                float[] cadData = new float[cadSplits.length];
-                String[] cadInfo = new String[cadSplits.length];
-                long totalCad = 0;
-                int maxCad = 0;
-                for (int i = 0; i < cadSplits.length; i++) {
-                    cadData[i] = (float) cadSplits[i];
-                    cadInfo[i] = getString(R.string.split_km_cad_format, i + 1, cadSplits[i]);
-                    totalCad += cadSplits[i];
-                    if (cadSplits[i] > maxCad) maxCad = cadSplits[i];
-                }
-                chartCadence.setDetailedData(cadData, cadInfo);
-                tvCadenceAvg.setText(getString(R.string.spm_val, totalCad / cadSplits.length));
-                tvCadenceMax.setText(getString(R.string.spm_val, maxCad));
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    private void drawRoute(String pathJson) {
-        if (pathJson == null || pathJson.isEmpty()) return;
-
-        try {
-            List<GeoPoint> path = new Gson().fromJson(pathJson, new TypeToken<List<GeoPoint>>(){}.getType());
-            if (path != null && !path.isEmpty()) {
-                Polyline polyline = new Polyline();
-                polyline.setPoints(path);
-                polyline.getOutlinePaint().setColor(Color.parseColor("#CDFF00"));
-                polyline.getOutlinePaint().setStrokeWidth(10f);
-                map.getOverlayManager().add(polyline);
-
-                // Zoom to fit
-                map.postDelayed(() -> {
-                    BoundingBox box = BoundingBox.fromGeoPoints(path);
-                    map.zoomToBoundingBox(box, true, 100);
-                }, 500);
-                
-                map.invalidate();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            chartCadence.setDetailedData(cadData, cadInfo);
+            tvCadenceAvg.setText(String.format(Locale.getDefault(), "%d spm", totalCad / cadSplits.length));
+            tvCadenceMax.setText(String.format(Locale.getDefault(), "%d spm", maxCad));
         }
     }
 
-    private void setupSplits(RunRecord run) {
+    private void setupSplits(double[] paceSplits, double[] elevSplits) {
         llSplitContainer.removeAllViews();
-        
-        Gson gson = new Gson();
-        double[] paceSplits = gson.fromJson(run.getSplitsJson(), double[].class);
-        double[] elevSplits = gson.fromJson(run.getElevationSplitsJson(), double[].class);
-
         if (paceSplits == null || paceSplits.length == 0) return;
 
         double maxPace = 0, minPace = 999;
@@ -417,22 +369,75 @@ public class ActivityDetailActivity extends AppCompatActivity {
             ProgressBar progress = row.findViewById(R.id.progressSplit);
 
             tvKm.setText(String.valueOf(i + 1));
-            
-            double pSecs = paceSplits[i];
-            int mins = (int) (pSecs / 60);
-            int secs = (int) (pSecs % 60);
+            int mins = (int) (paceSplits[i] / 60);
+            int secs = (int) (paceSplits[i] % 60);
             tvPace.setText(String.format(Locale.getDefault(), "%d:%02d", mins, secs));
-            
             double e = (elevSplits != null && i < elevSplits.length) ? elevSplits[i] : 0;
             tvElev.setText(String.format(Locale.getDefault(), "%.0f", e));
             
-            int progressVal;
-            if (maxPace == minPace) progressVal = 80;
-            else progressVal = (int) (40 + (maxPace - pSecs) / (maxPace - minPace) * 60);
+            int progressVal = (maxPace == minPace) ? 80 : (int) (40 + (maxPace - paceSplits[i]) / (maxPace - minPace) * 60);
             progress.setProgress(progressVal);
-            
             llSplitContainer.addView(row);
         }
+    }
+
+    private void fetchAIInsights(RunRecord run) {
+        if (run.getAiInsights() != null && !run.getAiInsights().isEmpty()) {
+            tvAIInsights.setText(run.getAiInsights());
+            pbAI.setVisibility(View.GONE);
+            return;
+        }
+
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid == null) return;
+        pbAI.setVisibility(View.VISIBLE);
+
+        FirebaseFirestore.getInstance().collection("users").document(uid).collection("runs").document(run.getFirebaseId()).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    if (documentSnapshot.exists() && documentSnapshot.contains("aiInsights")) {
+                        String cloudInsights = documentSnapshot.getString("aiInsights");
+                        if (cloudInsights != null && !cloudInsights.isEmpty()) {
+                            runOnUiThread(() -> {
+                                pbAI.setVisibility(View.GONE);
+                                tvAIInsights.setText(cloudInsights);
+                                run.setAiInsights(cloudInsights);
+                                new Thread(() -> { try { AppDatabase.getInstance(ActivityDetailActivity.this).runDao().insert(run); } catch (Exception ignored) {} }).start();
+                            });
+                            return;
+                        }
+                    }
+                    generateNewAIInsights(run, uid);
+                })
+                .addOnFailureListener(e -> { if (!isFinishing() && !isDestroyed()) generateNewAIInsights(run, uid); });
+    }
+
+    private void generateNewAIInsights(RunRecord run, String uid) {
+        FirebaseFirestore.getInstance().collection("users").document(uid).get()
+                .addOnSuccessListener(doc -> {
+                    User user = doc.toObject(User.class);
+                    if (user == null) { pbAI.setVisibility(View.GONE); return; }
+                    GeminiAssistant ai = GeminiAssistant.getInstance();
+                    String lang = LocaleHelper.getLanguage(this);
+                    ai.generateRunInsights(this, user, run, lang, new GeminiAssistant.AIResponseCallback() {
+                        @Override
+                        public void onSuccess(String response) {
+                            runOnUiThread(() -> {
+                                pbAI.setVisibility(View.GONE);
+                                if (response.contains("{") || response.contains("Unexpected")) {
+                                    tvAIInsights.setText("Coach is temporarily busy. Please try again.");
+                                    return;
+                                }
+                                tvAIInsights.setText(response);
+                                run.setAiInsights(response);
+                                new Thread(() -> AppDatabase.getInstance(ActivityDetailActivity.this).runDao().insert(run)).start();
+                                FirebaseFirestore.getInstance().collection("users").document(uid).collection("runs").document(run.getFirebaseId()).update("aiInsights", response);
+                            });
+                        }
+                        @Override
+                        public void onError(String errorMsg) { runOnUiThread(() -> { pbAI.setVisibility(View.GONE); tvAIInsights.setText(errorMsg); }); }
+                    });
+                });
     }
 
     private void showRingkasan() {
@@ -454,14 +459,7 @@ public class ActivityDetailActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        if (map != null) map.onResume();
-    }
-
+    public void onResume() { super.onResume(); if (map != null) map.onResume(); }
     @Override
-    public void onPause() {
-        super.onPause();
-        if (map != null) map.onPause();
-    }
+    public void onPause() { super.onPause(); if (map != null) map.onPause(); }
 }

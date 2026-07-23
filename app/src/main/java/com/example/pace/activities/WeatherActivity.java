@@ -15,6 +15,7 @@ import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.pace.R;
+import com.example.pace.utils.GeminiAssistant;
 import com.example.pace.utils.LocaleHelper;
 import com.example.pace.utils.VolleySingleton;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -148,7 +149,8 @@ public class WeatherActivity extends AppCompatActivity {
         String weatherKey = "weather_advice_" + hourKey;
         String cachedAdvice = prefs.getString(weatherKey, null);
 
-        if (cachedAdvice != null) {
+        // Don't use cache if it was an error message
+        if (cachedAdvice != null && !cachedAdvice.contains("Connection Error") && !cachedAdvice.contains("Coach is very busy")) {
             tvAIWeatherInsights.setText(cachedAdvice);
             return;
         }
@@ -159,7 +161,7 @@ public class WeatherActivity extends AppCompatActivity {
                         String cloudKey = documentSnapshot.getString("cachedWeatherKey");
                         if (hourKey.equals(cloudKey)) {
                             String cloudAdvice = documentSnapshot.getString("cachedWeatherAdvice");
-                            if (cloudAdvice != null) {
+                            if (cloudAdvice != null && !cloudAdvice.contains("Connection Error")) {
                                 prefs.edit().putString(weatherKey, cloudAdvice).apply();
                                 runOnUiThread(() -> tvAIWeatherInsights.setText(cloudAdvice));
                                 return;
@@ -167,7 +169,7 @@ public class WeatherActivity extends AppCompatActivity {
                         }
                     }
                     
-                    // CALL AI IF NO CACHE
+                    // CALL AI IF NO CACHE OR CACHE IS INVALID
                     generateNewWeatherAdvice(forecastSummary, user.getUid(), hourKey, prefs);
                 });
     }
@@ -179,8 +181,9 @@ public class WeatherActivity extends AppCompatActivity {
                     if (u == null) return;
 
                     String firstName = u.getName().split(" ")[0];
-                    new com.example.pace.utils.GeminiAssistant().generateWeatherAdvice(forecastSummary, u.getGoal(), firstName,
-                            new com.example.pace.utils.GeminiAssistant.AIResponseCallback() {
+                    String lang = LocaleHelper.getLanguage(WeatherActivity.this);
+                    GeminiAssistant.getInstance().generateWeatherAdvice(WeatherActivity.this, forecastSummary, u.getGoal(), firstName, lang,
+                            new GeminiAssistant.AIResponseCallback() {
                         @Override
                         public void onSuccess(String response) {
                             runOnUiThread(() -> {
@@ -197,7 +200,14 @@ public class WeatherActivity extends AppCompatActivity {
                         }
                         @Override
                         public void onError(String friendlyError) {
-                            runOnUiThread(() -> tvAIWeatherInsights.setText(friendlyError));
+                            runOnUiThread(() -> {
+                                // If it's a connection error, show a more helpful message and don't cache it
+                                if (friendlyError.contains("Connection Error")) {
+                                    tvAIWeatherInsights.setText(R.string.ai_coach_connection_error);
+                                } else {
+                                    tvAIWeatherInsights.setText(friendlyError);
+                                }
+                            });
                         }
                     });
                 });

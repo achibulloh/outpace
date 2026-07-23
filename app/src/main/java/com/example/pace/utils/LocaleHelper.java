@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.LocaleList;
 import java.util.Locale;
 
@@ -44,14 +45,18 @@ public class LocaleHelper {
         Resources res = context.getResources();
         Configuration config = new Configuration(res.getConfiguration());
         
-        config.setLocale(locale);
-        LocaleList localeList = new LocaleList(locale);
-        LocaleList.setDefault(localeList);
-        config.setLocales(localeList);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.setLocale(locale);
+            LocaleList localeList = new LocaleList(locale);
+            LocaleList.setDefault(localeList);
+            config.setLocales(localeList);
+        } else {
+            config.setLocale(locale);
+        }
 
         // Update Application resources
         Context appContext = context.getApplicationContext();
-        if (appContext != null && appContext != context) {
+        if (appContext != null) {
             Resources appRes = appContext.getResources();
             appRes.updateConfiguration(config, appRes.getDisplayMetrics());
         }

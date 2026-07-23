@@ -116,12 +116,12 @@ public class ShareActivity extends AppCompatActivity {
                             elev = String.format(Locale.getDefault(), "%.0f m", runData.getElevationGain());
                             double p = runData.getPace();
                             pace = String.format(Locale.getDefault(), "%d:%02d", (int)p, (int)((p - (int)p) * 60));
-                            
+
                             String json = runData.getPathJson();
                             if (json != null && !json.isEmpty()) {
                                 pathPoints = new Gson().fromJson(json, new TypeToken<List<GeoPoint>>(){}.getType());
                             }
-                            
+
                             runOnUiThread(() -> {
                                 populateTabPreview();
                                 if (isDefaultMode) setupDefaultMode();
@@ -287,7 +287,7 @@ public class ShareActivity extends AppCompatActivity {
         updateTextView(themeView, R.id.tvSharePace, pace);
         updateTextView(themeView, R.id.tvShareRitme, getString(R.string.ritme_format, 165));
         updateTextView(themeView, R.id.tvShareSteps, getString(R.string.steps_format, (int)(runData != null ? runData.getDistance() * 1350 : 6933)));
-        
+
         String loc = runData != null ? runData.getLocationName() : "Bandung, Indonesia";
         updateTextView(themeView, R.id.tvLocation, getString(R.string.location_format, loc.replace(" - ", ", ")));
 
@@ -306,12 +306,12 @@ public class ShareActivity extends AppCompatActivity {
         } else if (tvTitle != null) {
             tvTitle.setText(getString(R.string.morning_run_upper));
         }
-        
+
         PathDrawingView pv = themeView.findViewById(R.id.ivSharePath);
         if (pv != null) pv.setPathPoints(pathPoints);
 
         shareFrame.addView(themeView);
-        scaleToFitPreview(themeView);
+        scaleToFitPreview();
         applyCurrentBackground();
     }
 
@@ -379,20 +379,29 @@ public class ShareActivity extends AppCompatActivity {
         }
     }
 
-    private void scaleToFitPreview(View content) {
-        content.post(() -> {
-            int contentW = content.getWidth();
-            int contentH = content.getHeight();
-            int boxW = shareFrame.getWidth();
-            int boxH = shareFrame.getHeight();
-            if (contentW == 0 || boxW == 0 || boxH == 0) return;
-            float scale = Math.min((float) boxW / contentW, (float) boxH / contentH) * 0.92f;
-            content.setPivotX(contentW / 2f);
-            content.setPivotY(contentH / 2f);
-            content.setScaleX(scale);
-            content.setScaleY(scale);
-            content.setTranslationX((boxW - contentW) / 2f);
-            content.setTranslationY((boxH - contentH) / 2f);
+    private void scaleToFitPreview() {
+        shareFrame.post(() -> {
+            View parent = (View) shareFrame.getParent();
+            int boxW = parent.getWidth();
+            int boxH = parent.getHeight();
+            if (boxW == 0 || boxH == 0) return;
+
+            // Design resolution is 1080x1920
+            float designW = 1080f;
+            float designH = 1920f;
+
+            float scale = Math.min((float) boxW / designW, (float) boxH / designH);
+
+            // Set pivot to center of the 1080x1920 area
+            shareFrame.setPivotX(designW / 2f);
+            shareFrame.setPivotY(designH / 2f);
+            shareFrame.setScaleX(scale);
+            shareFrame.setScaleY(scale);
+
+            // Since layout_gravity="center" is used in XML, 
+            // the view is already centered. Translation should be 0.
+            shareFrame.setTranslationX(0f);
+            shareFrame.setTranslationY(0f);
         });
     }
 
@@ -439,7 +448,7 @@ public class ShareActivity extends AppCompatActivity {
         PathDrawingView pv = defaultView.findViewById(R.id.ivSharePath);
         if (pv != null) pv.setPathPoints(pathPoints);
         shareFrame.addView(defaultView);
-        scaleToFitPreview(defaultView);
+        scaleToFitPreview();
         applyCurrentBackground();
         defaultView.setOnClickListener(v -> deselectElement());
     }
@@ -500,7 +509,7 @@ public class ShareActivity extends AppCompatActivity {
 
     private void saveAndShare() {
         Toast.makeText(this, R.string.processing_hd_image, Toast.LENGTH_SHORT).show();
-        
+
         shareFrame.post(() -> {
             try {
                 // 1. Create a high-res 1080x1920 bitmap
@@ -510,14 +519,14 @@ public class ShareActivity extends AppCompatActivity {
                 Canvas canvas = new Canvas(highResBitmap);
 
                 // 2. Inflate the template for rendering (OFF-SCREEN)
-                int layoutRes = isDefaultMode ? R.layout.layout_share_activity : 
+                int layoutRes = isDefaultMode ? R.layout.layout_share_activity :
                         getResources().getIdentifier("layout_share_pace_" + (currentThemeIndex + 1), "layout", getPackageName());
-                
+
                 View renderView = LayoutInflater.from(this).inflate(layoutRes, null);
-                
+
                 // 3. Fill data into the renderView
                 populateViewWithData(renderView);
-                
+
                 // 4. Measure & Layout at fixed 1080x1920
                 renderView.measure(
                         View.MeasureSpec.makeMeasureSpec(targetWidth, View.MeasureSpec.EXACTLY),
@@ -531,19 +540,19 @@ public class ShareActivity extends AppCompatActivity {
                 // 6. Save and Share
                 File f = new File(getCacheDir(), "images"); f.mkdirs();
                 File file = new File(f, "OUTPACE_HD_share.png");
-                FileOutputStream out = new FileOutputStream(file); 
-                highResBitmap.compress(Bitmap.CompressFormat.PNG, 100, out); 
+                FileOutputStream out = new FileOutputStream(file);
+                highResBitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
                 out.close();
-                
+
                 saveImageToGallery(highResBitmap);
-                
+
                 Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
-                Intent si = new Intent(Intent.ACTION_SEND); 
+                Intent si = new Intent(Intent.ACTION_SEND);
                 si.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                si.putExtra(Intent.EXTRA_STREAM, uri); 
+                si.putExtra(Intent.EXTRA_STREAM, uri);
                 si.setType("image/png");
                 startActivity(Intent.createChooser(si, getString(R.string.share_run_results)));
-                
+
             } catch (Exception e) {
                 e.printStackTrace();
                 Toast.makeText(this, "Gagal memproses gambar HD", Toast.LENGTH_SHORT).show();
@@ -558,7 +567,7 @@ public class ShareActivity extends AppCompatActivity {
         updateTextView(view, R.id.tvSharePace, pace + (isDefaultMode ? " /km" : ""));
         updateTextView(view, R.id.tvShareRitme, getString(R.string.ritme_format, 135));
         updateTextView(view, R.id.tvShareSteps, runData != null ? getString(R.string.steps_format, (int)(runData.getDistance() * 1350)) : "0");
-        
+
         String loc = runData != null ? runData.getLocationName() : null;
         if (loc != null) {
             updateTextView(view, R.id.tvLocation, getString(R.string.location_format, loc.replace(" - ", ", ")));
@@ -622,7 +631,7 @@ public class ShareActivity extends AppCompatActivity {
             View renderJarak = view.findViewById(R.id.tvShareJarak);
             copyViewProperties(previewJarak, renderJarak);
         }
-        
+
         View previewWaktu = shareFrame.findViewById(R.id.tvShareWaktu);
         if (previewWaktu != null) {
             View renderWaktu = view.findViewById(R.id.tvShareWaktu);
@@ -650,14 +659,14 @@ public class ShareActivity extends AppCompatActivity {
 
     private void copyViewProperties(View source, View target) {
         if (source == null || target == null) return;
-        
+
         // Convert screen-scaled position back to pixel position (1080x1920)
         target.setX(source.getX());
         target.setY(source.getY());
         target.setRotation(source.getRotation());
         target.setScaleX(source.getScaleX());
         target.setScaleY(source.getScaleY());
-        
+
         if (source instanceof TextView && target instanceof TextView) {
             ((TextView) target).setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, ((TextView) source).getTextSize());
             ((TextView) target).setTextColor(((TextView) source).getCurrentTextColor());

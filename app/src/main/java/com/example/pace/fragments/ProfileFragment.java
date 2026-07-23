@@ -126,10 +126,10 @@ public class ProfileFragment extends Fragment {
                 
                 String category;
                 int color;
-                if (bmi < 18.5) { category = "Underweight"; color = Color.YELLOW; }
-                else if (bmi < 25) { category = "Normal"; color = ContextCompat.getColor(getContext(), R.color.lime); }
-                else if (bmi < 30) { category = "Overweight"; color = Color.parseColor("#FFA500"); }
-                else { category = "Obese"; color = Color.RED; }
+                if (bmi < 18.5) { category = getString(R.string.bmi_underweight); color = Color.YELLOW; }
+                else if (bmi < 25) { category = getString(R.string.bmi_normal); color = ContextCompat.getColor(getContext(), R.color.lime); }
+                else if (bmi < 30) { category = getString(R.string.bmi_overweight); color = Color.parseColor("#FFA500"); }
+                else { category = getString(R.string.bmi_obese); color = Color.RED; }
                 
                 tvCat.setText(category);
                 tvCat.setTextColor(color);
@@ -139,7 +139,7 @@ public class ProfileFragment extends Fragment {
                 
                 String target = user.getTargetWeight();
                 if (target != null && !target.equals("0") && !target.isEmpty()) {
-                    tvGoal.setText("Goal: " + target + " kg");
+                    tvGoal.setText(getString(R.string.bmi_goal_prefix, target));
                     tvGoal.setVisibility(View.VISIBLE);
                 } else {
                     tvGoal.setVisibility(View.GONE);

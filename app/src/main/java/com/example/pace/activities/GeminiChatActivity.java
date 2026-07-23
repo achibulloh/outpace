@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -71,7 +72,7 @@ public class GeminiChatActivity extends AppCompatActivity {
         setContentView(R.layout.activity_gemini_chat);
 
         uid = FirebaseAuth.getInstance().getUid();
-        ai = new GeminiAssistant();
+        ai = GeminiAssistant.getInstance();
         
         initViews();
         loadUserInfo();
@@ -92,7 +93,7 @@ public class GeminiChatActivity extends AppCompatActivity {
         String fullName = prefs.getString("full_name", "Runner");
         userName = fullName.split(" ")[0];
         
-        tvGreeting.setText("Hey " + userName + ", where should we start?");
+        tvGreeting.setText(getString(R.string.where_start, userName));
     }
 
     private void initViews() {
@@ -238,18 +239,18 @@ public class GeminiChatActivity extends AppCompatActivity {
 
     private void setupSuggestions() {
         String[] suggestions = {
-            "Running tips for beginners",
-            "Best post-run meals",
-            "How to improve my pace?",
-            "Healthy hydration tips",
-            "Recommend a 5km plan"
+            getString(R.string.ai_suggestion_1),
+            getString(R.string.ai_suggestion_2),
+            getString(R.string.ai_suggestion_3),
+            getString(R.string.ai_suggestion_4),
+            getString(R.string.ai_suggestion_5)
         };
 
         for (String s : suggestions) {
             Chip chip = new Chip(this);
             chip.setText(s);
             chip.setChipBackgroundColorResource(R.color.card);
-            chip.setTextColor(getResources().getColor(R.color.text_primary));
+            chip.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
             chip.setChipStrokeColorResource(R.color.muted);
             chip.setChipStrokeWidth(2f);
             chip.setOnClickListener(v -> {
@@ -269,8 +270,13 @@ public class GeminiChatActivity extends AppCompatActivity {
             rvChat.setVisibility(View.VISIBLE);
         }
 
-        Bitmap currentBitmap = selectedBitmap;
-        addMessage(text, true, currentBitmap);
+        Bitmap currentBitmap = null;
+        if (selectedBitmap != null) {
+            currentBitmap = resizeBitmap(selectedBitmap, 800);
+        }
+        
+        final Bitmap finalBitmap = currentBitmap;
+        addMessage(text, true, finalBitmap);
         
         etMessage.setText("");
         removeImage();
@@ -278,16 +284,17 @@ public class GeminiChatActivity extends AppCompatActivity {
 
         if (currentSessionId == null) {
             // Create session in Firebase ONLY on first message
-            createSessionAndSend(text, currentBitmap);
+            createSessionAndSend(text, finalBitmap);
         } else {
             saveMessageToFirestore(text, true);
-            callAI(text, currentBitmap);
+            callAI(text, finalBitmap);
         }
     }
 
     private void callAI(String text, Bitmap image) {
+        String lang = LocaleHelper.getLanguage(this);
         if (image != null) {
-            ai.analyzeImage(image, text, userName, new GeminiAssistant.AIResponseCallback() {
+            ai.analyzeImage(this, image, text, userName, lang, new GeminiAssistant.AIResponseCallback() {
                 @Override
                 public void onSuccess(String response) {
                     onAiResponse(response);
@@ -298,7 +305,7 @@ public class GeminiChatActivity extends AppCompatActivity {
                 }
             });
         } else {
-            ai.chat(text, userName, false, new GeminiAssistant.AIResponseCallback() {
+            ai.chat(this, text, userName, false, lang, new GeminiAssistant.AIResponseCallback() {
                 @Override
                 public void onSuccess(String response) {
                     onAiResponse(response);
@@ -309,6 +316,21 @@ public class GeminiChatActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private Bitmap resizeBitmap(Bitmap original, int maxSize) {
+        int width = original.getWidth();
+        int height = original.getHeight();
+
+        float bitmapRatio = (float) width / (float) height;
+        if (bitmapRatio > 1) {
+            width = maxSize;
+            height = (int) (width / bitmapRatio);
+        } else {
+            height = maxSize;
+            width = (int) (height * bitmapRatio);
+        }
+        return Bitmap.createScaledBitmap(original, width, height, true);
     }
 
     private void onAiResponse(String response) {
@@ -322,7 +344,7 @@ public class GeminiChatActivity extends AppCompatActivity {
     private void onAiError(String error) {
         runOnUiThread(() -> {
             setTyping(false);
-            addMessage("Sorry, " + error, false, null);
+            addMessage(getString(R.string.ai_error_prefix, error), false, null);
         });
     }
 

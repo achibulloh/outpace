@@ -108,7 +108,15 @@ public class User {
     public void setHeight(String height) { this.height = height; }
 
     public String getMonthlyTarget() { return monthly_target; }
-    public void setMonthlyTarget(String monthly_target) { this.monthly_target = monthly_target; }
+    public void setMonthlyTarget(Object monthlyTarget) { 
+        if (monthlyTarget != null) this.monthly_target = String.valueOf(monthlyTarget); 
+    }
+    
+    // Alias for Firestore backward compatibility
+    public String getMonthly_target() { return monthly_target; }
+    public void setMonthly_target(Object monthly_target) { 
+        if (monthly_target != null) this.monthly_target = String.valueOf(monthly_target); 
+    }
 
     public String getGoal() { return goal; }
     public void setGoal(String goal) { this.goal = goal; }
