@@ -14,6 +14,9 @@ public class User {
     private String targetWeight = "0";
     private int fitnessLevel = 1; // 1: Beginner, 2: Intermediate, 3: Pro
     private String status = "idle"; // idle, active, running, training
+    private double latitude = 0;
+    private double longitude = 0;
+    private long lastLocationUpdate = 0;
 
     // Leaderboard stats
     private double totalDistanceToday = 0;
@@ -130,4 +133,13 @@ public class User {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public double getLatitude() { return latitude; }
+    public void setLatitude(double latitude) { this.latitude = latitude; }
+
+    public double getLongitude() { return longitude; }
+    public void setLongitude(double longitude) { this.longitude = longitude; }
+
+    public long getLastLocationUpdate() { return lastLocationUpdate; }
+    public void setLastLocationUpdate(long lastLocationUpdate) { this.lastLocationUpdate = lastLocationUpdate; }
 }

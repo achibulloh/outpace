@@ -1,18 +1,37 @@
 package com.example.pace.activities;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.pace.R;
 import com.example.pace.fragments.*;
 import com.example.pace.utils.LocaleHelper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     private long lastClickTime = 0;
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -27,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setNavigationBarColor(androidx.core.content.ContextCompat.getColor(this, R.color.bg));
 
         setContentView(R.layout.activity_main);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        setupLocationUpdates();
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
         FloatingActionButton fabCenter = findViewById(R.id.fabCenter);
@@ -75,6 +97,59 @@ public class MainActivity extends AppCompatActivity {
                 bottomNav.getMenu().setGroupCheckable(0, true, true);
             }
         });
+    }
+
+    private void setupLocationUpdates() {
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                if (user != null) {
+                    for (android.location.Location location : locationResult.getLocations()) {
+                        updateUserLocation(user.getUid(), location);
+                    }
+                }
+            }
+        };
+    }
+
+    private void updateUserLocation(String uid, android.location.Location location) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Map<String, Object> update = new HashMap<>();
+        update.put("latitude", location.getLatitude());
+        update.put("longitude", location.getLongitude());
+        update.put("lastLocationUpdate", System.currentTimeMillis());
+        
+        db.collection("users").document(uid).update(update)
+                .addOnFailureListener(e -> Log.e(TAG, "Error updating location", e));
+    }
+
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 600000) // Update every 10 mins
+                .setMinUpdateIntervalMillis(300000) // At least 5 mins
+                .build();
+        fusedLocationClient.requestLocationUpdates(request, locationCallback, android.os.Looper.getMainLooper());
+    }
+
+    private void stopLocationUpdates() {
+        if (fusedLocationClient != null && locationCallback != null) {
+            fusedLocationClient.removeLocationUpdates(locationCallback);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startLocationUpdates();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
     }
 
     @Override
