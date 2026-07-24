@@ -27,9 +27,9 @@ public class GeminiAssistant {
     private static final int DAILY_LIMIT = 10;
     
     // API keys must NOT be hard-coded. Provide keys via secure config (BuildConfig, env, or Secrets Manager).
-    // Replace the placeholder below with your runtime key injection (do NOT commit real keys).
-    private static final String[] API_KEYS = {
-            "REPLACE_WITH_API_KEY"
+    // Keys must be injected at runtime. DO NOT store real keys in source control.
+    private static final String[] API_KEYS = new String[] {
+            // Populate from BuildConfig or a secure provider at app startup.
     };
     
     private static int currentKeyIndex = 0;
