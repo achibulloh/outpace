@@ -598,8 +598,17 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
 
     private void startRunning() {
         stopStatusLocationUpdates();
+        updateUserStatus("running");
         sendAction(TrackingService.ACTION_START);
         if (!isStatsExpanded) toggleStatsOverlay();
+    }
+
+    private void updateUserStatus(String status) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                    .update("status", status);
+        }
     }
 
     private void showBackgroundLocationDialog() {
@@ -670,6 +679,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     private void saveRunBeforeStop(String mood, int fatigue, android.app.ProgressDialog pd) {
         if (lastDistance < 0.005) { 
             isSaving = false;
+            updateUserStatus("active");
             sendAction(TrackingService.ACTION_STOP);
             if (pd != null) pd.dismiss();
             goBack(); 
@@ -844,6 +854,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
                     u.setLastRunDate(today);
                     u.setLastRunWeek(thisWeek);
                     u.setLastRunMonth(thisMonth);
+                    u.setStatus("active");
 
                     FirebaseFirestore.getInstance().collection("users").document(user.getUid()).set(u);
                 });

@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.example.pace.model.GeminiKey;
 import com.example.pace.model.RunRecord;
 import com.example.pace.model.User;
 import com.google.ai.client.generativeai.GenerativeModel;
@@ -15,6 +16,9 @@ import com.google.ai.client.generativeai.type.GenerationConfig;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,20 +29,15 @@ import java.util.concurrent.Executors;
 public class GeminiAssistant {
     private static final String TAG = "GeminiAssistant";
     private static final int DAILY_LIMIT = 10;
-    
-    // API keys must NOT be hard-coded. Provide keys via secure config (BuildConfig, env, or Secrets Manager).
-    // Keys must be injected at runtime. DO NOT store real keys in source control.
-    private static final String[] API_KEYS = new String[] {
-            // Populate from BuildConfig or a secure provider at app startup.
-    };
-    
-    private static int currentKeyIndex = 0;
-    private static final String MODEL_NAME = "gemini-3.5-flash";
+    private static final String MODEL_NAME = "gemini-3.1-flash-lite";
 
     private static GeminiAssistant instance;
     private GenerativeModelFutures model;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final GenerationConfig config;
+    
+    private GeminiKey currentKey;
+    private boolean isFetchingKey = false;
 
     public static synchronized GeminiAssistant getInstance() {
         if (instance == null) {
@@ -53,22 +52,73 @@ public class GeminiAssistant {
         configBuilder.temperature = 0.4f;
         configBuilder.topP = 0.9f;
         this.config = configBuilder.build();
-        initModel();
     }
 
-    private void initModel() {
+    private void fetchActiveKey(Context context, Runnable onReady, AIResponseCallback callback) {
+        if (isFetchingKey) return;
+        isFetchingKey = true;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // Sederhanakan query agar tidak butuh Composite Index manual di Firebase
+        db.collection("gemini_keys")
+                .whereEqualTo("status", "active")
+                .limit(10) 
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    isFetchingKey = false;
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        // Load Balancing: Pick one at random from the active keys
+                        int randomIndex = (int) (Math.random() * queryDocumentSnapshots.size());
+                        DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(randomIndex);
+                        
+                        currentKey = doc.toObject(GeminiKey.class);
+                        if (currentKey != null && currentKey.getKey() != null && !currentKey.getKey().isEmpty()) {
+                            currentKey.setId(doc.getId());
+                            Log.d(TAG, "Key selected: " + doc.getId() + " by " + currentKey.getOwner());
+                            initModel(currentKey.getKey());
+                            if (onReady != null) onReady.run();
+                        } else {
+                            Log.e(TAG, "Selected key is null or empty. ID: " + doc.getId());
+                            if (callback != null) callback.onError("Failed to process AI credentials.");
+                        }
+                    } else {
+                        if (callback != null) callback.onError("AI Coaching limit reached globally. Try again later.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    isFetchingKey = false;
+                    Log.e(TAG, "Firestore Error: " + e.getMessage());
+                    if (e.getMessage() != null && e.getMessage().contains("PERMISSION_DENIED")) {
+                        callback.onError("Firestore access denied. Please check Firebase Rules.");
+                    } else {
+                        callback.onError("AI Connection Error: " + e.getLocalizedMessage());
+                    }
+                });
+    }
+
+    private void initModel(String apiKey) {
         try {
-            GenerativeModel gm = new GenerativeModel(MODEL_NAME, API_KEYS[currentKeyIndex], config);
+            GenerativeModel gm = new GenerativeModel(MODEL_NAME, apiKey, config);
             this.model = GenerativeModelFutures.from(gm);
         } catch (Exception e) {
             Log.e(TAG, "AI init failed", e);
         }
     }
 
-    private void rotateKey() {
-        currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
-        Log.d(TAG, "Rotating to API Key index: " + currentKeyIndex);
-        initModel();
+    private void updateKeyStatus(String status, String errorMessage) {
+        if (currentKey == null) return;
+        FirebaseFirestore.getInstance().collection("gemini_keys")
+                .document(currentKey.getId())
+                .update("status", status, "error_message", errorMessage);
+        currentKey = null; 
+    }
+
+    private void incrementKeyUsage() {
+        if (currentKey == null) return;
+        FirebaseFirestore.getInstance().collection("gemini_keys")
+                .document(currentKey.getId())
+                .update("usage_count", FieldValue.increment(1), 
+                        "last_used", FieldValue.serverTimestamp());
     }
 
     public interface AIResponseCallback {
@@ -87,7 +137,7 @@ public class GeminiAssistant {
                 "Provide a professional, technical, and encouraging summary. No greetings or closings. Max 3 sentences.",
                 name, user.getGoal(), run.getDistance(), run.getDuration() / 60, run.getPace(), run.getFatigueLevel());
         
-        chatWithRetry(context, prompt, name, true, lang, callback, 0);
+        executeChat(context, prompt, name, true, lang, callback);
     }
 
     public void generateWeatherAdvice(Context context, String weatherData, String goal, String userName, String lang, AIResponseCallback callback) {
@@ -98,7 +148,7 @@ public class GeminiAssistant {
         String prompt = String.format(Locale.getDefault(),
                 "Weather: %s. Running Goal: %s. Recommended hours to run today for %s. No greetings or closings. Max 2 sentences.",
                 weatherData, goal, userName);
-        chatWithRetry(context, prompt, userName, true, lang, callback, 0);
+        executeChat(context, prompt, userName, true, lang, callback);
     }
 
     public void chat(Context context, String prompt, String userName, boolean technicalMode, String lang, AIResponseCallback callback) {
@@ -106,22 +156,28 @@ public class GeminiAssistant {
             callback.onError("Your daily AI limit reached (10/10). Try again tomorrow.");
             return;
         }
-        chatWithRetry(context, prompt, userName, technicalMode, lang, callback, 0);
+        executeChat(context, prompt, userName, technicalMode, lang, callback);
+    }
+
+    private void executeChat(Context context, String prompt, String userName, boolean technicalMode, String lang, AIResponseCallback callback) {
+        if (currentKey == null) {
+            fetchActiveKey(context, () -> chatWithRetry(context, prompt, userName, technicalMode, lang, callback, 0), callback);
+        } else {
+            chatWithRetry(context, prompt, userName, technicalMode, lang, callback, 0);
+        }
     }
 
     private boolean canProcessRequest(Context context) {
-        if (context == null) return true; // Safety
+        if (context == null) return true;
         SharedPreferences prefs = context.getSharedPreferences("ai_usage", Context.MODE_PRIVATE);
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         String lastDate = prefs.getString("last_request_date", "");
         
         int count = prefs.getInt("request_count", 0);
         if (!today.equals(lastDate)) {
-            // New day, reset counter
             prefs.edit().putString("last_request_date", today).putInt("request_count", 0).apply();
             return true;
         }
-        
         return count < DAILY_LIMIT;
     }
 
@@ -178,6 +234,7 @@ public class GeminiAssistant {
                         String text = result.getText();
                         if (text != null && !text.isEmpty()) {
                             incrementUsage(context);
+                            incrementKeyUsage();
                             String cleanedText = text.replace("*", "").replace("#", "").trim();
                             callback.onSuccess(cleanedText);
                         } else {
@@ -193,20 +250,31 @@ public class GeminiAssistant {
                     String msg = t.getMessage() != null ? t.getMessage() : "Unknown";
                     Log.e(TAG, "Gemini error: " + msg);
                     
-                    if ((msg.contains("429") || msg.contains("quota") || msg.contains("limit")) && retryCount < API_KEYS.length - 1) {
-                        rotateKey();
-                        chatWithRetry(context, prompt, userName, technicalMode, lang, callback, retryCount + 1);
-                    } else if (msg.contains("429") || msg.contains("quota") || msg.contains("limit")) {
-                        // All keys exhausted
-                        callback.onError("AI Quota Limit reached. Please try again later.");
-                    } else if (msg.contains("503") || msg.contains("demand") || msg.contains("UNAVAILABLE")) {
-                        if (retryCount < 3) { // Try a few times for 503 as well
+                    if (msg.contains("429") || msg.contains("quota") || msg.contains("limit")) {
+                        updateKeyStatus("limit", "Quota limit reached at " + new Date());
+                        if (retryCount < 3) {
+                            fetchActiveKey(context, () -> chatWithRetry(context, prompt, userName, technicalMode, lang, callback, retryCount + 1), callback);
+                        } else {
+                            callback.onError("AI Quota Limit reached. Please try again later.");
+                        }
+                    } else if (msg.contains("API_KEY_INVALID") || msg.contains("invalid")) {
+                        updateKeyStatus("blocked", "Invalid API Key: " + msg);
+                        fetchActiveKey(context, () -> chatWithRetry(context, prompt, userName, technicalMode, lang, callback, retryCount + 1), callback);
+                    } else if (msg.contains("503") || msg.contains("UNAVAILABLE") || msg.contains("demand")) {
+                        if (retryCount < 3) {
                             chatWithRetry(context, prompt, userName, technicalMode, lang, callback, retryCount + 1);
                         } else {
-                            callback.onError("Coach is very busy. Try again in 15 seconds.");
+                            callback.onError("AI Coach is very busy (High Demand). Please try again in a few moments.");
                         }
                     } else {
-                        callback.onError("Connection Error. Check internet.");
+                        // Log the full error to logcat for developer
+                        Log.e(TAG, "Critical AI Error: " + msg, t);
+                        // Provide more descriptive fallback
+                        if (msg.contains("Connection") || msg.contains("Unable to resolve host")) {
+                            callback.onError("Network error. Please check your internet connection.");
+                        } else {
+                            callback.onError("AI Service Error: " + msg);
+                        }
                     }
                 }
             }, executor);
@@ -221,6 +289,14 @@ public class GeminiAssistant {
             return;
         }
 
+        if (currentKey == null) {
+            fetchActiveKey(context, () -> executeAnalyzeImage(context, bitmap, userPrompt, userName, lang, callback), callback);
+        } else {
+            executeAnalyzeImage(context, bitmap, userPrompt, userName, lang, callback);
+        }
+    }
+
+    private void executeAnalyzeImage(Context context, Bitmap bitmap, String userPrompt, String userName, String lang, AIResponseCallback callback) {
         if (model == null) {
             callback.onError("AI Vision is offline.");
             return;
@@ -246,6 +322,7 @@ public class GeminiAssistant {
                         String text = result.getText();
                         if (text != null && !text.isEmpty()) {
                             incrementUsage(context);
+                            incrementKeyUsage();
                             String cleanedText = text.replace("*", "").replace("#", "").trim();
                             callback.onSuccess(cleanedText);
                         } else {
@@ -259,11 +336,15 @@ public class GeminiAssistant {
                 @Override
                 public void onFailure(Throwable t) {
                     String msg = t.getMessage() != null ? t.getMessage() : "Unknown vision error";
-                    Log.e(TAG, "Gemini Vision Error: " + msg);
+                    Log.e(TAG, "Gemini Vision Error: " + msg, t);
                     
                     if (msg.contains("429") || msg.contains("quota")) {
-                        rotateKey();
-                        callback.onError("Vision quota reached. Retrying with next key...");
+                        updateKeyStatus("limit", "Vision quota reached");
+                        fetchActiveKey(context, () -> executeAnalyzeImage(context, bitmap, userPrompt, userName, lang, callback), callback);
+                    } else if (msg.contains("503") || msg.contains("UNAVAILABLE") || msg.contains("demand")) {
+                        callback.onError("AI Server is very busy. Please try again later.");
+                    } else if (msg.contains("Connection") || msg.contains("Unable to resolve host")) {
+                        callback.onError("Network error. Please check your internet connection.");
                     } else {
                         callback.onError("Vision Error: " + msg);
                     }

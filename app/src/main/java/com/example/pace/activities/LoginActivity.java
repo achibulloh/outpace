@@ -102,6 +102,10 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        if (firebaseUser != null) {
+                            db.collection("users").document(firebaseUser.getUid()).update("status", "active");
+                        }
                         Toast.makeText(LoginActivity.this, R.string.login_success, Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(LoginActivity.this, SplashActivity.class));
                         finish();
@@ -192,6 +196,7 @@ public class LoginActivity extends AppCompatActivity {
                             saveUserToFirestore(firebaseUser.getUid(), firebaseUser.getDisplayName(), firebaseUser.getEmail());
                         } else {
                             // User sudah ada
+                            db.collection("users").document(firebaseUser.getUid()).update("status", "active");
                             Toast.makeText(LoginActivity.this, R.string.login_success, Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, SplashActivity.class));
                             finish();
@@ -202,6 +207,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void saveUserToFirestore(String uid, String name, String email) {
         User user = new User(uid, name, email);
+        user.setStatus("active");
         db.collection("users").document(uid)
                 .set(user)
                 .addOnSuccessListener(aVoid -> {

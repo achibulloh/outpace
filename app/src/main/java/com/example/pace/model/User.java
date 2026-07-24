@@ -13,6 +13,7 @@ public class User {
     private String goal = "Health & Wellness"; // Weight Loss, Increase Speed, Health & Wellness, Marathon Training
     private String targetWeight = "0";
     private int fitnessLevel = 1; // 1: Beginner, 2: Intermediate, 3: Pro
+    private String status = "idle"; // idle, active, running, training
 
     // Leaderboard stats
     private double totalDistanceToday = 0;
@@ -126,4 +127,7 @@ public class User {
 
     public int getFitnessLevel() { return fitnessLevel; }
     public void setFitnessLevel(int fitnessLevel) { this.fitnessLevel = fitnessLevel; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }
