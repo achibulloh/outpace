@@ -144,6 +144,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         startLocationUpdates();
+
+        // Ensure correct navigation visibility when returning to activity
+        Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+        setNavigationVisibility(!(current instanceof RunFragment));
     }
 
     @Override
@@ -169,6 +173,9 @@ public class MainActivity extends AppCompatActivity {
             }
             loadFragment(runFragment, "RunFragment");
             
+            // Explicitly hide navigation when opening from notification
+            setNavigationVisibility(false);
+            
             // Update UI
             BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
             if (bottomNav != null) {
@@ -183,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
             Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
             if (current == null) {
                 loadFragment(new HomeFragment(), "HomeFragment");
+                setNavigationVisibility(true);
             }
         }
     }
@@ -195,11 +203,22 @@ public class MainActivity extends AppCompatActivity {
         int visibility = visible ? android.view.View.VISIBLE : android.view.View.GONE;
         if (bottomNav != null) bottomNav.setVisibility(visibility);
         if (fabCenter != null) fabCenter.setVisibility(visibility);
-        if (bottomAppBar != null) bottomAppBar.setVisibility(visibility);
+        if (bottomAppBar != null) {
+            bottomAppBar.setVisibility(visibility);
+            if (!visible) {
+                // More aggressive hiding for Material BottomAppBar
+                bottomAppBar.performHide();
+            } else {
+                bottomAppBar.performShow();
+            }
+        }
     }
 
     private void loadFragment(Fragment f, String tag) {
         if (isFinishing() || isDestroyed()) return;
+
+        // Auto-manage navigation visibility based on fragment type
+        setNavigationVisibility(!(f instanceof RunFragment));
         
         try {
             getSupportFragmentManager().beginTransaction()

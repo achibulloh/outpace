@@ -269,11 +269,13 @@ public class GeminiAssistant {
                     } else {
                         // Log the full error to logcat for developer
                         Log.e(TAG, "Critical AI Error: " + msg, t);
-                        // Provide more descriptive fallback
-                        if (msg.contains("Connection") || msg.contains("Unable to resolve host")) {
+                        // Provide more descriptive fallback in English
+                        if (msg.contains("Connection") || msg.contains("Unable to resolve host") || msg.contains("timeout")) {
                             callback.onError("Network error. Please check your internet connection.");
+                        } else if (msg.contains("UNAVAILABLE") || msg.contains("503")) {
+                            callback.onError("AI Coach is temporarily busy. Please try again in a few moments.");
                         } else {
-                            callback.onError("AI Service Error: " + msg);
+                            callback.onError("AI Service is currently unreachable. (" + msg + ")");
                         }
                     }
                 }

@@ -14,6 +14,7 @@ public class User {
     private String targetWeight = "0";
     private int fitnessLevel = 1; // 1: Beginner, 2: Intermediate, 3: Pro
     private String status = "idle"; // idle, active, running, training
+    private boolean admin = false;
     private double latitude = 0;
     private double longitude = 0;
     private long lastLocationUpdate = 0;
@@ -22,6 +23,9 @@ public class User {
     private double totalDistanceToday = 0;
     private double totalDistanceWeek = 0;
     private double totalDistanceMonth = 0;
+    private double totalDistanceLifetime = 0;
+    private int totalRunsLifetime = 0;
+    private int totalCaloriesLifetime = 0;
     private double bestPace = 999; 
     private double bestPaceToday = 999;
     private double bestPaceWeek = 999;
@@ -53,6 +57,15 @@ public class User {
 
     public double getTotalDistanceMonth() { return totalDistanceMonth; }
     public void setTotalDistanceMonth(double totalDistanceMonth) { this.totalDistanceMonth = totalDistanceMonth; }
+
+    public double getTotalDistanceLifetime() { return totalDistanceLifetime; }
+    public void setTotalDistanceLifetime(double totalDistanceLifetime) { this.totalDistanceLifetime = totalDistanceLifetime; }
+
+    public int getTotalRunsLifetime() { return totalRunsLifetime; }
+    public void setTotalRunsLifetime(int totalRunsLifetime) { this.totalRunsLifetime = totalRunsLifetime; }
+
+    public int getTotalCaloriesLifetime() { return totalCaloriesLifetime; }
+    public void setTotalCaloriesLifetime(int totalCaloriesLifetime) { this.totalCaloriesLifetime = totalCaloriesLifetime; }
 
     public double getBestPace() { return bestPace; }
     public void setBestPace(double bestPace) { this.bestPace = bestPace; }

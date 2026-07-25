@@ -128,7 +128,7 @@
         <LinearLayout
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
-            android:paddingBottom="110dp"
+            android:paddingBottom="120dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 

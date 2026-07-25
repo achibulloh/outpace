@@ -25,4 +25,10 @@ public interface RunDao {
 
     @Query("SELECT MAX(timestamp) FROM run_records")
     long getLatestTimestamp();
+
+    @Query("DELETE FROM run_records WHERE firebaseId = :firebaseId")
+    void deleteByFirebaseId(String firebaseId);
+
+    @Query("DELETE FROM run_records WHERE isSynced = 1")
+    void deleteAllSynced();
 }

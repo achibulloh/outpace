@@ -316,7 +316,7 @@
     <string name="element_watermark">Watermark</string>
     <string name="mode_polos">Plain</string>
     <string name="outpace_theme">OUTPACE Theme</string>
-    <string name="ritme_format">%1$d bpm</string>
+    <string name="ritme_format">%1$d spm</string>
     <string name="steps_format">%,d</string>
     <string name="location_format">📍 %1$s</string>
     <string name="morning_run_upper">MORNING RUN</string>
@@ -405,7 +405,7 @@
     <string name="ai_suggestion_3">How to improve my pace?</string>
     <string name="ai_suggestion_4">Healthy hydration tips</string>
     <string name="ai_suggestion_5">Recommend a 5km plan</string>
-    <string name="ai_error_prefix">Sorry, %1$s</string>
+    <string name="ai_error_prefix">%1$s</string>
     <string name="coach_tip_prefix">Coach Tip: %1$s</string>
     <string name="bmi_label">Body Mass Index (BMI)</string>
     <string name="bmi_underweight">Underweight</string>

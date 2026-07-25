@@ -96,7 +96,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="JARAK TOTAL"
+            android:text="TOTAL DISTANCE"
             android:textColor="@color/muted_fg"
             android:textSize="28px"
             android:layout_marginTop="40px"
@@ -133,7 +133,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="DURASI"
+                    android:text="DURATION"
                     android:textColor="@color/muted_fg"
                     android:textSize="22px"
                     android:textStyle="bold"/>
@@ -155,7 +155,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="RITME"
+                    android:text="PACE"
                     android:textColor="@color/muted_fg"
                     android:textSize="22px"
                     android:textStyle="bold"/>

@@ -62,7 +62,8 @@ public class ShareActivity extends AppCompatActivity {
     private View tabPaceTheme, tabDefault, paceStyleSelector, defaultControls;
     private LinearLayout dotsContainer;
     private ViewGroup bottomControls;
-    private String jarak = "0.00", waktu = "00:00", elev = "0 m", pace = "0:00";
+    private String jarakStr = "0.00", waktu = "00:00", elev = "0 m", pace = "0:00";
+    private double jarakNum = 0.0;
     private RunRecord runData;
 
     private int currentThemeIndex = 0;
@@ -101,40 +102,116 @@ public class ShareActivity extends AppCompatActivity {
             setupSwipePreview();
             setupColorPicker();
 
-            // Default empty setup
-            setupDefaultMode();
-
             int runId = getIntent().getIntExtra("RUN_ID", -1);
+            String firebaseId = getIntent().getStringExtra("FIREBASE_ID");
+
             if (runId != -1) {
-                new Thread(() -> {
-                    try {
-                        runData = AppDatabase.getInstance(this).runDao().getRunById(runId);
-                        if (runData != null) {
-                            jarak = String.format(Locale.getDefault(), "%.2f", runData.getDistance());
-                            long t = runData.getDuration();
-                            waktu = String.format(Locale.getDefault(), "%02d:%02d", t / 60, t % 60);
-                            elev = String.format(Locale.getDefault(), "%.0f m", runData.getElevationGain());
-                            double p = runData.getPace();
-                            pace = String.format(Locale.getDefault(), "%d:%02d", (int)p, (int)((p - (int)p) * 60));
-
-                            String json = runData.getPathJson();
-                            if (json != null && !json.isEmpty()) {
-                                pathPoints = new Gson().fromJson(json, new TypeToken<List<GeoPoint>>(){}.getType());
-                            }
-
-                            runOnUiThread(() -> {
-                                populateTabPreview();
-                                if (isDefaultMode) setupDefaultMode();
-                                else applyTheme(currentThemeIndex);
-                            });
-                        }
-                    } catch (Exception e) { e.printStackTrace(); }
-                }).start();
+                loadLocalData(runId);
+            } else if (firebaseId != null) {
+                loadFirebaseData(firebaseId);
+            } else {
+                Toast.makeText(this, "ID aktivitas tidak ditemukan", Toast.LENGTH_SHORT).show();
+                setupDefaultMode();
             }
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Gagal membuka editor: " + e.getMessage(), Toast.LENGTH_LONG).show();
             finish();
+        }
+    }
+
+    private void loadLocalData(int runId) {
+        new Thread(() -> {
+            try {
+                runData = AppDatabase.getInstance(this).runDao().getRunById(runId);
+                if (runData != null) {
+                    processRunRecord(runData);
+                } else {
+                    String firebaseId = getIntent().getStringExtra("FIREBASE_ID");
+                    if (firebaseId != null) {
+                        loadFirebaseData(firebaseId);
+                    } else {
+                        runOnUiThread(() -> {
+                            Toast.makeText(this, "Aktivitas lokal tidak ditemukan", Toast.LENGTH_SHORT).show();
+                            setupDefaultMode();
+                        });
+                    }
+                }
+            } catch (Exception e) { 
+                e.printStackTrace();
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Error memuat data lokal: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    setupDefaultMode();
+                });
+            }
+        }).start();
+    }
+
+    private void loadFirebaseData(String firebaseId) {
+        com.google.firebase.auth.FirebaseUser user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) { 
+            runOnUiThread(() -> {
+                Toast.makeText(this, "Silakan login terlebih dahulu", Toast.LENGTH_SHORT).show();
+                setupDefaultMode();
+            });
+            return; 
+        }
+
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("users").document(user.getUid())
+                .collection("runs").document(firebaseId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        RunRecord record = documentSnapshot.toObject(RunRecord.class);
+                        if (record != null) {
+                            runData = record;
+                            new Thread(() -> processRunRecord(record)).start();
+                        } else {
+                            runOnUiThread(() -> {
+                                Toast.makeText(this, "Data lari kosong", Toast.LENGTH_SHORT).show();
+                                setupDefaultMode();
+                            });
+                        }
+                    } else {
+                        runOnUiThread(() -> {
+                            Toast.makeText(this, "Aktivitas tidak ditemukan di Cloud", Toast.LENGTH_SHORT).show();
+                            setupDefaultMode();
+                        });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "Gagal mengambil data dari Cloud: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        setupDefaultMode();
+                    });
+                });
+    }
+
+    private void processRunRecord(RunRecord record) {
+        try {
+            jarakNum = record.getDistance();
+            jarakStr = String.format(Locale.getDefault(), "%.2f", jarakNum);
+            
+            long t = record.getDuration();
+            waktu = String.format(Locale.getDefault(), "%02d:%02d", t / 60, t % 60);
+            elev = String.format(Locale.getDefault(), "%.0f m", record.getElevationGain());
+            double p = record.getPace();
+            pace = String.format(Locale.getDefault(), "%d:%02d", (int) p, (int) ((p - (int) p) * 60));
+
+            String json = record.getPathJson();
+            if (json != null && !json.isEmpty()) {
+                pathPoints = new Gson().fromJson(json, new TypeToken<List<GeoPoint>>() {}.getType());
+            }
+
+            runOnUiThread(() -> {
+                populateTabPreview();
+                if (isDefaultMode) setupDefaultMode();
+                else applyTheme(currentThemeIndex);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            runOnUiThread(this::setupDefaultMode);
         }
     }
 
@@ -204,7 +281,7 @@ public class ShareActivity extends AppCompatActivity {
     private void populateTabPreview() {
         TextView tvValue = findViewById(R.id.tvTabPolosValue);
         TextView tvSub = findViewById(R.id.tvTabPolosSub);
-        if (tvValue != null) tvValue.setText(jarak);
+        if (tvValue != null) tvValue.setText(jarakStr);
         if (tvSub != null) tvSub.setText(pace + " /km · " + waktu);
     }
 
@@ -281,7 +358,7 @@ public class ShareActivity extends AppCompatActivity {
         if (layoutRes == 0) return;
         View themeView = LayoutInflater.from(this).inflate(layoutRes, shareFrame, false);
 
-        updateTextView(themeView, R.id.tvShareJarak, jarak);
+        updateTextView(themeView, R.id.tvShareJarak, jarakStr);
         updateTextView(themeView, R.id.tvShareWaktu, waktu);
         updateTextView(themeView, R.id.tvShareElev, elev);
         updateTextView(themeView, R.id.tvSharePace, pace);
@@ -442,7 +519,9 @@ public class ShareActivity extends AppCompatActivity {
         setupElement(defaultView.findViewById(R.id.tvShareWaktu), getString(R.string.element_time));
         setupElement(defaultView.findViewById(R.id.ivSharePath), getString(R.string.element_route));
         setupElement(defaultView.findViewById(R.id.tvPaceWatermark), getString(R.string.element_watermark));
-        updateTextView(defaultView, R.id.tvShareJarak, getString(R.string.distance_km_val, Double.parseDouble(jarak)));
+        
+        updateTextView(defaultView, R.id.tvShareJarak, getString(R.string.distance_km_val, jarakNum));
+
         updateTextView(defaultView, R.id.tvShareWaktu, waktu);
         updateTextView(defaultView, R.id.tvShareElev, elev);
         PathDrawingView pv = defaultView.findViewById(R.id.ivSharePath);
@@ -561,7 +640,7 @@ public class ShareActivity extends AppCompatActivity {
     }
 
     private void populateViewWithData(View view) {
-        updateTextView(view, R.id.tvShareJarak, isDefaultMode ? getString(R.string.distance_km_val, Double.parseDouble(jarak)) : jarak);
+        updateTextView(view, R.id.tvShareJarak, isDefaultMode ? getString(R.string.distance_km_val, jarakNum) : jarakStr);
         updateTextView(view, R.id.tvShareWaktu, waktu);
         updateTextView(view, R.id.tvShareElev, elev);
         updateTextView(view, R.id.tvSharePace, pace + (isDefaultMode ? " /km" : ""));

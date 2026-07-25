@@ -89,7 +89,7 @@
             android:baselineAligned="false">
 
             <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WAKTU" android:textColor="@color/muted_fg" android:textSize="22px" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TIME" android:textColor="@color/muted_fg" android:textSize="22px" android:textStyle="bold"/>
                 <TextView android:id="@+id/tvShareWaktu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27:14" android:textColor="@color/text_primary" android:textSize="36px" android:textStyle="bold"/>
             </LinearLayout>
 
@@ -104,7 +104,7 @@
             </LinearLayout>
 
             <LinearLayout android:layout_width="0dp" android:layout_weight="1.2" android:layout_height="wrap_content" android:orientation="vertical">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="LANGKAH" android:textColor="@color/muted_fg" android:textSize="22px" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="STEPS" android:textColor="@color/muted_fg" android:textSize="22px" android:textStyle="bold"/>
                 <TextView android:id="@+id/tvShareSteps" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6,933" android:textColor="@color/text_primary" android:textSize="36px" android:textStyle="bold"/>
             </LinearLayout>
 

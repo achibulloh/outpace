@@ -75,7 +75,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="kilometer"
+            android:text="KILOMETERS"
             android:textColor="@color/muted_fg"
             android:textSize="56px"
             android:layout_marginTop="-40px"/>
@@ -93,7 +93,7 @@
             android:orientation="horizontal">
             <LinearLayout android:orientation="vertical" android:layout_weight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:gravity="center">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27:14" android:id="@+id/tvShareWaktu" android:textColor="@color/text_primary" android:textSize="72px" android:textStyle="bold"/>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WAKTU" android:textColor="@color/muted_fg" android:textSize="32px" android:textStyle="bold" android:layout_marginTop="8px"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TIME" android:textColor="@color/muted_fg" android:textSize="32px" android:textStyle="bold" android:layout_marginTop="8px"/>
             </LinearLayout>
             <View android:layout_width="2px" android:layout_height="80px" android:background="#22FFFFFF" android:layout_gravity="center_vertical"/>
             <LinearLayout android:orientation="vertical" android:layout_weight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:gravity="center">

@@ -163,6 +163,12 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Ensure navigation is hidden when RunFragment is created
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setNavigationVisibility(false);
+        }
+
         // Handle Auto-Open Post Run Dialog from Notification
         if (getArguments() != null && getArguments().getBoolean("SHOW_POST_RUN", false)) {
             // We need to wait a bit until Fragment is fully interactive
@@ -265,7 +271,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
                     showPostRunDialog();
                 } else {
                     isSaving = true;
-                    saveRunBeforeStop(null, 0, null);
+                    saveRunBeforeStop(null, 0);
                     sendAction(TrackingService.ACTION_STOP);
                 }
             }
@@ -535,7 +541,7 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         tvDuration.setText(String.format(Locale.getDefault(), "%02d:%02d", time / 60, time % 60));
         tvOverlayDuration.setText(String.format(Locale.getDefault(), "%02d:%02d:%02d", time / 3600, (time % 3600) / 60, time % 60));
         tvDistance.setText(String.format(Locale.getDefault(), "%.2f", distance));
-        tvOverlayDistance.setText(String.format(Locale.getDefault(), "%.1f", distance));
+        tvOverlayDistance.setText(String.format(Locale.getDefault(), "%.2f", distance));
         
         String cal = String.valueOf((int)(distance * userWeight * 1.036));
         if (tvCalories != null) tvCalories.setText(cal);
@@ -661,14 +667,8 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
             // Prevent double click
             btnSubmit.setEnabled(false);
 
-            // Show Loading to prevent ANR feeling
-            android.app.ProgressDialog pd = new android.app.ProgressDialog(requireContext());
-            pd.setMessage("Saving your activity...");
-            pd.setCancelable(false);
-            pd.show();
-
             isSaving = true;
-            saveRunBeforeStop(selectedMood, sbFatigue.getProgress() + 1, pd);
+            saveRunBeforeStop(selectedMood, sbFatigue.getProgress() + 1);
             sendAction(TrackingService.ACTION_STOP);
             dialog.dismiss();
         });
@@ -676,12 +676,11 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         dialog.show();
     }
 
-    private void saveRunBeforeStop(String mood, int fatigue, android.app.ProgressDialog pd) {
+    private void saveRunBeforeStop(String mood, int fatigue) {
         if (lastDistance < 0.005) { 
             isSaving = false;
             updateUserStatus("active");
             sendAction(TrackingService.ACTION_STOP);
-            if (pd != null) pd.dismiss();
             goBack(); 
             return; 
         }
@@ -704,7 +703,6 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
         // Context check
         final Context context = getContext() != null ? getContext().getApplicationContext() : null;
         if (context == null) {
-            if (pd != null) pd.dismiss();
             return;
         }
 
@@ -763,8 +761,9 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
                             .set(r)
                             .addOnSuccessListener(aVoid -> {
                                 new Thread(() -> {
-                                    r.setSynced(true);
-                                    AppDatabase.getInstance(context).runDao().insert(r);
+                                    // Data successfully synced, delete from local Room database
+                                    // to keep local storage clean as requested
+                                    AppDatabase.getInstance(context).runDao().deleteByFirebaseId(r.getFirebaseId());
                                 }).start();
                                 updateUserLeaderboardStats(r);
                             });
@@ -772,16 +771,21 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
 
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        if (pd != null && pd.isShowing()) pd.dismiss();
-                        Toast.makeText(context, R.string.activity_saved, Toast.LENGTH_SHORT).show();
                         isSaving = false;
+                        
+                        // Launch Success Splash Activity
+                        Intent successIntent = new Intent(getActivity(), com.example.pace.activities.SuccessSaveActivity.class);
+                        successIntent.putExtra("FIREBASE_ID", r.getFirebaseId());
+                        startActivity(successIntent);
+                        
+                        // Segera kembali ke HomeFragment di background agar saat user back dari DetailActivity,
+                        // mereka mendarat di Home, bukan di halaman tracking lari lagi.
                         goBack();
                     });
                 }
             } catch (Exception ex) {
                 Log.e("RunFragment", "Error saving run", ex);
                 if (getActivity() != null) getActivity().runOnUiThread(() -> {
-                    if (pd != null && pd.isShowing()) pd.dismiss();
                     Toast.makeText(context, "Error saving activity", Toast.LENGTH_SHORT).show();
                     isSaving = false;
                 });
@@ -823,6 +827,11 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
                     u.setTotalDistanceToday(u.getTotalDistanceToday() + run.getDistance());
                     u.setTotalDistanceWeek(u.getTotalDistanceWeek() + run.getDistance());
                     u.setTotalDistanceMonth(u.getTotalDistanceMonth() + run.getDistance());
+                    
+                    // Update Lifetime Stats
+                    u.setTotalDistanceLifetime(u.getTotalDistanceLifetime() + run.getDistance());
+                    u.setTotalRunsLifetime(u.getTotalRunsLifetime() + 1);
+                    u.setTotalCaloriesLifetime(u.getTotalCaloriesLifetime() + run.getCalories());
 
                     // Update Best Pace (only if distance >= 3km)
                     if (run.getDistance() >= 3.0) {
@@ -941,9 +950,6 @@ public class RunFragment extends Fragment implements android.hardware.SensorEven
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).setNavigationVisibility(true);
-        }
         stopStatusLocationUpdates();
     }
 }

@@ -1,21 +1,38 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Project specific ProGuard rules
+# ---------------------------------------------------------------------------------
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# 1. Keep Model Classes (Firestore, GSON, and Room need original names)
+-keep class com.example.pace.model.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# 2. Keep Attributes for Reflection (Serialization/Deserialization)
+-keepattributes Signature, *Annotation*, EnclosingMethod, InnerClasses
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# 3. Firebase & Firestore
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+
+# 4. GSON
+-keep class com.google.gson.** { *; }
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# 5. OSMDroid (Map)
+-keep class org.osmdroid.** { *; }
+-dontwarn org.osmdroid.**
+
+# 6. MPAndroidChart
+-keep class com.github.mikephil.charting.** { *; }
+
+# 7. Google Gemini AI & Guava
+-keep class com.google.ai.client.generativeai.** { *; }
+-keep class com.google.common.util.concurrent.** { *; }
+-dontwarn com.google.ai.client.generativeai.**
+-dontwarn com.google.common.**
+
+# 8. Room Database
+-keep class androidx.room.** { *; }
+-dontwarn androidx.sqlite.db.**
+
+# 9. General Debugging
+-keepattributes SourceFile, LineNumberTable

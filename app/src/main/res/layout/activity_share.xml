@@ -76,7 +76,7 @@
                 android:id="@+id/tvTabPolosValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="5.2"
+                android:text="--"
                 android:textColor="@color/text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -85,7 +85,7 @@
                 android:id="@+id/tvTabPolosSub"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="5:14 /km · 27:14"
+                android:text="--:-- /km · --:--"
                 android:textColor="@color/muted_fg"
                 android:textSize="9sp"
                 android:layout_marginBottom="4dp" />

@@ -70,6 +70,7 @@ public class RunHistoryAdapter extends RecyclerView.Adapter<RunHistoryAdapter.Vi
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), ActivityDetailActivity.class);
             intent.putExtra("RUN_ID", run.getId());
+            intent.putExtra("FIREBASE_ID", run.getFirebaseId());
             v.getContext().startActivity(intent);
         });
     }

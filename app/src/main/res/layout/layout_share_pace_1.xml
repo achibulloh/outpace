@@ -72,7 +72,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="KILOMETER"
+            android:text="KILOMETERS"
             android:textColor="@color/lime"
             android:textSize="48px"
             android:letterSpacing="0.3"
@@ -94,7 +94,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="WAKTU"
+                android:text="TIME"
                 android:textColor="@color/muted_fg"
                 android:textSize="32px" />
             <TextView
@@ -116,7 +116,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="RATA-RATA PACE"
+                android:text="AVG PACE"
                 android:textColor="@color/muted_fg"
                 android:textSize="32px" />
             <TextView
@@ -138,7 +138,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ELEVASI"
+                android:text="ELEVATION"
                 android:textColor="@color/muted_fg"
                 android:textSize="32px" />
             <TextView

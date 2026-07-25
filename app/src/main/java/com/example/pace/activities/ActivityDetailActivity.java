@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -64,7 +65,6 @@ public class ActivityDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // RE-CONFIRM User-Agent before layout inflation to prevent 403 Access Blocked
         String userAgent = "OutpaceTracker/1.0 (" + getPackageName() + "; contact@outpace.app)";
         org.osmdroid.config.Configuration.getInstance().setUserAgentValue(userAgent);
 
@@ -73,8 +73,13 @@ public class ActivityDetailActivity extends AppCompatActivity {
         initViews();
         
         int runId = getIntent().getIntExtra("RUN_ID", -1);
-        if (runId != -1) {
-            loadRunData(runId);
+        String firebaseId = getIntent().getStringExtra("FIREBASE_ID");
+
+        if (firebaseId != null || runId != -1) {
+            loadRunData(runId, firebaseId);
+        } else {
+            Toast.makeText(this, "No activity data provided", Toast.LENGTH_SHORT).show();
+            finish();
         }
 
         btnRingkasan.setOnClickListener(v -> showRingkasan());
@@ -84,12 +89,14 @@ public class ActivityDetailActivity extends AppCompatActivity {
         findViewById(R.id.btnShare).setOnClickListener(v -> {
             Intent intent = new Intent(this, ShareActivity.class);
             intent.putExtra("RUN_ID", runId);
+            intent.putExtra("FIREBASE_ID", firebaseId);
             startActivity(intent);
         });
 
         findViewById(R.id.btnShareTop).setOnClickListener(v -> {
             Intent intent = new Intent(this, ShareActivity.class);
             intent.putExtra("RUN_ID", runId);
+            intent.putExtra("FIREBASE_ID", firebaseId);
             startActivity(intent);
         });
 
@@ -99,7 +106,6 @@ public class ActivityDetailActivity extends AppCompatActivity {
     private void initViews() {
         map = findViewById(R.id.mapDetail);
         
-        // Use the same server as RunFragment for consistency and to avoid 403 errors
         map.setTileSource(new org.osmdroid.tileprovider.tilesource.XYTileSource("OSMHot", 0, 19, 256, ".png", 
                 new String[] {
                     "https://a.tile.openstreetmap.fr/hot/",
@@ -111,7 +117,7 @@ public class ActivityDetailActivity extends AppCompatActivity {
         map.getController().setZoom(16.0);
         map.setBackgroundColor(Color.parseColor("#121212"));
 
-        // Apply Dark Mode Filter to the map tiles using negative color matrix
+        // Apply Dark Mode Filter to the map tiles
         float[] negative = {
                 -1.0f, 0, 0, 0, 255, // red
                 0, -1.0f, 0, 0, 255, // green
@@ -153,36 +159,78 @@ public class ActivityDetailActivity extends AppCompatActivity {
         chartElevation = findViewById(R.id.chartElevasi);
     }
 
-    private void loadRunData(int id) {
+    private void loadRunData(int id, String fbId) {
         new Thread(() -> {
-            RunRecord run = AppDatabase.getInstance(this).runDao().getRunById(id);
+            RunRecord run = null;
+            if (id != -1) {
+                run = AppDatabase.getInstance(this).runDao().getRunById(id);
+            }
+            
             if (run != null) {
-                // PARSE HEAVY DATA IN BACKGROUND
-                Gson gson = new Gson();
-                List<GeoPoint> path = new ArrayList<>();
-                try {
-                    path = gson.fromJson(run.getPathJson(), new TypeToken<List<GeoPoint>>(){}.getType());
-                } catch (Exception ignored) {}
-                
-                double[] paceSplits = null;
-                double[] elevSplits = null;
-                int[] cadSplits = null;
-                try {
-                    paceSplits = gson.fromJson(run.getSplitsJson(), double[].class);
-                    elevSplits = gson.fromJson(run.getElevationSplitsJson(), double[].class);
-                    cadSplits = gson.fromJson(run.getCadenceSplitsJson(), int[].class);
-                } catch (Exception ignored) {}
-
-                final List<GeoPoint> finalPath = path;
-                final double[] finalPaceSplits = paceSplits;
-                final double[] finalElevSplits = elevSplits;
-                final int[] finalCadSplits = cadSplits;
-
+                parseAndPopulate(run);
+            } else if (fbId != null) {
+                runOnUiThread(() -> loadRunDataFromFirebase(fbId));
+            } else {
                 runOnUiThread(() -> {
-                    if (isFinishing() || isDestroyed()) return;
-                    populateData(run, finalPath, finalPaceSplits, finalElevSplits, finalCadSplits);
+                    Toast.makeText(this, "Activity not found", Toast.LENGTH_SHORT).show();
                 });
             }
+        }).start();
+    }
+
+    private void loadRunDataFromFirebase(String firebaseId) {
+        com.google.firebase.auth.FirebaseUser user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) { finish(); return; }
+
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("users").document(user.getUid())
+                .collection("runs").document(firebaseId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        RunRecord run = doc.toObject(RunRecord.class);
+                        if (run != null) {
+                            parseAndPopulate(run);
+                        }
+                    } else {
+                        Toast.makeText(this, "Activity not found in Cloud", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to load from Cloud", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+    }
+
+    private void parseAndPopulate(RunRecord run) {
+        new Thread(() -> {
+            Gson gson = new Gson();
+            List<GeoPoint> path = new ArrayList<>();
+            try {
+                if (run.getPathJson() != null) {
+                    path = gson.fromJson(run.getPathJson(), new TypeToken<List<GeoPoint>>(){}.getType());
+                }
+            } catch (Exception ignored) {}
+
+            double[] paceSplits = null;
+            double[] elevSplits = null;
+            int[] cadSplits = null;
+            try {
+                if (run.getSplitsJson() != null) paceSplits = gson.fromJson(run.getSplitsJson(), double[].class);
+                if (run.getElevationSplitsJson() != null) elevSplits = gson.fromJson(run.getElevationSplitsJson(), double[].class);
+                if (run.getCadenceSplitsJson() != null) cadSplits = gson.fromJson(run.getCadenceSplitsJson(), int[].class);
+            } catch (Exception ignored) {}
+
+            final List<GeoPoint> finalPath = path;
+            final double[] finalPaceSplits = paceSplits;
+            final double[] finalElevSplits = elevSplits;
+            final int[] finalCadSplits = cadSplits;
+
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed()) return;
+                populateData(run, finalPath, finalPaceSplits, finalElevSplits, finalCadSplits);
+            });
         }).start();
     }
 
@@ -239,23 +287,18 @@ public class ActivityDetailActivity extends AppCompatActivity {
 
         Polyline polyline = new Polyline();
         polyline.setPoints(path);
-        // Use a color that stands out in inverted dark mode
         polyline.getOutlinePaint().setColor(Color.parseColor("#C8F43A"));
         polyline.getOutlinePaint().setStrokeWidth(12f);
         
         map.getOverlayManager().add(polyline);
 
-        // Add Start Marker (White)
         Marker startMarker = new Marker(map);
         startMarker.setPosition(path.get(0));
         startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         startMarker.setIcon(ContextCompat.getDrawable(this, R.drawable.marker_start));
         startMarker.setTitle("Start");
-        // Ensure marker is not inverted by the map filter if possible, 
-        // but since it's an overlay it might be. Let's keep it simple first.
         map.getOverlays().add(startMarker);
 
-        // Add Finish Marker (Lime)
         Marker endMarker = new Marker(map);
         endMarker.setPosition(path.get(path.size() - 1));
         endMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
@@ -270,7 +313,6 @@ public class ActivityDetailActivity extends AppCompatActivity {
             } catch (Exception ignored) {}
         });
         
-        // If map is already laid out, zoom immediately
         if (map.isLayoutOccurred()) {
             try {
                 BoundingBox box = BoundingBox.fromGeoPoints(path);
@@ -299,7 +341,6 @@ public class ActivityDetailActivity extends AppCompatActivity {
             return;
         }
 
-        // Charts data processing already happened or uses passed splits
         float[] paceData = new float[paceSplits.length];
         String[] paceInfo = new String[paceSplits.length];
         double totalPaceSecs = 0, minPaceSecs = 999999;

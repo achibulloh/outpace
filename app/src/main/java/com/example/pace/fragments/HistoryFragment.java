@@ -25,6 +25,7 @@ import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.SimpleDateFormat;
@@ -236,48 +237,55 @@ public class HistoryFragment extends Fragment {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null || !isAdded()) return;
 
+        // Fetching all data from Cloud because local DB is only for temporary unsynced data
         FirebaseFirestore.getInstance()
                 .collection("users").document(user.getUid())
                 .collection("runs")
-                .whereGreaterThan("timestamp", sinceTimestamp)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!isAdded() || queryDocumentSnapshots.isEmpty()) return;
+                    if (!isAdded()) return;
                     
                     List<RunRecord> cloudRecords = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        try {
-                            RunRecord r = doc.toObject(RunRecord.class);
-                            if (r != null) {
-                                r.setSynced(true);
-                                cloudRecords.add(r);
-                            }
-                        } catch (Exception ignored) {}
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                            try {
+                                RunRecord r = doc.toObject(RunRecord.class);
+                                if (r != null) {
+                                    r.setSynced(true);
+                                    cloudRecords.add(r);
+                                }
+                            } catch (Exception ignored) {}
+                        }
                     }
                     
-                    if (!cloudRecords.isEmpty()) {
-                        new Thread(() -> {
-                            Context context = getContext();
-                            if (context == null || !isAdded()) return;
-                            
-                            try {
-                                AppDatabase db = AppDatabase.getInstance(context);
-                                db.runDao().insertAll(cloudRecords);
-                                List<RunRecord> updatedRecords = db.runDao().getAllRuns();
-                                
-                                if (getActivity() != null && isAdded()) {
-                                    getActivity().runOnUiThread(() -> {
-                                        if (!isAdded()) return;
-                                        allRecords.clear();
-                                        allRecords.addAll(updatedRecords);
-                                        applyFilter(currentFilter);
-                                    });
+                    // We combine cloud records with any unsynced local records already in allRecords
+                    // Actually, allRecords already has localRecords from loadHistoryData()
+                    // We should merge them carefully (prevent duplicates)
+                    getActivity().runOnUiThread(() -> {
+                        if (!isAdded()) return;
+                        
+                        // Merge logic: cloudRecords is source of truth
+                        // We keep local unsynced records that are NOT in cloud yet
+                        List<RunRecord> merged = new ArrayList<>(cloudRecords);
+                        for (RunRecord local : allRecords) {
+                            boolean exists = false;
+                            for (RunRecord cloud : cloudRecords) {
+                                if (local.getFirebaseId().equals(cloud.getFirebaseId())) {
+                                    exists = true;
+                                    break;
                                 }
-                            } catch (Exception e) {
-                                e.printStackTrace();
                             }
-                        }).start();
-                    }
+                            if (!exists) merged.add(local);
+                        }
+                        
+                        allRecords.clear();
+                        allRecords.addAll(merged);
+                        // Sort by timestamp descending
+                        allRecords.sort((r1, r2) -> Long.compare(r2.getTimestamp(), r1.getTimestamp()));
+                        
+                        applyFilter(currentFilter);
+                    });
                 });
     }
 

@@ -26,8 +26,10 @@ import com.example.pace.views.LineChartView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,23 +53,20 @@ public class ProgressFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = null;
-        try {
-            view = inflater.inflate(R.layout.fragment_progress, container, false);
-            initUI(view);
-            
-            View btnLeaderboard = view.findViewById(R.id.btnLeaderboard);
-            if (btnLeaderboard != null) {
-                btnLeaderboard.setOnClickListener(v -> {
-                    if (isAdded()) startActivity(new Intent(getActivity(), LeaderboardActivity.class));
-                });
-            }
-            
-            loadPreferences();
-            loadProgressData();
-        } catch (Exception e) {
-            e.printStackTrace();
+        View view = inflater.inflate(R.layout.fragment_progress, container, false);
+        initUI(view);
+
+        View btnLeaderboard = view.findViewById(R.id.btnLeaderboard);
+        if (btnLeaderboard != null) {
+            btnLeaderboard.setOnClickListener(v -> {
+                if (isAdded() && getActivity() != null) {
+                    startActivity(new Intent(getActivity(), LeaderboardActivity.class));
+                }
+            });
         }
+
+        loadPreferences();
+        loadProgressData();
         return view;
     }
 
@@ -182,22 +181,49 @@ public class ProgressFragment extends Fragment {
     private void loadProgressData() {
         Context context = getContext();
         if (context == null) return;
-        
-        new Thread(() -> {
-            try {
-                List<RunRecord> records = AppDatabase.getInstance(context).runDao().getAllRuns();
-                if (isAdded() && getActivity() != null) {
-                    calculateAndDisplay(records);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        // Fetch everything from Cloud for accurate progress, since local is only for unsynced
+        FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                .collection("runs")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!isAdded() || getActivity() == null) return;
+                    
+                    List<RunRecord> allRecords = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        allRecords.add(doc.toObject(RunRecord.class));
+                    }
+                    
+                    calculateAndDisplay(allRecords);
+                })
+                .addOnFailureListener(e -> {
+                    // Fallback to local if cloud fails
+                    new Thread(() -> {
+                        try {
+                            List<RunRecord> records = AppDatabase.getInstance(context).runDao().getAllRuns();
+                            if (isAdded() && getActivity() != null) {
+                                calculateAndDisplay(records);
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                });
     }
 
     private void calculateAndDisplay(List<RunRecord> records) {
         if (!isAdded() || getActivity() == null) return;
-        fetchAIProgressInsights(records);
+        
+        // Fetch AI insights safely
+        try {
+            fetchAIProgressInsights(records);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         double monthlyKm = 0;
         double weeklyKm = 0;
@@ -249,34 +275,37 @@ public class ProgressFragment extends Fragment {
         final double finalWeeklyKm = weeklyKm;
         final Set<Integer> finalActiveDays = activeDays;
         
-        getActivity().runOnUiThread(() -> {
-            if (!isAdded() || getActivity() == null) return;
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                if (!isAdded() || getActivity() == null || getView() == null) return;
 
-            updateProgress(progressMonthly, tvTargetAchieved, tvTargetPercent, (float)finalMonthlyKm, monthlyTargetKm);
-            updateProgress(progressWeekly, tvWeeklyAchieved, tvWeeklyPercent, (float)finalWeeklyKm, weeklyTargetKm);
-            
-            if (barChart != null) barChart.setData(weeklyDistData);
-            if (lineChart != null) {
-                lineChart.setDetailedData(weeklyPaceData, new String[]{"W1", "W2", "W3", "W4"});
-            }
-            if (calendarDots != null) calendarDots.setActiveDays(finalActiveDays);
-            
-            if (runCountPerWeek[3] > 0 && runCountPerWeek[2] > 0) {
-                if (weeklyPaceData[3] < weeklyPaceData[2]) tvPaceTrend.setText(getString(R.string.pace_improving));
-                else tvPaceTrend.setText(getString(R.string.pace_declining));
-            }
-        });
+                updateProgress(progressMonthly, tvTargetAchieved, tvTargetPercent, (float)finalMonthlyKm, monthlyTargetKm);
+                updateProgress(progressWeekly, tvWeeklyAchieved, tvWeeklyPercent, (float)finalWeeklyKm, weeklyTargetKm);
+                
+                if (barChart != null) barChart.setData(weeklyDistData);
+                if (lineChart != null) {
+                    lineChart.setDetailedData(weeklyPaceData, new String[]{"W1", "W2", "W3", "W4"});
+                }
+                if (calendarDots != null) calendarDots.setActiveDays(finalActiveDays);
+                
+                if (runCountPerWeek[3] > 0 && runCountPerWeek[2] > 0) {
+                    if (weeklyPaceData[3] < weeklyPaceData[2]) tvPaceTrend.setText(getString(R.string.pace_improving));
+                    else tvPaceTrend.setText(getString(R.string.pace_declining));
+                }
+            });
+        }
     }
 
     private void fetchAIProgressInsights(List<RunRecord> allRuns) {
-        if (!isAdded() || getContext() == null) return;
+        if (!isAdded() || getContext() == null || getView() == null) return;
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null || allRuns == null || allRuns.isEmpty()) return;
 
         // SMART CACHE (LOCAL + CLOUD)
-        SharedPreferences prefs = getContext().getSharedPreferences("ai_cache", Context.MODE_PRIVATE);
+        Context context = getContext();
+        SharedPreferences prefs = context.getSharedPreferences("ai_cache", Context.MODE_PRIVATE);
         String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
-        String lang = LocaleHelper.getLanguage(getContext());
+        String lang = LocaleHelper.getLanguage(context);
         String progressKey = "progress_" + allRuns.size() + "_" + today + "_" + lang;
         String cachedProgress = prefs.getString(progressKey, null);
 
@@ -288,14 +317,20 @@ public class ProgressFragment extends Fragment {
         // CHECK CLOUD BEFORE CALLING AI
         FirebaseFirestore.getInstance().collection("users").document(user.getUid()).get()
                 .addOnSuccessListener(doc -> {
-                    if (!isAdded()) return;
+                    if (!isAdded() || getView() == null) return;
                     if (doc.exists() && doc.contains("cachedProgressInsights")) {
                         String cloudKey = doc.getString("cachedProgressKey");
                         if (progressKey.equals(cloudKey)) {
                             String cloudInsights = doc.getString("cachedProgressInsights");
                             if (cloudInsights != null) {
                                 prefs.edit().putString(progressKey, cloudInsights).apply();
-                                if (getActivity() != null) getActivity().runOnUiThread(() -> tvAIProgressInsights.setText(cloudInsights));
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        if (isAdded() && tvAIProgressInsights != null) {
+                                            tvAIProgressInsights.setText(cloudInsights);
+                                        }
+                                    });
+                                }
                                 return;
                             }
                         }
@@ -307,10 +342,12 @@ public class ProgressFragment extends Fragment {
     }
 
     private void generateNewProgressInsights(List<RunRecord> allRuns, String uid, String progressKey, SharedPreferences prefs) {
-        if (!isAdded()) return;
+        if (!isAdded() || getContext() == null || getView() == null) return;
+        
+        final Context context = getContext();
         FirebaseFirestore.getInstance().collection("users").document(uid).get()
                 .addOnSuccessListener(doc -> {
-                    if (!isAdded()) return;
+                    if (!isAdded() || getView() == null) return;
                     com.example.pace.model.User userModel = doc.toObject(com.example.pace.model.User.class);
                     if (userModel == null) return;
 
@@ -325,25 +362,36 @@ public class ProgressFragment extends Fragment {
                         history.toString(), userModel.getGoal());
 
                     String firstName = userModel.getName() != null ? userModel.getName().split(" ")[0] : "Runner";
-                    String lang = LocaleHelper.getLanguage(getContext());
-                    GeminiAssistant.getInstance().chat(getContext(), prompt, firstName, true, lang, new GeminiAssistant.AIResponseCallback() {
+                    String lang = LocaleHelper.getLanguage(context);
+                    
+                    GeminiAssistant.getInstance().chat(context, prompt, firstName, true, lang, new GeminiAssistant.AIResponseCallback() {
                         @Override
                         public void onSuccess(String response) {
-                            if (isAdded() && getActivity() != null) getActivity().runOnUiThread(() -> {
-                                if (!response.contains("retry") && !response.contains("busy") && !response.contains("{") && !response.contains("Unexpected")) {
-                                    prefs.edit().putString(progressKey, response).apply();
-                                    // Save to Firestore
-                                    Map<String, Object> data = new HashMap<>();
-                                    data.put("cachedProgressKey", progressKey);
-                                    data.put("cachedProgressInsights", response);
-                                    FirebaseFirestore.getInstance().collection("users").document(uid).update(data);
-                                }
-                                tvAIProgressInsights.setText(response);
-                            });
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    if (!isAdded() || getView() == null || tvAIProgressInsights == null) return;
+                                    
+                                    if (!response.contains("retry") && !response.contains("busy") && !response.contains("{") && !response.contains("Unexpected")) {
+                                        prefs.edit().putString(progressKey, response).apply();
+                                        // Save to Firestore
+                                        Map<String, Object> data = new HashMap<>();
+                                        data.put("cachedProgressKey", progressKey);
+                                        data.put("cachedProgressInsights", response);
+                                        FirebaseFirestore.getInstance().collection("users").document(uid).update(data);
+                                    }
+                                    tvAIProgressInsights.setText(response);
+                                });
+                            }
                         }
                         @Override
                         public void onError(String friendlyError) {
-                            if (isAdded() && getActivity() != null) getActivity().runOnUiThread(() -> tvAIProgressInsights.setText(friendlyError));
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    if (isAdded() && tvAIProgressInsights != null) {
+                                        tvAIProgressInsights.setText(friendlyError);
+                                    }
+                                });
+                            }
                         }
                     });
                 });

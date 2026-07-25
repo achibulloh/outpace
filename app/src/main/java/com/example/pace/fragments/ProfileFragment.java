@@ -2,15 +2,12 @@ package com.example.pace.fragments;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -20,93 +17,88 @@ import com.example.pace.activities.HelpActivity;
 import com.example.pace.activities.LoginActivity;
 import com.example.pace.activities.PrivacyActivity;
 import com.example.pace.activities.SettingsActivity;
-import com.example.pace.database.AppDatabase;
 import com.example.pace.model.RunRecord;
 import com.example.pace.model.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
-import java.util.List;
 import java.util.Locale;
 
 public class ProfileFragment extends Fragment {
+
+    private ListenerRegistration userListener, statsListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
-        loadUserData(view);
-        loadStats(view);
-
-        view.findViewById(R.id.btnEditProfile).setOnClickListener(v -> {
-            startActivity(new Intent(getActivity(), EditProfileActivity.class));
-        });
-
-        view.findViewById(R.id.btnSettings).setOnClickListener(v -> {
-            startActivity(new Intent(getActivity(), SettingsActivity.class));
-        });
-
-        view.findViewById(R.id.btnPrivacy).setOnClickListener(v -> {
-            startActivity(new Intent(getActivity(), PrivacyActivity.class));
-        });
-
-        view.findViewById(R.id.btnHelp).setOnClickListener(v -> {
-            startActivity(new Intent(getActivity(), HelpActivity.class));
-        });
-
-        view.findViewById(R.id.btnLogout).setOnClickListener(v -> {
-            Context context = getContext();
-            if (context == null) return;
-            
-            // Sign out from Firebase
-            FirebaseAuth.getInstance().signOut();
-            
-            // Also sign out from Google to avoid "auto-login" or crashes on next attempt
-            try {
-                com.google.android.gms.auth.api.signin.GoogleSignInOptions gso = new com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestIdToken(getString(R.string.default_web_client_id))
-                        .requestEmail()
-                        .build();
-                com.google.android.gms.auth.api.signin.GoogleSignInClient mGoogleSignInClient = com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(context, gso);
-                mGoogleSignInClient.signOut().addOnCompleteListener(task -> {
-                    if (isAdded()) {
-                        startActivity(new Intent(getActivity(), LoginActivity.class));
-                        if (getActivity() != null) getActivity().finish();
-                    }
-                });
-            } catch (Exception e) {
-                // Fallback if Google client fails
-                startActivity(new Intent(getActivity(), LoginActivity.class));
-                if (getActivity() != null) getActivity().finish();
-            }
-        });
+        setupClickListeners(view);
+        startRealtimeUpdates(view);
 
         return view;
     }
 
-    private void loadUserData(View view) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            String uid = currentUser.getUid();
-            String email = currentUser.getEmail();
-            
-            TextView tvUserName = view.findViewById(R.id.tvUserName);
-            TextView tvUserEmail = view.findViewById(R.id.tvUserEmail);
-            
-            tvUserEmail.setText(email);
+    private void setupClickListeners(View view) {
+        view.findViewById(R.id.btnEditProfile).setOnClickListener(v -> startActivity(new Intent(getActivity(), EditProfileActivity.class)));
+        view.findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(getActivity(), SettingsActivity.class)));
+        view.findViewById(R.id.btnPrivacy).setOnClickListener(v -> startActivity(new Intent(getActivity(), PrivacyActivity.class)));
+        view.findViewById(R.id.btnHelp).setOnClickListener(v -> startActivity(new Intent(getActivity(), HelpActivity.class)));
+        
+        view.findViewById(R.id.btnLogout).setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            startActivity(new Intent(getActivity(), LoginActivity.class));
+            if (getActivity() != null) getActivity().finish();
+        });
+    }
 
-            FirebaseFirestore.getInstance().collection("users").document(uid).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (isAdded() && getActivity() != null) {
-                            User user = documentSnapshot.toObject(User.class);
-                            if (user != null) {
-                                tvUserName.setText(user.getName() != null ? user.getName() : currentUser.getDisplayName());
-                                updateBMICard(view, user);
-                            }
+    private void startRealtimeUpdates(View view) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) return;
+        String uid = currentUser.getUid();
+
+        // 1. Listen to User Profile & BMI data
+        userListener = FirebaseFirestore.getInstance().collection("users").document(uid)
+                .addSnapshotListener((doc, error) -> {
+                    if (error != null || doc == null || !doc.exists()) return;
+                    User user = doc.toObject(User.class);
+                    if (user != null && isAdded()) {
+                        ((TextView) view.findViewById(R.id.tvUserName)).setText(user.getName());
+                        ((TextView) view.findViewById(R.id.tvUserEmail)).setText(user.getEmail());
+                        updateBMICard(view, user);
+                    }
+                });
+
+        // 2. Listen to ALL Runs to calculate Total Stats (Real-time)
+        statsListener = FirebaseFirestore.getInstance().collection("users").document(uid)
+                .collection("runs")
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null || snapshots == null || !isAdded()) return;
+
+                    double totalDist = 0;
+                    int totalCal = 0;
+                    int count = snapshots.size();
+
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        RunRecord r = doc.toObject(RunRecord.class);
+                        if (r != null) {
+                            totalDist += r.getDistance();
+                            totalCal += r.getCalories();
                         }
-                    });
-        }
+                    }
+
+                    TextView tvRuns = view.findViewById(R.id.tvTotalRunsValue);
+                    TextView tvDist = view.findViewById(R.id.tvTotalDistanceValue);
+                    TextView tvCal = view.findViewById(R.id.tvTotalCaloriesValue);
+
+                    if (tvRuns != null) tvRuns.setText(String.valueOf(count));
+                    if (tvDist != null) tvDist.setText(String.format(Locale.getDefault(), "%.1f", totalDist));
+                    if (tvCal != null) {
+                        tvCal.setText(totalCal > 1000 ? String.format(Locale.getDefault(), "%.1fk", totalCal / 1000.0) : String.valueOf(totalCal));
+                    }
+                });
     }
 
     private void updateBMICard(View v, User user) {
@@ -150,36 +142,10 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    private void loadStats(View view) {
-        new Thread(() -> {
-            Context context = getContext();
-            if (context == null || !isAdded()) return;
-            
-            try {
-                List<RunRecord> records = AppDatabase.getInstance(context).runDao().getAllRuns();
-                double totalDist = 0;
-                int totalCal = 0;
-                
-                for (RunRecord r : records) {
-                    totalDist += r.getDistance();
-                    totalCal += r.getCalories();
-                }
-
-                final double fDist = totalDist;
-                final int fCal = totalCal;
-                final int count = records.size();
-
-                if (isAdded() && getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        if (!isAdded()) return;
-                        ((TextView)view.findViewById(R.id.tvTotalRunsValue)).setText(String.valueOf(count));
-                        ((TextView)view.findViewById(R.id.tvTotalDistanceValue)).setText(String.format(Locale.getDefault(), "%.1f", fDist));
-                        ((TextView)view.findViewById(R.id.tvTotalCaloriesValue)).setText(fCal > 1000 ? String.format(Locale.getDefault(), "%.1fk", fCal/1000.0) : String.valueOf(fCal));
-                    });
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (userListener != null) userListener.remove();
+        if (statsListener != null) statsListener.remove();
     }
 }

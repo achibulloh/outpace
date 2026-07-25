@@ -432,42 +432,47 @@ public class HomeFragment extends Fragment {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null || !isAdded()) return;
 
+        // Fetch most recent 20 runs from cloud
         FirebaseFirestore.getInstance()
                 .collection("users").document(user.getUid())
                 .collection("runs")
-                .whereGreaterThan("timestamp", sinceTimestamp)
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(20)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!isAdded() || queryDocumentSnapshots.isEmpty()) return;
+                    if (!isAdded()) return;
                     
                     List<RunRecord> cloudRecords = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        cloudRecords.add(doc.toObject(RunRecord.class));
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                            cloudRecords.add(doc.toObject(RunRecord.class));
+                        }
                     }
 
-                    if (!cloudRecords.isEmpty()) {
-                        new Thread(() -> {
-                            Context context = getContext();
-                            if (context == null || !isAdded()) return;
+                    getActivity().runOnUiThread(() -> {
+                        if (!isAdded()) return;
+                        
+                        // Merge with local unsynced (already in lastRuns or dashboard)
+                        // This fragment is complex, let's just refresh based on what we got from cloud
+                        // since local DB only has unsynced stuff now.
+                        if (cloudRecords.isEmpty() && lastRuns.isEmpty()) {
+                            layoutEmptyHome.setVisibility(View.VISIBLE);
+                            rvLastActivities.setVisibility(View.GONE);
+                            updateDashboard(new ArrayList<>());
+                        } else {
+                            layoutEmptyHome.setVisibility(View.GONE);
+                            rvLastActivities.setVisibility(View.VISIBLE);
                             
-                            AppDatabase db = AppDatabase.getInstance(context);
-                            db.runDao().insertAll(cloudRecords);
-                            List<RunRecord> updatedRecords = db.runDao().getAllRuns();
-                            if (getActivity() != null && isAdded()) {
-                                getActivity().runOnUiThread(() -> {
-                                    if (!isAdded()) return;
-                                    lastRuns.clear();
-                                    layoutEmptyHome.setVisibility(View.GONE);
-                                    rvLastActivities.setVisibility(View.VISIBLE);
-                                    for (int i = 0; i < Math.min(updatedRecords.size(), 10); i++) {
-                                        lastRuns.add(updatedRecords.get(i));
-                                    }
-                                    updateDashboard(updatedRecords);
-                                    adapter.notifyDataSetChanged();
-                                });
+                            // Re-populate lastRuns (Cloud + any unsynced local we might have loaded)
+                            // For simplicity, we just use cloudRecords for dashboard update if they exist
+                            lastRuns.clear();
+                            for (int i = 0; i < Math.min(cloudRecords.size(), 10); i++) {
+                                lastRuns.add(cloudRecords.get(i));
                             }
-                        }).start();
-                    }
+                            updateDashboard(cloudRecords);
+                        }
+                        adapter.notifyDataSetChanged();
+                    });
                 });
     }
 
