@@ -431,4 +431,26 @@
     <string name="unit_meter">meter</string>
     <string name="ai_coach_connection_error">Koneksi Error. Mencoba lagi...</string>
     <string name="ai_coach_rate_limit">Coach sedang sibuk. Mencoba lagi...</string>
+    <string name="report_issue">Laporkan Masalah</string>
+    <string name="view_help_history">Lihat Riwayat Bantuan</string>
+    <string name="issue_category">Kategori Masalah</string>
+    <string name="issue_description">Deskripsi</string>
+    <string name="issue_description_hint">Jelaskan masalah Anda di sini...</string>
+    <string name="btn_submit_ticket">Kirim Tiket</string>
+    <string name="ticket_submitted">Tiket Anda telah dikirim!</string>
+    <string name="fill_all_fields">Harap isi semua bidang</string>
+    <string name="help_history_title">Tiket Bantuan</string>
+    <string name="no_tickets">Anda belum mengirimkan tiket bantuan apa pun. Riwayat tiket Anda akan muncul di sini.</string>
+    <string name="status_open">Terbuka</string>
+    <string name="status_pending">Tertunda</string>
+    <string name="status_resolved">Selesai</string>
+    <string name="priority_low">Rendah</string>
+    <string name="priority_medium">Sedang</string>
+    <string name="priority_high">Tinggi</string>
+    <string name="cat_account">Masalah Akun</string>
+    <string name="cat_bug">Laporan Bug</string>
+    <string name="cat_feature">Permintaan Fitur</string>
+    <string name="cat_other">Lainnya</string>
+    <string name="specify_category">Tentukan kategori...</string>
+    <string name="error_specify_category">Harap tentukan kategorinya</string>
 </resources>

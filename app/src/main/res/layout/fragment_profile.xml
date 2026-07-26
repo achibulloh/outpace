@@ -15,7 +15,7 @@
         android:orientation="vertical"
         android:paddingHorizontal="24dp"
         android:paddingTop="24dp"
-        android:paddingBottom="120dp"
+        android:paddingBottom="200dp"
         android:clipToPadding="false">
 
         <!-- Profile Header -->

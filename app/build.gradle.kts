@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.analytics)
+    implementation("com.google.firebase:firebase-messaging")
 
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.osmdroid:osmdroid-android:6.1.20")

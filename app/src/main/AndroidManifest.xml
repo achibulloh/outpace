@@ -48,6 +48,7 @@
         <activity android:name=".activities.ShareActivity" android:exported="false"/>
         <activity android:name=".activities.PrivacyActivity" android:exported="false"/>
         <activity android:name=".activities.HelpActivity" android:exported="false"/>
+        <activity android:name=".activities.HelpHistoryActivity" android:exported="false"/>
         <activity android:name=".activities.ChatHistoryActivity" android:exported="false"/>
         <activity android:name=".activities.GeminiChatActivity"
             android:exported="false"
@@ -68,5 +69,13 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location" />
+
+        <service
+            android:name=".services.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

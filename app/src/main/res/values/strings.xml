@@ -431,4 +431,26 @@
     <string name="unit_meter">meter</string>
     <string name="ai_coach_connection_error">Connection Error. Retrying...</string>
     <string name="ai_coach_rate_limit">Coach is busy (Quota). Retrying...</string>
+    <string name="report_issue">Report an Issue</string>
+    <string name="view_help_history">View Help History</string>
+    <string name="issue_category">Issue Category</string>
+    <string name="issue_description">Description</string>
+    <string name="issue_description_hint">Describe your problem here...</string>
+    <string name="btn_submit_ticket">Submit Ticket</string>
+    <string name="ticket_submitted">Your ticket has been submitted!</string>
+    <string name="fill_all_fields">Please fill all fields</string>
+    <string name="help_history_title">Support Tickets</string>
+    <string name="no_tickets">You haven\'t submitted any support tickets yet. Your ticket history will appear here.</string>
+    <string name="status_open">Open</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_resolved">Resolved</string>
+    <string name="priority_low">Low</string>
+    <string name="priority_medium">Medium</string>
+    <string name="priority_high">High</string>
+    <string name="cat_account">Account Issues</string>
+    <string name="cat_bug">Bug Report</string>
+    <string name="cat_feature">Feature Request</string>
+    <string name="cat_other">Other</string>
+    <string name="specify_category">Specify category...</string>
+    <string name="error_specify_category">Please specify the category</string>
 </resources>
