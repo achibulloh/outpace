@@ -106,25 +106,28 @@ public class ActivityDetailActivity extends AppCompatActivity {
     private void initViews() {
         map = findViewById(R.id.mapDetail);
         
-        map.setTileSource(new org.osmdroid.tileprovider.tilesource.XYTileSource("OSMHot", 0, 19, 256, ".png", 
+        // SOLUSI TERCEPAT: Gunakan CartoDB Dark Matter (Native Dark)
+        map.setTileSource(new org.osmdroid.tileprovider.tilesource.XYTileSource("CartoDB_Dark_V3", 0, 20, 256, ".png",
                 new String[] {
-                    "https://a.tile.openstreetmap.fr/hot/",
-                    "https://b.tile.openstreetmap.fr/hot/",
-                    "https://c.tile.openstreetmap.fr/hot/" 
-                }));
+                    "https://a.basemaps.cartocdn.com/dark_all/",
+                    "https://b.basemaps.cartocdn.com/dark_all/",
+                    "https://c.basemaps.cartocdn.com/dark_all/",
+                    "https://d.basemaps.cartocdn.com/dark_all/"
+                }, "© CartoDB, © OpenStreetMap contributors"));
                 
         map.setMultiTouchControls(true);
         map.getController().setZoom(16.0);
-        map.setBackgroundColor(Color.parseColor("#121212"));
+        map.setFlingEnabled(true);
+        map.setHasTransientState(true);
+        map.setDestroyMode(false);
+        map.setTilesScaledToDpi(true);
+        map.getOverlayManager().getTilesOverlay().setLoadingBackgroundColor(Color.parseColor("#0F0F12"));
+        map.setBackgroundColor(Color.parseColor("#0F0F12"));
+        map.setUseDataConnection(true);
 
-        // Apply Dark Mode Filter to the map tiles
-        float[] negative = {
-                -1.0f, 0, 0, 0, 255, // red
-                0, -1.0f, 0, 0, 255, // green
-                0, 0, -1.0f, 0, 255, // blue
-                0, 0, 0, 1.0f, 0     // alpha
-        };
-        map.getOverlayManager().getTilesOverlay().setColorFilter(new android.graphics.ColorMatrixColorFilter(negative));
+        // HAPUS FILTER: Karena peta CartoDB sudah gelap secara alami, 
+        // kita tidak butuh filter yang memperlambat render.
+        map.getOverlayManager().getTilesOverlay().setColorFilter(null);
         
         btnRingkasan = findViewById(R.id.btnTabRingkasan);
         btnSplit = findViewById(R.id.btnTabSplit);
